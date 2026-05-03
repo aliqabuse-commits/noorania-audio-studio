@@ -12,7 +12,20 @@ let index = 0;
 let mediaRecorder;
 let audioChunks = [];
 let audioBlob = null;
+let isRecording = false;
+function toggleRecording() {
+  if (!isRecording) {
+    startRecording();
+    isRecording = true;
 
+    document.getElementById("recordBtn").innerText = "⏹ إيقاف";
+  } else {
+    stopRecording();
+    isRecording = false;
+
+    document.getElementById("recordBtn").innerText = "🎙 تسجيل";
+  }
+}
 // ✅ تحديث العرض
 function updateUI() {
   document.getElementById("unit").innerText = units[index].text;
