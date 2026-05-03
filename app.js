@@ -31,9 +31,9 @@ window.onload = function () {
 };
 
 function updateUI() {
-  document.getElementById("unit").innerText = units[index].text;
-  document.getElementById("filename").innerText = units[index].file;
-  document.getElementById("counter").innerText = (index + 1) + " / " + units.length;
+  document.getElementById("unit").innerText = currentUnits[index].text;
+  document.getElementById("filename").innerText = currentUnits[index].file;
+  document.getElementById("counter").innerText = (index + 1) + " / " + currentUnits.length;
   renderUnitList();
 }
 
@@ -90,20 +90,20 @@ function download() {
 
   const a = document.createElement("a");
   a.href = URL.createObjectURL(audioBlob);
-  a.download = units[index].file;
+  a.download = currentUnits[index].file;
   a.click();
 }
 
 function nextUnit() {
   index++;
-  if (index >= units.length) index = 0;
+  if (index >= currentUnits.length) index = 0;
   audioBlob = null;
   updateUI();
 }
 
 function prevUnit() {
   index--;
-  if (index < 0) index = units.length - 1;
+  if (index < 0) index = currentUnits.length - 1;
   audioBlob = null;
   updateUI();
 }
@@ -118,7 +118,7 @@ function approveAndNext() {
   audioBlob = null;
 
   index++;
-  if (index >= units.length) {
+  if (index >= currentUnits.length) {
     alert("تم تسجيل كل الوحدات");
     index = 0;
   }
