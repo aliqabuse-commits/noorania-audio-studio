@@ -13,38 +13,46 @@ let mediaRecorder;
 let audioChunks = [];
 let audioBlob = null;
 let isRecording = false;
-function toggleRecording() {
-  if (!isRecording) {
-    startRecording();
-    isRecording = true;
 
-    document.getElementById("recordBtn").innerText = "⏹ إيقاف";
-  } else {
-    stopRecording();
-    isRecording = false;
-
-    document.getElementById("recordBtn").innerText = "🎙 تسجيل";
-  }
-// ✅ تشغيل أول وحدة
 window.onload = function () {
   updateUI();
 };
 
-// 🎙 تسجيل
+function updateUI() {
+  document.getElementById("unit").innerText = units[index].text;
+  document.getElementById("filename").innerText = units[index].file;
+  document.getElementById("counter").innerText = (index + 1) + " / " + units.length;
+  renderUnitList();
+}
+
+function toggleRecording() {
+  if (!isRecording) {
+    startRecording();
+    isRecording = true;
+    document.getElementById("recordBtn").innerText = "⏹ إيقاف";
+  } else {
+    stopRecording();
+    isRecording = false;
+    document.getElementById("recordBtn").innerText = "🎙 تسجيل";
+  }
+}
+
 async function startRecording() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
     mediaRecorder = new MediaRecorder(stream);
-
     audioChunks = [];
 
-    mediaRecorder.ondataavailable = (e) => {
+    mediaRecorder.ondataavailable = function (e) {
       audioChunks.push(e.data);
     };
 
-    mediaRecorder.onstop = () => {
+    mediaRecorder.onstop = function () {
       audioBlob = new Blob(audioChunks);
+      stream.getTracks().forEach(function (track) {
+        track.stop();
+      });
     };
 
     mediaRecorder.start();
@@ -53,21 +61,18 @@ async function startRecording() {
   }
 }
 
-// ⏹ إيقاف
 function stopRecording() {
   if (mediaRecorder) {
     mediaRecorder.stop();
   }
 }
 
-// ▶️ تشغيل
 function play() {
   if (!audioBlob) return;
   const audio = new Audio(URL.createObjectURL(audioBlob));
   audio.play();
 }
 
-// ⬇️ تنزيل
 function download() {
   if (!audioBlob) return;
 
@@ -77,12 +82,20 @@ function download() {
   a.click();
 }
 
-// ➡️ التالي
 function nextUnit() {
   index++;
   if (index >= units.length) index = 0;
+  audioBlob = null;
   updateUI();
 }
+
+function prevUnit() {
+  index--;
+  if (index < 0) index = units.length - 1;
+  audioBlob = null;
+  updateUI();
+}
+
 function approveAndNext() {
   if (!audioBlob) {
     alert("سجّل الوحدة أولاً قبل الاعتماد");
@@ -90,7 +103,6 @@ function approveAndNext() {
   }
 
   download();
-
   audioBlob = null;
 
   index++;
@@ -101,20 +113,12 @@ function approveAndNext() {
 
   updateUI();
 }
+
 function rejectUnit() {
   audioBlob = null;
   alert("تم عدم اعتماد التسجيل. أعد تسجيل هذه الوحدة.");
 }
-function prevUnit() {
-  index--;
 
-  if (index < 0) {
-    index = units.length - 1;
-  }
-
-  audioBlob = null; // تفريغ التسجيل الحالي
-  updateUI();
-}
 function renderUnitList() {
   const list = document.getElementById("unitList");
   if (!list) return;
@@ -123,7 +127,12 @@ function renderUnitList() {
 
   units.forEach(function (unit, i) {
     const btn = document.createElement("button");
-    btn.innerText = unit.text + " - " + unit.file;
+    btn.innerText = unit.text + " | " + unit.file;
+
+    btn.style.display = "block";
+    btn.style.margin = "8px auto";
+    btn.style.padding = "8px";
+    btn.style.width = "90%";
 
     if (i === index) {
       btn.style.background = "#cfe8ff";
@@ -137,6 +146,5 @@ function renderUnitList() {
     };
 
     list.appendChild(btn);
-    list.appendChild(document.createElement("br"));
   });
 }
