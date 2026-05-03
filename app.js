@@ -96,3 +96,7 @@ function approveAndNext() {
 
   updateUI();
 }
+function rejectUnit() {
+  audioBlob = null;
+  alert("تم عدم اعتماد التسجيل. أعد تسجيل هذه الوحدة.");
+}
