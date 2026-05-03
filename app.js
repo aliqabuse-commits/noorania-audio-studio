@@ -25,33 +25,7 @@ function toggleRecording() {
 
     document.getElementById("recordBtn").innerText = "🎙 تسجيل";
   }
-}
-// ✅ تحديث العرض
-function updateUI() {
-  document.getElementById("unit").innerText = units[index].text;
-  document.getElementById("filename").innerText = units[index].file;
-  document.getElementById("counter").innerText = (index + 1) + " / " + units.length;
-}
-function renderUnitList() {
-  const list = document.getElementById("unitList");
-  if (!list) return;
-
-  list.innerHTML = "";
-
-  units.forEach(function (unit, i) {
-    const btn = document.createElement("button");
-    btn.innerText = unit.text + " - " + unit.file;
-
-    if (i === index) {
-      btn.style.background = "#cfe8ff";
-      btn.style.fontWeight = "bold";
-    }
-
-    btn.onclick = function () {
-      index = i;
-      audioBlob = null;
-      updateUI();
-    };
+}renderUnitList();
 
     list.appendChild(btn);
     list.appendChild(document.createElement("br"));
@@ -146,4 +120,29 @@ function prevUnit() {
 
   audioBlob = null; // تفريغ التسجيل الحالي
   updateUI();
+}
+function renderUnitList() {
+  const list = document.getElementById("unitList");
+  if (!list) return;
+
+  list.innerHTML = "";
+
+  units.forEach(function (unit, i) {
+    const btn = document.createElement("button");
+    btn.innerText = unit.text + " - " + unit.file;
+
+    if (i === index) {
+      btn.style.background = "#cfe8ff";
+      btn.style.fontWeight = "bold";
+    }
+
+    btn.onclick = function () {
+      index = i;
+      audioBlob = null;
+      updateUI();
+    };
+
+    list.appendChild(btn);
+    list.appendChild(document.createElement("br"));
+  });
 }
