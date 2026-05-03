@@ -1,3 +1,11 @@
+const categories = [
+  { title: "أسماء الحروف الهجائية", type: "direct" },
+  { title: "الحروف المتحركة", type: "direct" },
+  { title: "الحروف الساكنة", type: "direct" },
+  { title: "التنوين", type: "direct" },
+  { title: "المد واللين", type: "direct" },
+  { title: "القوائم المرجعية", type: "sub" }
+];
 const units = [
   { text: "بَ", file: "ba_fatha.wav" },
   { text: "بِ", file: "ba_kasra.wav" },
