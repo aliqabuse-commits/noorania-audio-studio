@@ -100,3 +100,13 @@ function rejectUnit() {
   audioBlob = null;
   alert("تم عدم اعتماد التسجيل. أعد تسجيل هذه الوحدة.");
 }
+function prevUnit() {
+  index--;
+
+  if (index < 0) {
+    index = units.length - 1;
+  }
+
+  audioBlob = null; // تفريغ التسجيل الحالي
+  updateUI();
+}
