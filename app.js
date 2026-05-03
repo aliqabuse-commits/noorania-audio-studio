@@ -23,7 +23,7 @@ let audioBlob = null;
 let isRecording = false;
 
 window.onload = function () {
-  updateUI();
+  renderHome();
 };
 
 function updateUI() {
@@ -156,3 +156,29 @@ function renderUnitList() {
     list.appendChild(btn);
   });
 }
+function renderHome() {
+  const list = document.getElementById("categoryList");
+  list.innerHTML = "";
+
+  categories.forEach(function (cat) {
+    const btn = document.createElement("button");
+    btn.innerText = cat.title;
+    btn.style.display = "block";
+    btn.style.margin = "10px auto";
+    btn.style.padding = "12px";
+    btn.style.width = "90%";
+
+    btn.onclick = function () {
+      document.getElementById("homeView").style.display = "none";
+      document.getElementById("recordView").style.display = "block";
+      updateUI();
+    };
+
+    list.appendChild(btn);
+  });
+}
+
+function goHome() {
+  document.getElementById("recordView").style.display = "none";
+  document.getElementById("homeView").style.display = "block";
+          }
