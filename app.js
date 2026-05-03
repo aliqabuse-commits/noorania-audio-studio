@@ -5,53 +5,62 @@ const units = [
 
   { text: "أَبْ", file: "ba_sukoon_after_fatha.wav" },
   { text: "إِبْ", file: "ba_sukoon_after_kasra.wav" },
-  { text: "أُبْ", file: "ba_sukoon_after_damma.wav" },
-
-  { text: "أَمْ", file: "meem_sukoon_after_fatha.wav" },
-  { text: "أَنْ", file: "noon_sukoon_after_fatha.wav" },
-  { text: "أُلْ", file: "lam_sukoon_after_damma.wav" }
+  { text: "أُبْ", file: "ba_sukoon_after_damma.wav" }
 ];
 
 let index = 0;
-
 let mediaRecorder;
 let audioChunks = [];
-let audioBlob;
+let audioBlob = null;
 
+// ✅ تحديث العرض
 function updateUI() {
   document.getElementById("unit").innerText = units[index].text;
 }
 
-updateUI();
+// ✅ تشغيل أول وحدة
+window.onload = function () {
+  updateUI();
+};
 
+// 🎙 تسجيل
 async function startRecording() {
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-  mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder = new MediaRecorder(stream);
 
-  mediaRecorder.start();
+    audioChunks = [];
 
-  audioChunks = [];
+    mediaRecorder.ondataavailable = (e) => {
+      audioChunks.push(e.data);
+    };
 
-  mediaRecorder.ondataavailable = e => {
-    audioChunks.push(e.data);
-  };
+    mediaRecorder.onstop = () => {
+      audioBlob = new Blob(audioChunks);
+    };
 
-  mediaRecorder.onstop = () => {
-    audioBlob = new Blob(audioChunks);
-  };
+    mediaRecorder.start();
+  } catch (err) {
+    alert("❌ الميكروفون لم يعمل");
+  }
 }
 
+// ⏹ إيقاف
 function stopRecording() {
-  mediaRecorder.stop();
+  if (mediaRecorder) {
+    mediaRecorder.stop();
+  }
 }
 
+// ▶️ تشغيل
 function play() {
   if (!audioBlob) return;
   const audio = new Audio(URL.createObjectURL(audioBlob));
   audio.play();
 }
 
+// ⬇️ تنزيل
 function download() {
   if (!audioBlob) return;
 
@@ -61,6 +70,7 @@ function download() {
   a.click();
 }
 
+// ➡️ التالي
 function nextUnit() {
   index++;
   if (index >= units.length) index = 0;
