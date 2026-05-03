@@ -25,12 +25,6 @@ function toggleRecording() {
 
     document.getElementById("recordBtn").innerText = "🎙 تسجيل";
   }
-}renderUnitList();
-
-    list.appendChild(btn);
-    list.appendChild(document.createElement("br"));
-  });
-}
 // ✅ تشغيل أول وحدة
 window.onload = function () {
   updateUI();
