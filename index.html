@@ -11,7 +11,13 @@
   <h2 id="unit">بَ</h2>
 <p id="filename">ba_fatha.wav</p>
   <p id="counter">1 / 6</p>
-<button id="recordBtn" onclick="toggleRecording()">🎙 تسجيل</button>
+<div id="homeView">
+  <h2>القوائم الرئيسية</h2>
+  <div id="categoryList"></div>
+</div>
+
+<div id="recordView" style="display:none;">  
+<button id="recordBtn" onclick="toggleRecording()">🎙 تسجيل</button> 
 <button onclick="play()">▶️ استماع</button>
 <button onclick="download()">⬇️ تنزيل</button>
 <button onclick="approveAndNext()">✅ اعتماد وانتقال</button>  
@@ -23,6 +29,7 @@
 <h3>قائمة الوحدات</h3>
 <div id="unitList"></div>  
 <script src="app.js"></script>
+<button onclick="goHome()">🏠 الرئيسية</button>  
 </body>
 </html>
 
