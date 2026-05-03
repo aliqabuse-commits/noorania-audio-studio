@@ -201,3 +201,25 @@ function goHome() {
   document.getElementById("recordView").style.display = "none";
   document.getElementById("homeView").style.display = "block";
           }
+function addUnit() {
+  const text = document.getElementById("newText").value.trim();
+  const file = document.getElementById("newFile").value.trim();
+
+  if (!text || !file) {
+    alert("أدخل النص واسم الملف");
+    return;
+  }
+
+  currentUnits.push({
+    text: text,
+    file: file
+  });
+
+  document.getElementById("newText").value = "";
+  document.getElementById("newFile").value = "";
+
+  index = currentUnits.length - 1;
+  audioBlob = null;
+
+  updateUI();
+}
