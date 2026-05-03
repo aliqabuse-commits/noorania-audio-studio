@@ -137,7 +137,7 @@ function renderUnitList() {
 
   list.innerHTML = "";
 
-  units.forEach(function (unit, i) {
+  currentUnits.forEach(function (unit, i) {
     const btn = document.createElement("button");
     btn.innerText = unit.text + " | " + unit.file;
 
@@ -152,19 +152,15 @@ function renderUnitList() {
     }
 
     btn.onclick = function () {
-  currentUnits = allUnits[cat.title] || [];
-
-  index = 0;
-
-  document.getElementById("homeView").style.display = "none";
-  document.getElementById("recordView").style.display = "block";
-
-  updateUI();
-};
+      index = i;
+      audioBlob = null;
+      updateUI();
+    };
 
     list.appendChild(btn);
   });
 }
+
 function renderHome() {
   const list = document.getElementById("categoryList");
   list.innerHTML = "";
@@ -178,8 +174,13 @@ function renderHome() {
     btn.style.width = "90%";
 
     btn.onclick = function () {
+      currentUnits = allUnits[cat.title] || [];
+      index = 0;
+      audioBlob = null;
+
       document.getElementById("homeView").style.display = "none";
       document.getElementById("recordView").style.display = "block";
+
       updateUI();
     };
 
