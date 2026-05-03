@@ -17,6 +17,7 @@ let audioBlob = null;
 function updateUI() {
   document.getElementById("unit").innerText = units[index].text;
   document.getElementById("filename").innerText = units[index].file;
+  document.getElementById("counter").innerText = (index + 1) + " / " + units.length;
 }
 
 // ✅ تشغيل أول وحدة
@@ -75,5 +76,23 @@ function download() {
 function nextUnit() {
   index++;
   if (index >= units.length) index = 0;
+  updateUI();
+}
+function approveAndNext() {
+  if (!audioBlob) {
+    alert("سجّل الوحدة أولاً قبل الاعتماد");
+    return;
+  }
+
+  download();
+
+  audioBlob = null;
+
+  index++;
+  if (index >= units.length) {
+    alert("تم تسجيل كل الوحدات");
+    index = 0;
+  }
+
   updateUI();
 }
