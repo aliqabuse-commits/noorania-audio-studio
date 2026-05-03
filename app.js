@@ -31,9 +31,18 @@ window.onload = function () {
 };
 
 function updateUI() {
+  if (!currentUnits || currentUnits.length === 0) {
+    document.getElementById("unit").innerText = "لا توجد وحدات";
+    document.getElementById("filename").innerText = "";
+    document.getElementById("counter").innerText = "0 / 0";
+    renderUnitList();
+    return;
+  }
+
   document.getElementById("unit").innerText = currentUnits[index].text;
   document.getElementById("filename").innerText = currentUnits[index].file;
   document.getElementById("counter").innerText = (index + 1) + " / " + currentUnits.length;
+
   renderUnitList();
 }
 
