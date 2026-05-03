@@ -16,6 +16,7 @@ let audioBlob = null;
 // ✅ تحديث العرض
 function updateUI() {
   document.getElementById("unit").innerText = units[index].text;
+  document.getElementById("filename").innerText = units[index].file;
 }
 
 // ✅ تشغيل أول وحدة
