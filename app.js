@@ -18,6 +18,7 @@ const savedStatus = localStorage.getItem("unitStatus");
 if (savedStatus) {
   unitStatus = JSON.parse(savedStatus);
 }
+
 function saveUnitStatus() {
   localStorage.setItem("unitStatus", JSON.stringify(unitStatus));
 }
