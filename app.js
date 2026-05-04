@@ -138,7 +138,7 @@ saveUnitStatus();
 function rejectUnit() {
   const key = getUnitKey(currentUnits[index]);
 
-  unitStatus[key] = "rejected";
+  delete unitStatus[key];
   audioBlob = null;
 
   updateUI();
