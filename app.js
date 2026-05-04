@@ -57,7 +57,16 @@ function saveUnitStatus() {
 function getUnitKey(unit) {
   return unit.file;
 }
+function hasAudio(key, callback) {
+  const tx = db.transaction("recordings", "readonly");
+  const store = tx.objectStore("recordings");
 
+  const request = store.get(key);
+
+  request.onsuccess = function () {
+    callback(!!request.result);
+  };
+}
 window.onload = function () {
   renderHome();
 };
@@ -211,7 +220,30 @@ function renderUnitList() {
   list.innerHTML = "";
 
   currentUnits.forEach(function (unit, i) {
-    const btn = document.createElement("button");
+  const btn = document.createElement("button");
+
+  const key = getUnitKey(unit);
+
+  const status = unitStatus[key];
+  let mark = "⏳";
+
+  if (status === "approved") mark = "✅";
+  if (status === "rejected") mark = "❌";
+
+  hasAudio(key, function (exists) {
+    let audioMark = exists ? "🎧" : "";
+
+    btn.innerText = mark + " " + audioMark + " " + unit.text + " | " + unit.file;
+  });
+
+  btn.onclick = function () {
+    index = i;
+    audioBlob = null;
+    updateUI();
+  };
+
+  list.appendChild(btn);
+});
     const status = unitStatus[getUnitKey(unit)];
 let mark = "⏳";
 
