@@ -50,5 +50,5 @@ window.allUnits = {
       { text: "إِ" + l.ar + "ْ", file: l.key + "_sukoon_after_kasra.wav" },
       { text: "أُ" + l.ar + "ْ", file: l.key + "_sukoon_after_damma.wav" }
     ];
-  })
+  }),
 };
