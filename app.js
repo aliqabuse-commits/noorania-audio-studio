@@ -13,6 +13,14 @@ let audioChunks = [];
 let audioBlob = null;
 let isRecording = false;
 let unitStatus = {};
+const savedStatus = localStorage.getItem("unitStatus");
+
+if (savedStatus) {
+  unitStatus = JSON.parse(savedStatus);
+}
+function saveUnitStatus() {
+  localStorage.setItem("unitStatus", JSON.stringify(unitStatus));
+}
 function getUnitKey(unit) {
   return unit.file;
 }
@@ -115,7 +123,7 @@ function approveAndNext() {
   }
 
   unitStatus[getUnitKey(currentUnits[index])] = "approved";
-
+saveUnitStatus();
   audioBlob = null;
 
   index++;
@@ -132,6 +140,7 @@ function rejectUnit() {
   alert("تم عدم اعتماد التسجيل. أعد تسجيل هذه الوحدة.");
 }
 unitStatus[getUnitKey(currentUnits[index])] = "rejected";
+saveUnitStatus();
 updateUI();
 function renderUnitList() {
   const list = document.getElementById("unitList");
