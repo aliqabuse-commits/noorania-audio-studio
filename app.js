@@ -164,7 +164,16 @@ function prevUnit() {
   audioBlob = null;
   updateUI();
 }
+function hasAudio(key, callback) {
+  const tx = db.transaction("recordings", "readonly");
+  const store = tx.objectStore("recordings");
 
+  const request = store.get(key);
+
+  request.onsuccess = function () {
+    callback(!!request.result);
+  };
+}
 function approveAndNext() {
   if (!audioBlob) {
     alert("سجّل الوحدة أولاً قبل الاعتماد");
