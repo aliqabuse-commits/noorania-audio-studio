@@ -6,26 +6,12 @@ const categories = [
   { title: "المد واللين", type: "direct" },
   { title: "القوائم المرجعية", type: "sub" }
 ];
-const allUnits = {
-  "الحروف المتحركة": [
-    { text: "بَ", file: "ba_fatha.wav" },
-    { text: "بِ", file: "ba_kasra.wav" },
-    { text: "بُ", file: "ba_damma.wav" }
-  ],
-
-  "الحروف الساكنة": [
-    { text: "أَبْ", file: "ba_sukoon_after_fatha.wav" },
-    { text: "إِبْ", file: "ba_sukoon_after_kasra.wav" },
-    { text: "أُبْ", file: "ba_sukoon_after_damma.wav" }
-  ]
-};
-
+let currentUnits = [];
 let index = 0;
 let mediaRecorder;
 let audioChunks = [];
 let audioBlob = null;
 let isRecording = false;
-let currentUnits = [];
 window.onload = function () {
   renderHome();
 };
