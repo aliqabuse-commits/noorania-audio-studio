@@ -48,20 +48,20 @@ const letters = [
   { text: "بَوْ", file: "ba_leen_waw.wav" },
   { text: "بَيْ", file: "ba_leen_yaa.wav" }
 ]
+function generateHarakat(l) {
+  return [
+    { text: l.ar + "َ", file: l.key + "_fatha.wav" },
+    { text: l.ar + "ِ", file: l.key + "_kasra.wav" },
+    { text: l.ar + "ُ", file: l.key + "_damma.wav" }
+  ];
+}
 window.allUnits = {
   "أسماء الحروف الهجائية": letters.map(function (l) {
   return {
     text: l.ar,
     file: l.key + "_name.wav"
   };
-}),
-  "الحروف المتحركة": letters.flatMap(function (l) {
-    return [
-      { text: l.ar + "َ", file: l.key + "_fatha.wav" },
-      { text: l.ar + "ِ", file: l.key + "_kasra.wav" },
-      { text: l.ar + "ُ", file: l.key + "_damma.wav" }
-    ];
-  }),
+}),"الحروف المتحركة": letters.flatMap(generateHarakat),
 
   "الحروف الساكنة": letters.flatMap(function (l) {
     return [
