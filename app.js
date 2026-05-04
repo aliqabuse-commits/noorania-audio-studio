@@ -136,8 +136,14 @@ saveUnitStatus();
 }
 
 function rejectUnit() {
+  const key = getUnitKey(currentUnits[index]);
+
+  unitStatus[key] = "rejected";
   audioBlob = null;
-  alert("تم عدم اعتماد التسجيل. أعد تسجيل هذه الوحدة.");
+
+  updateUI();
+
+  alert("تم إلغاء اعتماد التسجيل. أعد تسجيل هذه الوحدة.");
 }
 unitStatus[getUnitKey(currentUnits[index])] = "rejected";
 saveUnitStatus();
