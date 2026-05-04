@@ -1,3 +1,35 @@
+let db;
+
+function initDB() {
+  const request = indexedDB.open("noorDB", 1);
+
+  request.onupgradeneeded = function (e) {
+    db = e.target.result;
+    db.createObjectStore("recordings");
+  };
+
+  request.onsuccess = function (e) {
+    db = e.target.result;
+  };
+}
+
+initDB();
+function saveAudio(key, blob) {
+  const tx = db.transaction("recordings", "readwrite");
+  const store = tx.objectStore("recordings");
+
+  store.put(blob, key);
+}
+function getAudio(key, callback) {
+  const tx = db.transaction("recordings", "readonly");
+  const store = tx.objectStore("recordings");
+
+  const request = store.get(key);
+
+  request.onsuccess = function () {
+    callback(request.result);
+  };
+}
 const categories = [
   { title: "أسماء الحروف الهجائية", type: "direct" },
   { title: "الحروف المتحركة", type: "direct" },
@@ -89,9 +121,25 @@ function stopRecording() {
 }
 
 function play() {
-  if (!audioBlob) return;
-  const audio = new Audio(URL.createObjectURL(audioBlob));
-  audio.play();
+  const key = getUnitKey(currentUnits[index]);
+
+  // إذا فيه تسجيل مؤقت
+  if (audioBlob) {
+    const audio = new Audio(URL.createObjectURL(audioBlob));
+    audio.play();
+    return;
+  }
+
+  // 🔥 إذا ما فيه → نجيب من IndexedDB
+  getAudio(key, function (blob) {
+    if (!blob) {
+      alert("لا يوجد تسجيل لهذه الوحدة");
+      return;
+    }
+
+    const audio = new Audio(URL.createObjectURL(blob));
+    audio.play();
+  });
 }
 
 function download() {
@@ -122,7 +170,13 @@ function approveAndNext() {
     alert("سجّل الوحدة أولاً قبل الاعتماد");
     return;
   }
+const key = getUnitKey(currentUnits[index]);
 
+unitStatus[key] = "approved";
+saveUnitStatus();
+
+// 🔥 حفظ الصوت
+saveAudio(key, audioBlob);
   unitStatus[getUnitKey(currentUnits[index])] = "approved";
 saveUnitStatus();
   audioBlob = null;
