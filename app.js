@@ -140,6 +140,7 @@ function rejectUnit() {
   const key = getUnitKey(currentUnits[index]);
 
   delete unitStatus[key];
+  saveUnitStatus();
   audioBlob = null;
 
   updateUI();
