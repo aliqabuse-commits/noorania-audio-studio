@@ -1,6 +1,26 @@
 const letters = [
   { ar: "ا", key: "alif" },
   { ar: "ب", key: "ba" },
+  "حرف الباء الكامل": [
+  { text: "بَ", file: "ba_fatha.wav" },
+  { text: "بِ", file: "ba_kasra.wav" },
+  { text: "بُ", file: "ba_damma.wav" },
+
+  { text: "أَبْ", file: "ba_sukoon_after_fatha.wav" },
+  { text: "إِبْ", file: "ba_sukoon_after_kasra.wav" },
+  { text: "أُبْ", file: "ba_sukoon_after_damma.wav" },
+
+  { text: "بً", file: "ba_tanween_fatha.wav" },
+  { text: "بٍ", file: "ba_tanween_kasra.wav" },
+  { text: "بٌ", file: "ba_tanween_damma.wav" },
+
+  { text: "بَا", file: "ba_madd_alif.wav" },
+  { text: "بِي", file: "ba_madd_yaa.wav" },
+  { text: "بُو", file: "ba_madd_waw.wav" },
+
+  { text: "بَوْ", file: "ba_leen_waw.wav" },
+  { text: "بَيْ", file: "ba_leen_yaa.wav" }
+]
   { ar: "ت", key: "ta" },
   { ar: "ث", key: "tha" },
   { ar: "ج", key: "jeem" },
