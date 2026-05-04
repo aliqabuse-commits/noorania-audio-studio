@@ -113,8 +113,9 @@ function approveAndNext() {
     alert("سجّل الوحدة أولاً قبل الاعتماد");
     return;
   }
-unitStatus[getUnitKey(currentUnits[index])] = "approved";
-  download();
+
+  unitStatus[getUnitKey(currentUnits[index])] = "approved";
+
   audioBlob = null;
 
   index++;
