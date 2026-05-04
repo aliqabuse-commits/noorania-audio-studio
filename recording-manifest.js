@@ -27,26 +27,7 @@ const letters = [
   { ar: "ه", key: "ha2" },
   { ar: "و", key: "waw" },
   { ar: "ي", key: "ya" }
-];
-"حرف الباء الكامل": [
-  { text: "بَ", file: "ba_fatha.wav" },
-  { text: "بِ", file: "ba_kasra.wav" },
-  { text: "بُ", file: "ba_damma.wav" },
 
-  { text: "أَبْ", file: "ba_sukoon_after_fatha.wav" },
-  { text: "إِبْ", file: "ba_sukoon_after_kasra.wav" },
-  { text: "أُبْ", file: "ba_sukoon_after_damma.wav" },
-
-  { text: "بً", file: "ba_tanween_fatha.wav" },
-  { text: "بٍ", file: "ba_tanween_kasra.wav" },
-  { text: "بٌ", file: "ba_tanween_damma.wav" },
-
-  { text: "بَا", file: "ba_madd_alif.wav" },
-  { text: "بِي", file: "ba_madd_yaa.wav" },
-  { text: "بُو", file: "ba_madd_waw.wav" },
-
-  { text: "بَوْ", file: "ba_leen_waw.wav" },
-  { text: "بَيْ", file: "ba_leen_yaa.wav" }
 ]
 function generateHarakat(l) {
   return [
@@ -57,11 +38,13 @@ function generateHarakat(l) {
 }
 window.allUnits = {
   "أسماء الحروف الهجائية": letters.map(function (l) {
-  return {
-    text: l.ar,
-    file: l.key + "_name.wav"
-  };
-}),"الحروف المتحركة": letters.flatMap(generateHarakat),
+    return {
+      text: l.ar,
+      file: l.key + "_name.wav"
+    };
+  }),
+
+  "الحروف المتحركة": letters.flatMap(generateHarakat),
 
   "الحروف الساكنة": letters.flatMap(function (l) {
     return [
@@ -70,4 +53,22 @@ window.allUnits = {
       { text: "أُ" + l.ar + "ْ", file: l.key + "_sukoon_after_damma.wav" }
     ];
   }),
+
+  "التنوين": letters.flatMap(function (l) {
+    return [
+      { text: l.ar + "ً", file: l.key + "_tanween_fatha.wav" },
+      { text: l.ar + "ٍ", file: l.key + "_tanween_kasra.wav" },
+      { text: l.ar + "ٌ", file: l.key + "_tanween_damma.wav" }
+    ];
+  }),
+
+  "المد واللين": letters.flatMap(function (l) {
+    return [
+      { text: l.ar + "َا", file: l.key + "_madd_alif.wav" },
+      { text: l.ar + "ِي", file: l.key + "_madd_ya.wav" },
+      { text: l.ar + "ُو", file: l.key + "_madd_waw.wav" },
+      { text: l.ar + "َيْ", file: l.key + "_leen_ya.wav" },
+      { text: l.ar + "َوْ", file: l.key + "_leen_waw.wav" }
+    ];
+  })
 };
