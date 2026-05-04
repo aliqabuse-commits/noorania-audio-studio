@@ -28,13 +28,14 @@ const letters = [
   { ar: "و", key: "waw" },
   { ar: "ي", key: "ya" }
 ];
-"أسماء الحروف الهجائية": letters.map(function (l) {
+
+window.allUnits = {
+  "أسماء الحروف الهجائية": letters.map(function (l) {
   return {
     text: l.ar,
     file: l.key + "_name.wav"
   };
 }),
-window.allUnits = {
   "الحروف المتحركة": letters.flatMap(function (l) {
     return [
       { text: l.ar + "َ", file: l.key + "_fatha.wav" },
