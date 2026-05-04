@@ -12,6 +12,11 @@ let mediaRecorder;
 let audioChunks = [];
 let audioBlob = null;
 let isRecording = false;
+let unitStatus = {};
+function getUnitKey(unit) {
+  return unit.file;
+}
+
 window.onload = function () {
   renderHome();
 };
@@ -108,7 +113,7 @@ function approveAndNext() {
     alert("سجّل الوحدة أولاً قبل الاعتماد");
     return;
   }
-
+unitStatus[getUnitKey(currentUnits[index])] = "approved";
   download();
   audioBlob = null;
 
@@ -125,7 +130,8 @@ function rejectUnit() {
   audioBlob = null;
   alert("تم عدم اعتماد التسجيل. أعد تسجيل هذه الوحدة.");
 }
-
+unitStatus[getUnitKey(currentUnits[index])] = "rejected";
+updateUI();
 function renderUnitList() {
   const list = document.getElementById("unitList");
   if (!list) return;
@@ -134,7 +140,13 @@ function renderUnitList() {
 
   currentUnits.forEach(function (unit, i) {
     const btn = document.createElement("button");
-    btn.innerText = unit.text + " | " + unit.file;
+    const status = unitStatus[getUnitKey(unit)];
+let mark = "⏳";
+
+if (status === "approved") mark = "✅";
+if (status === "rejected") mark = "❌";
+
+btn.innerText = mark + " " + unit.text + " | " + unit.file;
 
     btn.style.display = "block";
     btn.style.margin = "8px auto";
