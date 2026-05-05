@@ -32,6 +32,7 @@ function getAudio(key, callback) {
 const categories = [
   { title: "أسماء الحروف الهجائية" },
   { title: "الحروف المتحركة" },
+  { title: "أسماء الحروف النورانية" },
   { title: "الحروف الساكنة" },
   { title: "التنوين" },
   { title: "المد واللين" }
