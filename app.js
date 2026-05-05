@@ -136,7 +136,23 @@ function play() {
     new Audio(URL.createObjectURL(blob)).play();
   });
 }
+function hasAudio(key, callback) {
+  if (!db) {
+    callback(false);
+    return;
+  }
 
+  const tx = db.transaction("recordings", "readonly");
+  const request = tx.objectStore("recordings").get(key);
+
+  request.onsuccess = function () {
+    callback(!!request.result);
+  };
+
+  request.onerror = function () {
+    callback(false);
+  };
+}
 async function download() {
   if (!currentUnits.length) return;
 
