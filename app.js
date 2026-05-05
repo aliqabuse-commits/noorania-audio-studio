@@ -178,39 +178,37 @@ async function download() {
 }
 
 async function exportApproved() {
-  if (!currentUnits || currentUnits.length === 0) {
-    alert("لا توجد وحدات في هذه القائمة");
+  if (!currentUnits.length) {
+    alert("ادخل إلى قائمة أولاً");
     return;
   }
 
-  // 👇 فقط مفاتيح القائمة الحالية
-  const currentKeys = currentUnits.map(u => u.file);
-
-  // 👇 فلترة المعتمد فقط من هذه القائمة
   const approvedKeys = currentUnits
-  .map(function (unit) {
-    return getUnitKey(unit);
-  })
-  .filter(function (key) {
-    return unitStatus[key] === "approved";
-  });
+    .map(function (unit) {
+      return getUnitKey(unit);
+    })
+    .filter(function (key) {
+      return unitStatus[key] === "approved";
+    });
 
   if (approvedKeys.length === 0) {
     alert("لا يوجد أصوات معتمدة في هذه القائمة");
     return;
   }
 
-  const zip = new JSZip();
   const manifest = [];
 
   for (let key of approvedKeys) {
-    const blob = await new Promise((resolve) => {
+    const blob = await new Promise(function (resolve) {
       getAudio(key, resolve);
     });
 
     if (!blob) continue;
 
-    zip.file("audio/" + key, blob);
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = key;
+    a.click();
 
     manifest.push({
       file: key,
@@ -218,16 +216,17 @@ async function exportApproved() {
     });
   }
 
-  zip.file("manifest.json", JSON.stringify(manifest, null, 2));
+  const manifestBlob = new Blob(
+    [JSON.stringify(manifest, null, 2)],
+    { type: "application/json" }
+  );
 
-  const content = await zip.generateAsync({ type: "blob" });
+  const manifestLink = document.createElement("a");
+  manifestLink.href = URL.createObjectURL(manifestBlob);
+  manifestLink.download = "manifest.json";
+  manifestLink.click();
 
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(content);
-  a.download = "noorania-" + Date.now() + ".zip";
-  a.click();
-
-  alert("تم تصدير " + approvedKeys.length + " ملف من هذه القائمة");
+  alert("تم تصدير " + manifest.length + " ملف من القائمة الحالية");
 }
 
 function rejectUnit() {
