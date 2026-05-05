@@ -227,26 +227,6 @@ async function exportApproved() {
     return;
   }
 
-  const manifest = [];
-
-  for (let key of approvedKeys) {
-    const blob = await new Promise(function (resolve) {
-      getAudio(key, resolve);
-    });
-
-    if (!blob) continue;
-
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = key;
-    a.click();
-
-    manifest.push({
-      file: key,
-      status: "approved"
-    });
-  }
-
   const manifestBlob = new Blob(
     [JSON.stringify(manifest, null, 2)],
     { type: "application/json" }
