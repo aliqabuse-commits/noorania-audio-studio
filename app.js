@@ -259,6 +259,38 @@ async function exportApproved() {
 
   alert("تم تصدير " + manifest.length + " ملف من القائمة الحالية");
 }
+  const manifest = [];
+
+  for (let key of approvedKeys) {
+    const blob = await new Promise(function (resolve) {
+      getAudio(key, resolve);
+    });
+
+    if (!blob) continue;
+
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = key;
+    a.click();
+
+    manifest.push({
+      file: key,
+      status: "approved"
+    });
+  }
+
+  const manifestBlob = new Blob(
+    [JSON.stringify(manifest, null, 2)],
+    { type: "application/json" }
+  );
+
+  const manifestLink = document.createElement("a");
+  manifestLink.href = URL.createObjectURL(manifestBlob);
+  manifestLink.download = "manifest.json";
+  manifestLink.click();
+
+  alert("تم تصدير " + manifest.length + " ملف من القائمة الحالية");
+}
 
 function rejectUnit() {
   if (!currentUnits.length) return;
