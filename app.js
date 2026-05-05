@@ -284,3 +284,52 @@ function goHome() {
   document.getElementById("recordView").style.display = "none";
   document.getElementById("homeView").style.display = "block";
 }
+async function exportApproved() {
+  const approvedKeys = Object.keys(unitStatus).filter(
+    (k) => unitStatus[k] === "approved"
+  );
+
+  if (approvedKeys.length === 0) {
+    alert("لا يوجد أصوات معتمدة");
+    return;
+  }
+
+  const files = [];
+  const manifest = [];
+
+  for (let key of approvedKeys) {
+    const blob = await new Promise((resolve) => {
+      getAudio(key, resolve);
+    });
+
+    if (!blob) continue;
+
+    files.push({ name: key, blob: blob });
+
+    manifest.push({
+      file: key,
+      status: "approved"
+    });
+  }
+
+  // تنزيل manifest.json
+  const manifestBlob = new Blob(
+    [JSON.stringify(manifest, null, 2)],
+    { type: "application/json" }
+  );
+
+  const manifestLink = document.createElement("a");
+  manifestLink.href = URL.createObjectURL(manifestBlob);
+  manifestLink.download = "manifest.json";
+  manifestLink.click();
+
+  // تنزيل كل ملف صوت
+  files.forEach((f) => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(f.blob);
+    a.download = f.name;
+    a.click();
+  });
+
+  alert("تم تصدير " + files.length + " ملف");
+}
