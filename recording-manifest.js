@@ -111,7 +111,7 @@ window.allUnits = {
       { text: l.ar + "َيْ", file: l.key + "_leen_ya.wav" },
       { text: l.ar + "َوْ", file: l.key + "_leen_waw.wav" }
     ];
-  })
+  }),
   "الأصوات النورانية": [
   { text: "فتحٌ", file: "fatha_name.wav" },
   { text: "كسرٌ", file: "kasra_name.wav" },
