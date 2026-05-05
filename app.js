@@ -163,38 +163,48 @@ function hasAudio(key, callback) {
   };
 }
 
-function approveAndNext() {
-  if (!audioBlob) {
-    alert("سجّل الوحدة أولاً قبل الاعتماد");
+async function exportApproved() {
+  const zip = new JSZip();
+
+  const approvedKeys = Object.keys(unitStatus).filter(
+    (k) => unitStatus[k] === "approved"
+  );
+
+  if (approvedKeys.length === 0) {
+    alert("لا يوجد أصوات معتمدة");
     return;
   }
 
-  const key = getUnitKey(currentUnits[index]);
+  const manifest = [];
 
-  unitStatus[key] = "approved";
-  saveUnitStatus();
-  saveAudio(key, audioBlob);
+  for (let key of approvedKeys) {
+    const blob = await new Promise((resolve) => {
+      getAudio(key, resolve);
+    });
 
-  audioBlob = null;
+    if (!blob) continue;
 
-  index++;
-  if (index >= currentUnits.length) {
-    alert("تم تسجيل كل الوحدات");
-    index = 0;
+    // 👇 نحط الملفات داخل مجلد audio
+    zip.file("audio/" + key, blob);
+
+    manifest.push({
+      file: key,
+      status: "approved"
+    });
   }
 
-  updateUI();
-}
+  // 👇 إضافة manifest
+  zip.file("manifest.json", JSON.stringify(manifest, null, 2));
 
-function rejectUnit() {
-  const key = getUnitKey(currentUnits[index]);
+  // 👇 توليد ZIP
+  const content = await zip.generateAsync({ type: "blob" });
 
-  delete unitStatus[key];
-  saveUnitStatus();
-  audioBlob = null;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(content);
+  a.download = "noorania-audio-package.zip";
+  a.click();
 
-  updateUI();
-  alert("تم إلغاء اعتماد التسجيل. أعد تسجيل هذه الوحدة.");
+  alert("تم تصدير الحزمة بنجاح");
 }
 
 function nextUnit() {
