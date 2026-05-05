@@ -196,7 +196,20 @@ async function approveAndNext() {
 
   updateUI();
 }
+function rejectUnit() {
+  if (!currentUnits.length) return;
 
+  const key = getUnitKey(currentUnits[index]);
+
+  delete unitStatus[key];
+  saveUnitStatus();
+
+  audioBlob = null;
+
+  updateUI();
+
+  alert("تم إلغاء الاعتماد. يمكنك إعادة التسجيل.");
+}
 function nextUnit() {
   index++;
   if (index >= currentUnits.length) index = 0;
