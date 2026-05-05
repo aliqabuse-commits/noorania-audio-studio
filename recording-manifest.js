@@ -29,6 +29,11 @@ const letters = [
   { ar: "ي", key: "ya" }
 
 ]
+const nooraniLetterNames = [
+  { text: "ألف", file: "alif_noorani_name.wav" },
+  { text: "باء", file: "ba_noorani_name.wav" },
+  { text: "تاء", file: "ta_noorani_name.wav" }
+];
 function generateHarakat(l) {
   return [
     { text: l.ar + "َ", file: l.key + "_fatha.wav" },
@@ -43,7 +48,7 @@ window.allUnits = {
       file: l.key + "_name.wav"
     };
   }),
-
+"أسماء الحروف النورانية": nooraniLetterNames,
   "الحروف المتحركة": letters.flatMap(generateHarakat),
 
   "الحروف الساكنة": letters.flatMap(function (l) {
