@@ -5,28 +5,54 @@ function initDB() {
 
   request.onupgradeneeded = function (e) {
     db = e.target.result;
-    db.createObjectStore("recordings");
+    if (!db.objectStoreNames.contains("recordings")) {
+      db.createObjectStore("recordings");
+    }
   };
 
   request.onsuccess = function (e) {
     db = e.target.result;
+  };
+
+  request.onerror = function () {
+    alert("تعذر فتح قاعدة حفظ الأصوات");
   };
 }
 
 initDB();
 
 function saveAudio(key, blob) {
+  if (!db) {
+    alert("قاعدة البيانات لم تجهز بعد، حاول بعد لحظة");
+    return;
+  }
+
   const tx = db.transaction("recordings", "readwrite");
   tx.objectStore("recordings").put(blob, key);
 }
 
 function getAudio(key, callback) {
+  if (!db) {
+    callback(null);
+    return;
+  }
+
   const tx = db.transaction("recordings", "readonly");
   const request = tx.objectStore("recordings").get(key);
 
   request.onsuccess = function () {
     callback(request.result);
   };
+
+  request.onerror = function () {
+    callback(null);
+  };
+}
+
+function hasAudio(key, callback) {
+  getAudio(key, function (blob) {
+    callback(!!blob);
+  });
 }
 
 const categories = [
@@ -39,8 +65,10 @@ const categories = [
   { title: "الأصوات النورانية" }
 ];
 
+let currentCategory = "";
 let currentUnits = [];
 let index = 0;
+
 let mediaRecorder;
 let audioChunks = [];
 let audioBlob = null;
@@ -48,7 +76,13 @@ let isRecording = false;
 
 let unitStatus = {};
 const savedStatus = localStorage.getItem("unitStatus");
-if (savedStatus) unitStatus = JSON.parse(savedStatus);
+if (savedStatus) {
+  try {
+    unitStatus = JSON.parse(savedStatus);
+  } catch (e) {
+    unitStatus = {};
+  }
+}
 
 function saveUnitStatus() {
   localStorage.setItem("unitStatus", JSON.stringify(unitStatus));
@@ -73,7 +107,8 @@ function updateUI() {
 
   document.getElementById("unit").innerText = currentUnits[index].text;
   document.getElementById("filename").innerText = currentUnits[index].file;
-  document.getElementById("counter").innerText = (index + 1) + " / " + currentUnits.length;
+  document.getElementById("counter").innerText =
+    index + 1 + " / " + currentUnits.length;
 
   renderUnitList();
 }
@@ -81,18 +116,15 @@ function updateUI() {
 function toggleRecording() {
   if (!isRecording) {
     startRecording();
-    isRecording = true;
-    document.getElementById("recordBtn").innerText = "⏹ إيقاف";
   } else {
     stopRecording();
-    isRecording = false;
-    document.getElementById("recordBtn").innerText = "🎙 تسجيل";
   }
 }
 
 async function startRecording() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
     mediaRecorder = new MediaRecorder(stream);
     audioChunks = [];
 
@@ -101,20 +133,29 @@ async function startRecording() {
     };
 
     mediaRecorder.onstop = function () {
-      audioBlob = new Blob(audioChunks);
+      audioBlob = new Blob(audioChunks, { type: "audio/webm" });
       stream.getTracks().forEach(function (track) {
         track.stop();
       });
+
+      isRecording = false;
+      document.getElementById("recordBtn").innerText = "🎙 تسجيل";
     };
 
     mediaRecorder.start();
+    isRecording = true;
+    document.getElementById("recordBtn").innerText = "⏹ إيقاف";
   } catch (err) {
+    isRecording = false;
+    document.getElementById("recordBtn").innerText = "🎙 تسجيل";
     alert("❌ الميكروفون لم يعمل");
   }
 }
 
 function stopRecording() {
-  if (mediaRecorder) mediaRecorder.stop();
+  if (mediaRecorder && isRecording) {
+    mediaRecorder.stop();
+  }
 }
 
 function play() {
@@ -136,32 +177,15 @@ function play() {
     new Audio(URL.createObjectURL(blob)).play();
   });
 }
-function hasAudio(key, callback) {
-  if (!db) {
-    callback(false);
-    return;
-  }
 
-  const tx = db.transaction("recordings", "readonly");
-  const request = tx.objectStore("recordings").get(key);
-
-  request.onsuccess = function () {
-    callback(!!request.result);
-  };
-
-  request.onerror = function () {
-    callback(false);
-  };
-}
 async function download() {
   if (!currentUnits.length) return;
 
   const key = getUnitKey(currentUnits[index]);
-
   let blobToDownload = audioBlob;
 
   if (!blobToDownload) {
-    blobToDownload = await new Promise((resolve) => {
+    blobToDownload = await new Promise(function (resolve) {
       getAudio(key, resolve);
     });
   }
@@ -176,6 +200,7 @@ async function download() {
   a.download = key;
   a.click();
 }
+
 async function approveAndNext() {
   if (!currentUnits.length) return;
 
@@ -204,90 +229,12 @@ async function approveAndNext() {
   audioBlob = null;
 
   index++;
-  if (index >= currentUnits.length) index = 0;
+  if (index >= currentUnits.length) {
+    alert("تم تسجيل كل وحدات هذه القائمة");
+    index = 0;
+  }
 
   updateUI();
-}
-async function exportApproved() {
-  if (!currentUnits.length) {
-    alert("ادخل إلى قائمة أولاً");
-    return;
-  }
-
-  const approvedKeys = currentUnits
-    .map(function (unit) {
-      return getUnitKey(unit);
-    })
-    .filter(function (key) {
-      return unitStatus[key] === "approved";
-    });
-
-  if (approvedKeys.length === 0) {
-    alert("لا يوجد أصوات معتمدة في هذه القائمة");
-    return;
-  }
-const manifest = [];
-
-  for (let key of approvedKeys) {
-    const blob = await new Promise(function (resolve) {
-      getAudio(key, resolve);
-    });
-
-    if (!blob) continue;
-
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = key;
-    a.click();
-
-    manifest.push({
-      file: key,
-      status: "approved"
-    });
-  }
-  const manifestBlob = new Blob(
-    [JSON.stringify(manifest, null, 2)],
-    { type: "application/json" }
-  );
-
-  const manifestLink = document.createElement("a");
-  manifestLink.href = URL.createObjectURL(manifestBlob);
-  manifestLink.download = "manifest.json";
-  manifestLink.click();
-
-  alert("تم تصدير " + manifest.length + " ملف من القائمة الحالية");
-}
-  const manifest = [];
-
-  for (let key of approvedKeys) {
-    const blob = await new Promise(function (resolve) {
-      getAudio(key, resolve);
-    });
-
-    if (!blob) continue;
-
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = key;
-    a.click();
-
-    manifest.push({
-      file: key,
-      status: "approved"
-    });
-  }
-
-  const manifestBlob = new Blob(
-    [JSON.stringify(manifest, null, 2)],
-    { type: "application/json" }
-  );
-
-  const manifestLink = document.createElement("a");
-  manifestLink.href = URL.createObjectURL(manifestBlob);
-  manifestLink.download = "manifest.json";
-  manifestLink.click();
-
-  alert("تم تصدير " + manifest.length + " ملف من القائمة الحالية");
 }
 
 function rejectUnit() {
@@ -295,25 +242,32 @@ function rejectUnit() {
 
   const key = getUnitKey(currentUnits[index]);
 
+  // عدم الاعتماد يلغي العلامة الخضراء فقط، ولا يحذف الصوت
   delete unitStatus[key];
   saveUnitStatus();
 
   audioBlob = null;
-
   updateUI();
 
-  alert("تم إلغاء الاعتماد. يمكنك إعادة التسجيل.");
+  alert("تم إلغاء الاعتماد. الصوت محفوظ ويمكن إعادة التسجيل أو التنزيل.");
 }
+
 function nextUnit() {
+  if (!currentUnits.length) return;
+
   index++;
   if (index >= currentUnits.length) index = 0;
+
   audioBlob = null;
   updateUI();
 }
 
 function prevUnit() {
+  if (!currentUnits.length) return;
+
   index--;
   if (index < 0) index = currentUnits.length - 1;
+
   audioBlob = null;
   updateUI();
 }
@@ -331,7 +285,6 @@ function renderUnitList() {
 
     let mark = "⏳";
     if (status === "approved") mark = "✅";
-    if (status === "rejected") mark = "❌";
 
     btn.innerText = mark + " " + unit.text + " | " + unit.file;
 
@@ -366,6 +319,7 @@ function renderHome() {
 
   categories.forEach(function (cat) {
     const btn = document.createElement("button");
+
     btn.innerText = cat.title;
     btn.style.display = "block";
     btn.style.margin = "10px auto";
@@ -373,6 +327,7 @@ function renderHome() {
     btn.style.width = "90%";
 
     btn.onclick = function () {
+      currentCategory = cat.title;
       currentUnits = allUnits[cat.title] || [];
       index = 0;
       audioBlob = null;
@@ -391,52 +346,92 @@ function goHome() {
   document.getElementById("recordView").style.display = "none";
   document.getElementById("homeView").style.display = "block";
 }
-async function exportApproved() {
-  const approvedKeys = Object.keys(unitStatus).filter(
-    (k) => unitStatus[k] === "approved"
-  );
 
-  if (approvedKeys.length === 0) {
-    alert("لا يوجد أصوات معتمدة");
+// التصدير يكون من القائمة الحالية فقط
+async function exportApproved() {
+  if (!currentUnits || currentUnits.length === 0) {
+    alert("لا توجد قائمة مفتوحة للتصدير");
     return;
   }
 
-  const files = [];
-  const manifest = [];
+  const approvedUnits = currentUnits.filter(function (unit) {
+    return unitStatus[getUnitKey(unit)] === "approved";
+  });
 
-  for (let key of approvedKeys) {
-    const blob = await new Promise((resolve) => {
+  if (approvedUnits.length === 0) {
+    alert("لا يوجد أصوات معتمدة في هذه القائمة");
+    return;
+  }
+
+  const manifest = [];
+  const files = [];
+
+  for (let unit of approvedUnits) {
+    const key = getUnitKey(unit);
+
+    const blob = await new Promise(function (resolve) {
       getAudio(key, resolve);
     });
 
     if (!blob) continue;
 
-    files.push({ name: key, blob: blob });
-
     manifest.push({
+      category: currentCategory,
+      text: unit.text,
       file: key,
       status: "approved"
     });
+
+    files.push({
+      name: key,
+      blob: blob
+    });
   }
 
-  // تنزيل manifest.json
-  const manifestBlob = new Blob(
-    [JSON.stringify(manifest, null, 2)],
-    { type: "application/json" }
-  );
+  if (files.length === 0) {
+    alert("لا توجد ملفات صوت محفوظة للتصدير");
+    return;
+  }
+
+  if (typeof JSZip !== "undefined") {
+    const zip = new JSZip();
+
+    zip.file("manifest.json", JSON.stringify(manifest, null, 2));
+
+    files.forEach(function (f) {
+      zip.file("audio/" + f.name, f.blob);
+    });
+
+    const content = await zip.generateAsync({ type: "blob" });
+
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(content);
+    a.download =
+      "noorania-" +
+      currentCategory.replace(/\s+/g, "-") +
+      "-approved-audio.zip";
+
+    a.click();
+
+    alert("تم تصدير حزمة ZIP لهذه القائمة فقط");
+    return;
+  }
+
+  const manifestBlob = new Blob([JSON.stringify(manifest, null, 2)], {
+    type: "application/json"
+  });
 
   const manifestLink = document.createElement("a");
   manifestLink.href = URL.createObjectURL(manifestBlob);
   manifestLink.download = "manifest.json";
   manifestLink.click();
 
-  // تنزيل كل ملف صوت
-  files.forEach((f) => {
+  files.forEach(function (f) {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(f.blob);
     a.download = f.name;
     a.click();
   });
 
-  alert("تم تصدير " + files.length + " ملف");
+  alert("تم تصدير " + files.length + " ملف من هذه القائمة فقط");
 }
