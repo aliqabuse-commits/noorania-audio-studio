@@ -176,7 +176,38 @@ async function download() {
   a.download = key;
   a.click();
 }
+async function approveAndNext() {
+  if (!currentUnits.length) return;
 
+  const key = getUnitKey(currentUnits[index]);
+
+  let blobToSave = audioBlob;
+
+  if (!blobToSave) {
+    blobToSave = await new Promise(function (resolve) {
+      getAudio(key, resolve);
+    });
+  }
+
+  if (!blobToSave) {
+    alert("سجّل الوحدة أولاً قبل الاعتماد");
+    return;
+  }
+
+  if (audioBlob) {
+    saveAudio(key, audioBlob);
+  }
+
+  unitStatus[key] = "approved";
+  saveUnitStatus();
+
+  audioBlob = null;
+
+  index++;
+  if (index >= currentUnits.length) index = 0;
+
+  updateUI();
+}
 async function exportApproved() {
   if (!currentUnits.length) {
     alert("ادخل إلى قائمة أولاً");
