@@ -112,4 +112,23 @@ window.allUnits = {
       { text: l.ar + "َوْ", file: l.key + "_leen_waw.wav" }
     ];
   })
+  "الأصوات النورانية": [
+  { text: "فتحٌ", file: "fatha_name.wav" },
+  { text: "كسرٌ", file: "kasra_name.wav" },
+  { text: "ضمٌ", file: "damma_name.wav" },
+  { text: "سكونٌ", file: "sukoon_name.wav" },
+
+  { text: "ألف صغير", file: "small_alif_name.wav" },
+  { text: "واو صغير", file: "small_waw_name.wav" },
+  { text: "ياء صغير", file: "small_ya_name.wav" },
+
+  { text: "شد", file: "shadda_name.wav" },
+
+  { text: "فتحتان", file: "tanween_fatha_name.wav" },
+  { text: "كسرتان", file: "tanween_kasra_name.wav" },
+  { text: "ضمتان", file: "tanween_damma_name.wav" },
+
+  { text: "مد", file: "madd_name.wav" },
+  { text: "لين", file: "leen_name.wav" }
+]
 };
