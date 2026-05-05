@@ -137,30 +137,28 @@ function play() {
   });
 }
 
-function download() {
-  if (!audioBlob || !currentUnits.length) return;
+async function download() {
+  if (!currentUnits.length) return;
 
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(audioBlob);
-  a.download = currentUnits[index].file;
-  a.click();
-}
-function hasAudio(key, callback) {
-  if (!db) {
-    callback(false);
+  const key = getUnitKey(currentUnits[index]);
+
+  let blobToDownload = audioBlob;
+
+  if (!blobToDownload) {
+    blobToDownload = await new Promise((resolve) => {
+      getAudio(key, resolve);
+    });
+  }
+
+  if (!blobToDownload) {
+    alert("لا يوجد تسجيل لتنزيله");
     return;
   }
 
-  const tx = db.transaction("recordings", "readonly");
-  const request = tx.objectStore("recordings").get(key);
-
-  request.onsuccess = function () {
-    callback(!!request.result);
-  };
-
-  request.onerror = function () {
-    callback(false);
-  };
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blobToDownload);
+  a.download = key;
+  a.click();
 }
 
 async function approveAndNext() {
