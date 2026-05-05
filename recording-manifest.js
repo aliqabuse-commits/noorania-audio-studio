@@ -29,11 +29,47 @@ const letters = [
   { ar: "ي", key: "ya" }
 
 ]
-const nooraniLetterNames = [
-  { text: "ألف", file: "alif_noorani_name.wav" },
-  { text: "باء", file: "ba_noorani_name.wav" },
-  { text: "تاء", file: "ta_noorani_name.wav" }
-];
+function getNooraniName(key) {
+  const map = {
+    alif: "ألف",
+    ba: "باء",
+    ta: "تاء",
+    tha: "ثاء",
+    jeem: "جيم",
+    ha: "حاء",
+    kha: "خاء",
+    dal: "دال",
+    thal: "ذال",
+    ra: "راء",
+    zay: "زاي",
+    seen: "سين",
+    sheen: "شين",
+    sad: "صاد",
+    dad: "ضاد",
+    taa: "طاء",
+    zaa: "ظاء",
+    ain: "عين",
+    ghain: "غين",
+    fa: "فاء",
+    qaf: "قاف",
+    kaf: "كاف",
+    lam: "لام",
+    meem: "ميم",
+    noon: "نون",
+    ha2: "هاء",
+    waw: "واو",
+    ya: "ياء"
+  };
+
+  return map[key] || key;
+}
+
+const nooraniLetterNames = letters.map(function (l) {
+  return {
+    text: getNooraniName(l.key),
+    file: l.key + "_noorani_name.wav"
+  };
+});
 function generateHarakat(l) {
   return [
     { text: l.ar + "َ", file: l.key + "_fatha.wav" },
