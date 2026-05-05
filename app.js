@@ -187,9 +187,13 @@ async function exportApproved() {
   const currentKeys = currentUnits.map(u => u.file);
 
   // 👇 فلترة المعتمد فقط من هذه القائمة
-  const approvedKeys = currentKeys.filter(
-    (k) => unitStatus[k] === "approved"
-  );
+  const approvedKeys = currentUnits
+  .map(function (unit) {
+    return getUnitKey(unit);
+  })
+  .filter(function (key) {
+    return unitStatus[key] === "approved";
+  });
 
   if (approvedKeys.length === 0) {
     alert("لا يوجد أصوات معتمدة في هذه القائمة");
