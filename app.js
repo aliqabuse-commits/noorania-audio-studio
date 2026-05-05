@@ -36,6 +36,7 @@ const categories = [
   { title: "الحروف الساكنة" },
   { title: "التنوين" },
   { title: "المد واللين" }
+  { title: "الأصوات النورانية" },
 ];
 
 let currentUnits = [];
