@@ -14,46 +14,44 @@ function initDB() {
 }
 
 initDB();
+
 function saveAudio(key, blob) {
   const tx = db.transaction("recordings", "readwrite");
-  const store = tx.objectStore("recordings");
-
-  store.put(blob, key);
+  tx.objectStore("recordings").put(blob, key);
 }
+
 function getAudio(key, callback) {
   const tx = db.transaction("recordings", "readonly");
-  const store = tx.objectStore("recordings");
-
-  const request = store.get(key);
+  const request = tx.objectStore("recordings").get(key);
 
   request.onsuccess = function () {
     callback(request.result);
   };
 }
+
 const categories = [
-  { title: "أسماء الحروف الهجائية", type: "direct" },
-  { title: "الحروف المتحركة", type: "direct" },
-  { title: "الحروف الساكنة", type: "direct" },
-  { title: "التنوين", type: "direct" },
-  { title: "المد واللين", type: "direct" },
-  { title: "القوائم المرجعية", type: "sub" }
+  { title: "أسماء الحروف الهجائية" },
+  { title: "الحروف المتحركة" },
+  { title: "الحروف الساكنة" },
+  { title: "التنوين" },
+  { title: "المد واللين" }
 ];
+
 let currentUnits = [];
 let index = 0;
 let mediaRecorder;
 let audioChunks = [];
 let audioBlob = null;
 let isRecording = false;
+
 let unitStatus = {};
 const savedStatus = localStorage.getItem("unitStatus");
-
-if (savedStatus) {
-  unitStatus = JSON.parse(savedStatus);
-}
+if (savedStatus) unitStatus = JSON.parse(savedStatus);
 
 function saveUnitStatus() {
   localStorage.setItem("unitStatus", JSON.stringify(unitStatus));
 }
+
 function getUnitKey(unit) {
   return unit.file;
 }
@@ -93,7 +91,6 @@ function toggleRecording() {
 async function startRecording() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
     mediaRecorder = new MediaRecorder(stream);
     audioChunks = [];
 
@@ -115,35 +112,31 @@ async function startRecording() {
 }
 
 function stopRecording() {
-  if (mediaRecorder) {
-    mediaRecorder.stop();
-  }
+  if (mediaRecorder) mediaRecorder.stop();
 }
 
 function play() {
+  if (!currentUnits.length) return;
+
   const key = getUnitKey(currentUnits[index]);
 
-  // إذا فيه تسجيل مؤقت
   if (audioBlob) {
-    const audio = new Audio(URL.createObjectURL(audioBlob));
-    audio.play();
+    new Audio(URL.createObjectURL(audioBlob)).play();
     return;
   }
 
-  // 🔥 إذا ما فيه → نجيب من IndexedDB
   getAudio(key, function (blob) {
     if (!blob) {
       alert("لا يوجد تسجيل لهذه الوحدة");
       return;
     }
 
-    const audio = new Audio(URL.createObjectURL(blob));
-    audio.play();
+    new Audio(URL.createObjectURL(blob)).play();
   });
 }
 
 function download() {
-  if (!audioBlob) return;
+  if (!audioBlob || !currentUnits.length) return;
 
   const a = document.createElement("a");
   a.href = URL.createObjectURL(audioBlob);
@@ -151,43 +144,18 @@ function download() {
   a.click();
 }
 
-function nextUnit() {
-  index++;
-  if (index >= currentUnits.length) index = 0;
-  audioBlob = null;
-  updateUI();
-}
-
-function prevUnit() {
-  index--;
-  if (index < 0) index = currentUnits.length - 1;
-  audioBlob = null;
-  updateUI();
-}
-function hasAudio(key, callback) {
-  const tx = db.transaction("recordings", "readonly");
-  const store = tx.objectStore("recordings");
-
-  const request = store.get(key);
-
-  request.onsuccess = function () {
-    callback(!!request.result);
-  };
-}
 function approveAndNext() {
   if (!audioBlob) {
     alert("سجّل الوحدة أولاً قبل الاعتماد");
     return;
   }
-const key = getUnitKey(currentUnits[index]);
 
-unitStatus[key] = "approved";
-saveUnitStatus();
+  const key = getUnitKey(currentUnits[index]);
 
-// 🔥 حفظ الصوت
-saveAudio(key, audioBlob);
-  unitStatus[getUnitKey(currentUnits[index])] = "approved";
-saveUnitStatus();
+  unitStatus[key] = "approved";
+  saveUnitStatus();
+  saveAudio(key, audioBlob);
+
   audioBlob = null;
 
   index++;
@@ -207,12 +175,23 @@ function rejectUnit() {
   audioBlob = null;
 
   updateUI();
-
   alert("تم إلغاء اعتماد التسجيل. أعد تسجيل هذه الوحدة.");
 }
-unitStatus[getUnitKey(currentUnits[index])] = "rejected";
-saveUnitStatus();
-updateUI();
+
+function nextUnit() {
+  index++;
+  if (index >= currentUnits.length) index = 0;
+  audioBlob = null;
+  updateUI();
+}
+
+function prevUnit() {
+  index--;
+  if (index < 0) index = currentUnits.length - 1;
+  audioBlob = null;
+  updateUI();
+}
+
 function renderUnitList() {
   const list = document.getElementById("unitList");
   if (!list) return;
@@ -220,37 +199,15 @@ function renderUnitList() {
   list.innerHTML = "";
 
   currentUnits.forEach(function (unit, i) {
-  const btn = document.createElement("button");
+    const btn = document.createElement("button");
+    const key = getUnitKey(unit);
+    const status = unitStatus[key];
 
-  const key = getUnitKey(unit);
+    let mark = "⏳";
+    if (status === "approved") mark = "✅";
+    if (status === "rejected") mark = "❌";
 
-  const status = unitStatus[key];
-  let mark = "⏳";
-
-  if (status === "approved") mark = "✅";
-  if (status === "rejected") mark = "❌";
-
-  hasAudio(key, function (exists) {
-    let audioMark = exists ? "🎧" : "";
-
-    btn.innerText = mark + " " + audioMark + " " + unit.text + " | " + unit.file;
-  });
-
-  btn.onclick = function () {
-    index = i;
-    audioBlob = null;
-    updateUI();
-  };
-
-  list.appendChild(btn);
-});
-    const status = unitStatus[getUnitKey(unit)];
-let mark = "⏳";
-
-if (status === "approved") mark = "✅";
-if (status === "rejected") mark = "❌";
-
-btn.innerText = mark + " " + unit.text + " | " + unit.file;
+    btn.innerText = mark + " " + unit.text + " | " + unit.file;
 
     btn.style.display = "block";
     btn.style.margin = "8px auto";
@@ -302,4 +259,4 @@ function renderHome() {
 function goHome() {
   document.getElementById("recordView").style.display = "none";
   document.getElementById("homeView").style.display = "block";
-          }
+}
