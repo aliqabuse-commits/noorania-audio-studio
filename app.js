@@ -225,8 +225,7 @@ async function exportApproved() {
 
   alert("تم تصدير " + approvedKeys.length + " ملف من هذه القائمة");
 }
-  updateUI();
-}
+
 function rejectUnit() {
   if (!currentUnits.length) return;
 
