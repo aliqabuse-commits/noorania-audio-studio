@@ -143,6 +143,23 @@ function download() {
   a.download = currentUnits[index].file;
   a.click();
 }
+function hasAudio(key, callback) {
+  if (!db) {
+    callback(false);
+    return;
+  }
+
+  const tx = db.transaction("recordings", "readonly");
+  const request = tx.objectStore("recordings").get(key);
+
+  request.onsuccess = function () {
+    callback(!!request.result);
+  };
+
+  request.onerror = function () {
+    callback(false);
+  };
+}
 
 function approveAndNext() {
   if (!audioBlob) {
@@ -208,6 +225,11 @@ function renderUnitList() {
     if (status === "rejected") mark = "❌";
 
     btn.innerText = mark + " " + unit.text + " | " + unit.file;
+
+    hasAudio(key, function (exists) {
+      const audioMark = exists ? " 🎧" : "";
+      btn.innerText = mark + audioMark + " " + unit.text + " | " + unit.file;
+    });
 
     btn.style.display = "block";
     btn.style.margin = "8px auto";
