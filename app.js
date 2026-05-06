@@ -349,89 +349,54 @@ function goHome() {
 
 // التصدير يكون من القائمة الحالية فقط
 async function exportApproved() {
-  if (!currentUnits || currentUnits.length === 0) {
-    alert("لا توجد قائمة مفتوحة للتصدير");
+  const approvedKeys = Object.keys(unitStatus).filter(
+    (k) => unitStatus[k] === "approved"
+  );
+
+  if (approvedKeys.length === 0) {
+    alert("لا يوجد أصوات معتمدة");
     return;
   }
 
-  const approvedUnits = currentUnits.filter(function (unit) {
-    return unitStatus[getUnitKey(unit)] === "approved";
-  });
-
-  if (approvedUnits.length === 0) {
-    alert("لا يوجد أصوات معتمدة في هذه القائمة");
-    return;
-  }
+  const zip = new JSZip();
 
   const manifest = [];
-  const files = [];
 
-  for (let unit of approvedUnits) {
-    const key = getUnitKey(unit);
-
-    const blob = await new Promise(function (resolve) {
+  for (let key of approvedKeys) {
+    const blob = await new Promise((resolve) => {
       getAudio(key, resolve);
     });
 
     if (!blob) continue;
 
+    // حفظ الصوت داخل مجلد audio
+    zip.file("audio/" + key, blob);
+
     manifest.push({
-      category: currentCategory,
-      text: unit.text,
       file: key,
       status: "approved"
     });
-
-    files.push({
-      name: key,
-      blob: blob
-    });
   }
 
-  if (files.length === 0) {
-    alert("لا توجد ملفات صوت محفوظة للتصدير");
-    return;
-  }
+  // إنشاء manifest.json
+  zip.file(
+    "manifest.json",
+    JSON.stringify(manifest, null, 2)
+  );
 
-  if (typeof JSZip !== "undefined") {
-    const zip = new JSZip();
-
-    zip.file("manifest.json", JSON.stringify(manifest, null, 2));
-
-    files.forEach(function (f) {
-      zip.file("audio/" + f.name, f.blob);
-    });
-
-    const content = await zip.generateAsync({ type: "blob" });
-
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(content);
-    a.download =
-      "noorania-" +
-      currentCategory.replace(/\s+/g, "-") +
-      "-approved-audio.zip";
-
-    a.click();
-
-    alert("تم تصدير حزمة ZIP لهذه القائمة فقط");
-    return;
-  }
-
-  const manifestBlob = new Blob([JSON.stringify(manifest, null, 2)], {
-    type: "application/json"
+  // توليد ZIP
+  const content = await zip.generateAsync({
+    type: "blob"
   });
 
-  const manifestLink = document.createElement("a");
-  manifestLink.href = URL.createObjectURL(manifestBlob);
-  manifestLink.download = "manifest.json";
-  manifestLink.click();
+  // تنزيل الملف
+  const a = document.createElement("a");
 
-  files.forEach(function (f) {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(f.blob);
-    a.download = f.name;
-    a.click();
-  });
+  a.href = URL.createObjectURL(content);
 
-  alert("تم تصدير " + files.length + " ملف من هذه القائمة فقط");
+  a.download = "noorania-audio-package.zip";
+
+  a.click();
+
+  alert("تم إنشاء ملف ZIP بنجاح");
 }
