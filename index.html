@@ -1,40 +1,78 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>غرفة العمليات الصوتية</title>
+
+  <link rel="stylesheet" href="style.css">
 </head>
-<body style="font-family: Arial; text-align:center; margin-top:50px;">
 
-  <h1>غرفة العمليات الصوتية</h1>
-<h3>TEST WORKING</h3>
-  <h2 id="unit">بَ</h2>
-<p id="filename">ba_fatha.wav</p>
-  <p id="counter">1 / 6</p>
-<div id="homeView">
-  <h2>القوائم الرئيسية</h2>
-  <div id="categoryList"></div>
-</div>
+<body>
 
-<div id="recordView" style="display:none;">  
-<button id="recordBtn" onclick="toggleRecording()">🎙 تسجيل</button> 
-<button onclick="play()">▶️ استماع</button>
-<button onclick="download()">⬇️ تنزيل</button>
-<button onclick="approveAndNext()">✅ اعتماد وانتقال</button>  
-<button onclick="rejectUnit()">❌ عدم اعتماد</button>
-<button onclick="prevUnit()">⬅️ السابق</button>
-<button onclick="nextUnit()">➡️ التالي</button>
-<hr>
-  <button onclick="goHome()">🏠 الرئيسية</button>
-  <button onclick="exportApproved()">📦 تصدير الأصوات المعتمدة</button>
-<hr>
+  <header class="app-header">
+    <h1>غرفة العمليات الصوتية</h1>
+    <p>النورانية العالمية — تسجيل واعتماد الوحدات الصوتية</p>
+  </header>
 
-<h3>قائمة الوحدات</h3>
-<div id="unitList"></div><script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script src="recording-manifest.js"></script>
-<script src="app.js"></script>
+  <main>
+
+    <section id="homeView" class="panel">
+      <h2>القوائم الرئيسية</h2>
+      <div id="categoryList"></div>
+    </section>
+
+    <section id="recordView" class="panel" style="display:none;">
+
+      <div class="unit-card">
+        <div id="unit">بَ</div>
+        <p id="filename">ba_fatha.wav</p>
+        <p id="counter">1 / 6</p>
+      </div>
+
+      <div class="controls">
+        <button id="recordBtn" onclick="toggleRecording()">🎙 تسجيل</button>
+
+        <button onclick="play()">▶ استماع</button>
+
+        <button onclick="download()">⬇ تنزيل</button>
+
+        <button class="approve" onclick="approveAndNext()">
+          ✅ اعتماد
+        </button>
+
+        <button class="reject" onclick="rejectUnit()">
+          ❌ إلغاء
+        </button>
+
+        <button onclick="prevUnit()">⬅ السابق</button>
+
+        <button onclick="nextUnit()">➡ التالي</button>
+      </div>
+
+      <div class="secondary-controls">
+        <button onclick="goHome()">🏠 الرئيسية</button>
+
+        <button onclick="exportApproved()">
+          📦 تصدير الأصوات المعتمدة
+        </button>
+      </div>
+
+      <hr>
+
+      <h3>قائمة الوحدات</h3>
+
+      <div id="unitList"></div>
+
+    </section>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+  <script src="recording-manifest.js"></script>
+
+  <script src="app.js"></script>
 
 </body>
 </html>
-
-
