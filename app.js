@@ -406,10 +406,7 @@ async function exportApproved() {
 
     const a = document.createElement("a");
     a.href = URL.createObjectURL(content);
-    a.download =
-      "noorania-" +
-      currentCategory.replace(/\s+/g, "-") +
-      "-approved-audio.zip";
+    a.download = "noorania-approved-audio.zip";
 
     a.click();
 
