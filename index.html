@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#111827">
+
   <title>غرفة العمليات الصوتية</title>
 
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#111827">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
   <link rel="stylesheet" href="style.css">
- <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#111827"> 
 </head>
 
 <body>
@@ -36,36 +38,22 @@
 
       <div class="controls">
         <button id="recordBtn" onclick="toggleRecording()">🎙 تسجيل</button>
-
         <button onclick="play()">▶ استماع</button>
-
         <button onclick="download()">⬇ تنزيل</button>
-
-        <button class="approve" onclick="approveAndNext()">
-          ✅ اعتماد
-        </button>
-
-        <button class="reject" onclick="rejectUnit()">
-          ❌ إلغاء
-        </button>
-
+        <button class="approve" onclick="approveAndNext()">✅ اعتماد</button>
+        <button class="reject" onclick="rejectUnit()">❌ إلغاء</button>
         <button onclick="prevUnit()">⬅ السابق</button>
-
         <button onclick="nextUnit()">➡ التالي</button>
       </div>
 
       <div class="secondary-controls">
         <button onclick="goHome()">🏠 الرئيسية</button>
-
-        <button onclick="exportApproved()">
-          📦 تصدير الأصوات المعتمدة
-        </button>
+        <button onclick="exportApproved()">📦 تصدير الأصوات المعتمدة</button>
       </div>
 
       <hr>
 
       <h3>قائمة الوحدات</h3>
-
       <div id="unitList"></div>
 
     </section>
@@ -73,14 +61,14 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-
   <script src="recording-manifest.js"></script>
-
   <script src="app.js"></script>
-<script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/service-worker.js");
-  }
-</script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/service-worker.js");
+    }
+  </script>
+
 </body>
 </html>
