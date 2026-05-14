@@ -1,5 +1,3 @@
-alert("نداء من المحرك: أنا أعمل بالنسخة الجديدة V2.1 ⚡");
-
 let db;
 let wavesurfer;
 let wsRegions;
