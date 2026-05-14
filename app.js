@@ -2,7 +2,10 @@ let db;
 let wavesurfer;
 let wsRegions;
 
-// 1. تهيئة قاعدة البيانات (نفس النظام القديم لضمان الاستمرارية)
+// تنبيه التأكد من التحديث
+console.log("🚀 نظام الإحداثيات المطور قيد التشغيل - V2");
+
+// 1. تهيئة قاعدة البيانات
 function initDB() {
   const request = indexedDB.open("noorDB", 1);
   request.onupgradeneeded = function (e) {
@@ -35,8 +38,14 @@ function getAudio(key, callback) {
   request.onerror = function () { callback(null); };
 }
 
-// 3. محرك المشرط الرقمي (WaveSurfer)
+// 3. محرك المشرط الرقمي (WaveSurfer) مع حماية ضد أخطاء التحميل
 function initWaveform(blob) {
+  // التأكد من تحميل المكتبة أولاً
+  if (typeof WaveSurfer === 'undefined') {
+    console.error("❌ مكتبة WaveSurfer لم تُحمل بعد");
+    return;
+  }
+
   if (wavesurfer) wavesurfer.destroy();
 
   wavesurfer = WaveSurfer.create({
@@ -45,19 +54,18 @@ function initWaveform(blob) {
     progressColor: '#00f2ff',
     cursorColor: '#ff0000',
     height: 80,
-    responsive: true,
     normalize: true
   });
 
+  // إضافة نظام المناطق (Markers)
   wsRegions = wavesurfer.registerPlugin(WaveSurfer.Regions.create());
 
   wavesurfer.on('ready', () => {
     const duration = wavesurfer.getDuration();
     wsRegions.clearRegions();
     
-    // إنشاء منطقة "المحمول" (الرقم الثاني Y) افتراضياً بنسبة 80% من الملف
+    // إنشاء منطقة المحمول (Y) بنسبة 80%
     wsRegions.addRegion({
-      id: 'core-voice',
       start: duration * 0.1,
       end: duration * 0.9,
       color: 'rgba(0, 242, 255, 0.2)',
@@ -76,19 +84,18 @@ function initWaveform(blob) {
 }
 
 function updateCoordsDisplay() {
-  const region = wsRegions.getRegions()[0];
-  if (!region) return;
-
+  const regions = wsRegions.getRegions();
+  if (regions.length === 0) return;
+  
+  const region = regions[0];
   const fileDuration = wavesurfer.getDuration();
-  const vStart = region.start;
-  const vEnd = region.end;
 
-  document.getElementById('val-x').innerText = vStart.toFixed(3) + "s";
-  document.getElementById('val-y').innerText = (vEnd - vStart).toFixed(3) + "s";
-  document.getElementById('val-z').innerText = (fileDuration - vEnd).toFixed(3) + "s";
+  document.getElementById('val-x').innerText = region.start.toFixed(3);
+  document.getElementById('val-y').innerText = (region.end - region.start).toFixed(3);
+  document.getElementById('val-z').innerText = (fileDuration - region.end).toFixed(3);
 }
 
-// 4. متغيرات الحالة
+// 4. متغيرات الحالة والمعجم القديم
 const categories = [
   { title: "أسماء الحروف الهجائية" },
   { title: "الحروف المتحركة" },
@@ -136,55 +143,56 @@ async function startRecording() {
 
 function stopRecording() { if (mediaRecorder && isRecording) { mediaRecorder.stop(); isRecording = false; } }
 
-// 6. الاعتماد وتصدير الـ Profile
+// 6. الاعتماد وتصدير الـ Profile بموجب الوثيقة المحدثة
 async function approveAndNext() {
   if (!currentUnits.length) return;
   const key = getUnitKey(currentUnits[index]);
-  const region = wsRegions.getRegions()[0];
+  const regions = wsRegions ? wsRegions.getRegions() : [];
 
   if (!audioBlob && !wavesurfer) { alert("سجّل الوحدة أولاً"); return; }
-  if (!region) { alert("حدد منطقة الصوت على الموجة أولاً"); return; }
-
-  // حفظ الصوت في IndexedDB
+  
+  // حفظ الصوت
   if (audioBlob) saveAudio(key, audioBlob);
 
-  // توليد وحفظ ملف التعريف (Profile) في localStorage بالاسم القديم
-  const profile = {
-    reference: key.replace('.wav', ''),
-    fileStart: 0.00,
-    voiceStart: parseFloat(region.start.toFixed(4)),
-    voiceEnd: parseFloat(region.end.toFixed(4)),
-    fileEnd: parseFloat(wavesurfer.getDuration().toFixed(4))
-  };
+  // حفظ الإحداثيات إذا وُجدت الموجة
+  if (regions.length > 0) {
+    const region = regions[0];
+    const profile = {
+      reference: key.replace('.wav', ''),
+      fileStart: 0.00,
+      voiceStart: parseFloat(region.start.toFixed(4)),
+      voiceEnd: parseFloat(region.end.toFixed(4)),
+      fileEnd: parseFloat(wavesurfer.getDuration().toFixed(4))
+    };
+    localStorage.setItem(key + ".profile.json", JSON.stringify(profile));
+  }
 
-  localStorage.setItem(key + ".profile.json", JSON.stringify(profile));
-  
   unitStatus[key] = "approved";
   saveUnitStatus();
   audioBlob = null;
+  
   index++;
   if (index >= currentUnits.length) index = 0;
   updateUI();
 }
 
-// 7. واجهة المستخدم والتنقل
+// 7. واجهة المستخدم
 function updateUI() {
   const unit = currentUnits[index];
-  document.getElementById("unit").innerText = unit ? unit.text : "انتهى";
-  document.getElementById("filename").innerText = unit ? unit.file : "";
+  if (!unit) return;
+  
+  document.getElementById("unit").innerText = unit.text;
+  document.getElementById("filename").innerText = unit.file;
   document.getElementById("counter").innerText = (index + 1) + " / " + currentUnits.length;
   
-  // تحميل الصوت الموجود مسبقاً إذا وجد لعرض الموجة
-  if (unit) {
-    getAudio(unit.file, (blob) => {
-      if (blob) initWaveform(blob);
-      else if (wavesurfer) wavesurfer.destroy();
-    });
-  }
+  getAudio(unit.file, (blob) => {
+    if (blob) initWaveform(blob);
+    else if (wavesurfer) { wavesurfer.destroy(); wavesurfer = null; }
+  });
   renderUnitList();
 }
 
-// 8. التصدير السيادي (ZIP يحتوي على WAV + Profile)
+// 8. التصدير السيادي (ZIP)
 async function exportApproved() {
   if (!currentUnits.length) return;
   const approvedUnits = currentUnits.filter(u => unitStatus[getUnitKey(u)] === "approved");
@@ -200,14 +208,11 @@ async function exportApproved() {
 
     if (audioBlob) {
       zip.file("audio/" + key, audioBlob);
-      if (profileData) {
-        zip.file("profiles/" + key + ".profile.json", profileData);
-      }
+      if (profileData) zip.file("profiles/" + key + ".profile.json", profileData);
       manifest.push({ category: currentCategory, text: unit.text, file: key });
     }
   }
 
-  zip.file("manifest.json", JSON.stringify(manifest, null, 2));
   const content = await zip.generateAsync({ type: "blob" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(content);
@@ -215,10 +220,10 @@ async function exportApproved() {
   a.click();
 }
 
-// الدوال المساعدة المتبقية (Home, play, etc.) تبقى كما هي مع ربطها بالواجهة الجديدة
+// الدوال المساعدة
 function goHome() { 
-    document.getElementById("recordView").style.display = "none"; 
-    document.getElementById("homeView").style.display = "block"; 
+  document.getElementById("recordView").style.display = "none"; 
+  document.getElementById("homeView").style.display = "block"; 
 }
 
 function renderHome() {
@@ -227,7 +232,7 @@ function renderHome() {
   categories.forEach(cat => {
     const btn = document.createElement("button");
     btn.innerText = cat.title;
-    btn.className = "category-btn";
+    btn.style.display = "block"; btn.style.margin = "10px auto"; btn.style.width = "90%";
     btn.onclick = () => {
       currentCategory = cat.title;
       currentUnits = allUnits[cat.title] || [];
@@ -241,7 +246,6 @@ function renderHome() {
 }
 
 function play() { if (wavesurfer) wavesurfer.playPause(); }
-
 function nextUnit() { index = (index + 1) % currentUnits.length; updateUI(); }
 function prevUnit() { index = (index - 1 + currentUnits.length) % currentUnits.length; updateUI(); }
 
@@ -253,7 +257,8 @@ function renderUnitList() {
         const btn = document.createElement("button");
         const key = getUnitKey(unit);
         btn.innerText = (unitStatus[key] === "approved" ? "✅ " : "⏳ ") + unit.text;
-        btn.className = i === index ? "unit-btn active" : "unit-btn";
+        btn.style.display = "block"; btn.style.margin = "5px auto"; btn.style.width = "90%";
+        if (i === index) btn.style.background = "#cfe8ff";
         btn.onclick = () => { index = i; updateUI(); };
         list.appendChild(btn);
     });
