@@ -3,44 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>غرفة العمليات الصوتية</title>
-
+  <title>غرفة العمليات الصوتية V2</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#111827">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-
   <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/wavesurfer.js@7"></script>
+  <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
 </head>
-
 <body>
 
   <header class="app-header">
-    <h1>غرفة العمليات الصوتية</h1>
-    <p>النورانية العالمية — تسجيل واعتماد الوحدات الصوتية</p>
+    <h1>🔬 غرفة العمليات الصوتية</h1>
+    <p>النورانية العالمية — معمل الإحداثيات السيادي</p>
   </header>
 
   <main>
-
     <section id="homeView" class="panel">
       <h2>القوائم الرئيسية</h2>
       <div id="categoryList"></div>
     </section>
 
     <section id="recordView" class="panel" style="display:none;">
-
       <div class="unit-card">
         <div id="unit">بَ</div>
         <p id="filename">ba_fatha.wav</p>
+        
+        <div id="waveform-container" style="background: #000; border-radius: 12px; margin: 15px 0; border: 1px solid #374151;">
+          <div id="waveform"></div>
+        </div>
+
+        <div id="coords-display" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; font-size: 13px; color: #9ca3af; margin: 10px 0;">
+          <div class="coord-box">البداية (X): <span id="val-x" style="color:#00f2ff">0.00</span></div>
+          <div class="coord-box">المحمول (Y): <span id="val-y" style="color:#00f2ff">0.00</span></div>
+          <div class="coord-box">النهاية (Z): <span id="val-z" style="color:#00f2ff">0.00</span></div>
+        </div>
+        
         <p id="counter">1 / 6</p>
       </div>
 
       <div class="controls">
         <button id="recordBtn" onclick="toggleRecording()">🎙 تسجيل</button>
         <button onclick="play()">▶ استماع</button>
-        <button onclick="download()">⬇ تنزيل</button>
-        <button class="approve" onclick="approveAndNext()">✅ اعتماد</button>
+        <button class="approve" onclick="approveAndNext()">✅ اعتماد وتصدير Profile</button>
         <button class="reject" onclick="rejectUnit()">❌ إلغاء</button>
         <button onclick="prevUnit()">⬅ السابق</button>
         <button onclick="nextUnit()">➡ التالي</button>
@@ -48,27 +52,17 @@
 
       <div class="secondary-controls">
         <button onclick="goHome()">🏠 الرئيسية</button>
-        <button onclick="exportApproved()">📦 تصدير الأصوات المعتمدة</button>
+        <button onclick="exportApproved()">📦 تصدير الحزمة السيادية (ZIP)</button>
       </div>
 
       <hr>
-
       <h3>قائمة الوحدات</h3>
       <div id="unitList"></div>
-
     </section>
-
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="recording-manifest.js"></script>
   <script src="app.js"></script>
-
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/service-worker.js");
-    }
-  </script>
-
 </body>
 </html>
