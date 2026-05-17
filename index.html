@@ -20,7 +20,7 @@
 
 <body>
 
-  <!-- شريط التحقق من النسخة -->
+  <!-- شريط التحقق -->
   <div id="check-version"
        style="background:#00ff00;
               color:#000;
@@ -29,7 +29,7 @@
               font-weight:bold;
               border-bottom:5px solid #000;">
 
-    🧬 تم تحديث النظام: V3.1 — تقسيم الجينوم أسفل الموجة نشط
+    🧬 تم تحديث النظام: V3.2 — Genome Layout Stable
 
   </div>
 
@@ -65,7 +65,7 @@
 
       <div class="unit-card">
 
-        <!-- الوحدة الحالية -->
+        <!-- الوحدة -->
         <div id="unit">بَ</div>
 
         <p id="filename">
@@ -86,28 +86,32 @@
         </div>
 
 
-        <!-- تقسيم الجينوم أسفل الموجة -->
+        <!-- تقسيم الجينوم -->
         <div id="genome-display"
              style="display:grid;
-                    grid-template-columns:repeat(4, 1fr);
-                    gap:6px;
-                    font-size:11px;
+                    grid-template-columns:repeat(4, minmax(0, 1fr));
+                    gap:4px;
+                    font-size:10px;
                     color:#9ca3af;
                     margin:8px 0 12px;
                     text-align:center;
-                    direction:ltr;">
+                    direction:ltr;
+                    overflow:hidden;">
 
-          <!-- preCarrier -->
-          <div class="coord-box">
+          <!-- pre -->
+          <div class="coord-box"
+               style="min-width:0;">
 
             <div style="color:#cbd5e1;">
               pre
             </div>
 
             <div id="val-preCarrier"
-                 style="color:#cbd5e1;">
+                 style="color:#cbd5e1;
+                        white-space:nowrap;
+                        font-size:10px;">
 
-              0.000 → 0.000
+              0.000→0.000
 
             </div>
 
@@ -115,16 +119,19 @@
 
 
           <!-- carrier -->
-          <div class="coord-box">
+          <div class="coord-box"
+               style="min-width:0;">
 
             <div style="color:#facc15;">
               carrier
             </div>
 
             <div id="val-carrier"
-                 style="color:#facc15;">
+                 style="color:#facc15;
+                        white-space:nowrap;
+                        font-size:10px;">
 
-              0.000 → 0.000
+              0.000→0.000
 
             </div>
 
@@ -132,16 +139,19 @@
 
 
           <!-- payload -->
-          <div class="coord-box">
+          <div class="coord-box"
+               style="min-width:0;">
 
             <div style="color:#00f2ff;">
               payload
             </div>
 
             <div id="val-payload"
-                 style="color:#00f2ff;">
+                 style="color:#00f2ff;
+                        white-space:nowrap;
+                        font-size:10px;">
 
-              0.000 → 0.000
+              0.000→0.000
 
             </div>
 
@@ -149,16 +159,19 @@
 
 
           <!-- tail -->
-          <div class="coord-box">
+          <div class="coord-box"
+               style="min-width:0;">
 
             <div style="color:#f87171;">
               tail
             </div>
 
             <div id="val-tail"
-                 style="color:#f87171;">
+                 style="color:#f87171;
+                        white-space:nowrap;
+                        font-size:10px;">
 
-              0.000 → 0.000
+              0.000→0.000
 
             </div>
 
@@ -172,7 +185,7 @@
              style="display:grid;
                     grid-template-columns:1fr 1fr 1fr;
                     gap:10px;
-                    font-size:13px;
+                    font-size:12px;
                     color:#9ca3af;
                     margin:10px 0;">
 
@@ -223,7 +236,7 @@
       </div>
 
 
-      <!-- أزرار التحكم -->
+      <!-- أدوات التحكم -->
       <div class="controls">
 
         <button id="recordBtn"
