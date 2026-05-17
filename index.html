@@ -20,18 +20,19 @@
 
 <body>
 
-  <!-- شريط التحقق --><div id="check-version"
-     style="background:red;
-            color:white;
-            text-align:center;
-            padding:20px;
-            font-size:28px;
-            font-weight:bold;
-            border-bottom:8px solid yellow;">
+  <!-- شريط التحقق -->
+  <div id="check-version"
+       style="background:red;
+              color:white;
+              text-align:center;
+              padding:20px;
+              font-size:28px;
+              font-weight:bold;
+              border-bottom:8px solid yellow;">
 
-  🔥🔥🔥 TEST VERSION 999 🔥🔥🔥
+    🔥🔥🔥 TEST VERSION 999 🔥🔥🔥
 
-</div>
+  </div>
 
 
   <!-- رأس التطبيق -->
@@ -79,7 +80,7 @@
                     border-radius:12px;
                     margin:15px 0;
                     border:1px solid #374151;
-                    min-height:90px;">
+                    min-height:120px;">
 
           <div id="waveform"></div>
 
@@ -97,7 +98,7 @@
                     unicode-bidi:isolate;
                     overflow:hidden;">
 
-          <!-- pre -->
+          <!-- PRE -->
           <div class="coord-box"
                style="flex:1;
                       min-width:0;
@@ -117,16 +118,14 @@
             <div id="val-preCarrier"
                  style="color:white;
                         font-size:9px;
-                        white-space:nowrap;
-                        overflow:hidden;
-                        text-overflow:clip;">
+                        white-space:nowrap;">
               0.000 ⟶ 0.000
             </div>
 
           </div>
 
 
-          <!-- carrier -->
+          <!-- CARRIER -->
           <div class="coord-box"
                style="flex:1;
                       min-width:0;
@@ -146,16 +145,14 @@
             <div id="val-carrier"
                  style="color:white;
                         font-size:9px;
-                        white-space:nowrap;
-                        overflow:hidden;
-                        text-overflow:clip;">
+                        white-space:nowrap;">
               0.000 ⟶ 0.000
             </div>
 
           </div>
 
 
-          <!-- payload -->
+          <!-- PAYLOAD -->
           <div class="coord-box"
                style="flex:1;
                       min-width:0;
@@ -175,16 +172,14 @@
             <div id="val-payload"
                  style="color:white;
                         font-size:9px;
-                        white-space:nowrap;
-                        overflow:hidden;
-                        text-overflow:clip;">
+                        white-space:nowrap;">
               0.000 ⟶ 0.000
             </div>
 
           </div>
 
 
-          <!-- tail -->
+          <!-- TAIL -->
           <div class="coord-box"
                style="flex:1;
                       min-width:0;
@@ -204,9 +199,7 @@
             <div id="val-tail"
                  style="color:white;
                         font-size:9px;
-                        white-space:nowrap;
-                        overflow:hidden;
-                        text-overflow:clip;">
+                        white-space:nowrap;">
               0.000 ⟶ 0.000
             </div>
 
@@ -220,7 +213,7 @@
              style="display:grid;
                     grid-template-columns:1fr 1fr 1fr;
                     gap:8px;
-                    font-size:11px;
+                    font-size:13px;
                     color:#9ca3af;
                     margin:10px 0;">
 
@@ -283,42 +276,19 @@
 
 
         <button onclick="playRaw()">
-          ▶ الخام
-        </button>
-
-
-        <button onclick="playPreCarrierOnly()">
-          ما قبل الحامل
-        </button>
-
-
-        <button onclick="playCarrierOnly()">
-          الحامل
+          ▶ استماع التسجيل
         </button>
 
 
         <button onclick="playPayloadOnly()">
-          المحمول
-        </button>
-
-
-        <button onclick="playCarrierPayload()">
-          الحامل + المحمول
+          ▶ الخام / المحمول
         </button>
 
 
         <button class="approve"
                 onclick="approveAndNext()">
 
-          ✅ اعتماد Genome
-
-        </button>
-
-
-        <button class="reject"
-                onclick="rejectUnit()">
-
-          ❌ إلغاء
+          ✅ اعتماد وحفظ
 
         </button>
 
@@ -329,7 +299,7 @@
 
 
         <button onclick="nextUnit()">
-          ➡ التالي
+          اللاحق ➡
         </button>
 
       </div>
@@ -344,9 +314,7 @@
 
 
         <button onclick="exportApproved()">
-
-          📦 تصدير الحزمة الجينية ZIP
-
+          📦 تصدير
         </button>
 
       </div>
