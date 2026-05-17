@@ -1,74 +1,99 @@
-<div id="check-version" style="background: #00ff00; color: #000; text-align: center; padding: 15px; font-weight: bold; border-bottom: 5px solid #000;">
-   🚨 تم تحديث النظام: V2.1 - المشرط نشط 🚨
-</div>
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>غرفة العمليات الصوتية V2 - المصنع السيادي</title>
-  
+
+  <title>غرفة العمليات الصوتية V3 - مختبر الجينوم</title>
+
   <meta name="theme-color" content="#111827">
   <link rel="stylesheet" href="style.css">
-  
+
   <script src="https://unpkg.com/wavesurfer.js@7"></script>
   <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
 </head>
+
 <body>
+
+  <div id="check-version" style="background:#00ff00; color:#000; text-align:center; padding:15px; font-weight:bold; border-bottom:5px solid #000;">
+    🧬 تم تحديث النظام: V3 - مختبر الجينوم الصوتي نشط
+  </div>
 
   <header class="app-header">
     <h1>🔬 غرفة العمليات الصوتية</h1>
-    <p>النورانية العالمية — معمل الإحداثيات السيادي</p>
+    <p>النورانية العالمية — مختبر تصنيع الوحدات الجينية</p>
   </header>
 
   <main>
+
     <section id="homeView" class="panel">
       <h2>القوائم الرئيسية</h2>
       <div id="categoryList"></div>
     </section>
 
     <section id="recordView" class="panel" style="display:none;">
+
       <div class="unit-card">
         <div id="unit">بَ</div>
         <p id="filename">ba_fatha.wav</p>
-        
-        <div id="waveform-container" style="background: #000; border-radius: 12px; margin: 15px 0; border: 1px solid #374151; min-height: 80px;">
+
+        <div id="waveform-container" style="background:#000; border-radius:12px; margin:15px 0; border:1px solid #374151; min-height:90px;">
           <div id="waveform"></div>
         </div>
 
-        <div id="coords-display" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; font-size: 13px; color: #9ca3af; margin: 10px 0;">
-          <div class="coord-box">البداية (X): <span id="val-x" style="color:#00f2ff">0.00</span></div>
-          <div class="coord-box">المحمول (Y): <span id="val-y" style="color:#00f2ff">0.00</span></div>
-          <div class="coord-box">النهاية (Z): <span id="val-z" style="color:#00f2ff">0.00</span></div>
+        <div id="genome-display" style="display:grid; grid-template-columns:1fr; gap:8px; font-size:13px; color:#9ca3af; margin:12px 0; text-align:right;">
+          <div class="coord-box">ما قبل الحامل: <span id="val-preCarrier" style="color:#cbd5e1">0.000 → 0.000</span></div>
+          <div class="coord-box">الحامل: <span id="val-carrier" style="color:#facc15">0.000 → 0.000</span></div>
+          <div class="coord-box">المحمول: <span id="val-payload" style="color:#00f2ff">0.000 → 0.000</span></div>
+          <div class="coord-box">الذيل: <span id="val-tail" style="color:#f87171">0.000 → 0.000</span></div>
         </div>
-        
+
+        <div id="coords-display" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; font-size:13px; color:#9ca3af; margin:10px 0;">
+          <div class="coord-box">بداية الحامل: <span id="val-x" style="color:#00f2ff">0.00</span></div>
+          <div class="coord-box">طول المحمول: <span id="val-y" style="color:#00f2ff">0.00</span></div>
+          <div class="coord-box">طول الذيل: <span id="val-z" style="color:#00f2ff">0.00</span></div>
+        </div>
+
         <p id="counter">1 / 6</p>
       </div>
 
       <div class="controls">
         <button id="recordBtn" onclick="toggleRecording()">🎙 تسجيل</button>
-        <button onclick="play()">▶ استماع</button>
-        <button class="approve" onclick="approveAndNext()">✅ اعتماد وتصدير Profile</button>
+        <button onclick="playRaw()">▶ الخام</button>
+
+        <button onclick="playPreCarrierOnly()">ما قبل الحامل</button>
+        <button onclick="playCarrierOnly()">الحامل</button>
+
+        <button onclick="playPayloadOnly()">المحمول</button>
+        <button onclick="playCarrierPayload()">الحامل + المحمول</button>
+
+        <button class="approve" onclick="approveAndNext()">✅ اعتماد Genome</button>
         <button class="reject" onclick="rejectUnit()">❌ إلغاء</button>
+
         <button onclick="prevUnit()">⬅ السابق</button>
         <button onclick="nextUnit()">➡ التالي</button>
       </div>
 
       <div class="secondary-controls">
         <button onclick="goHome()">🏠 الرئيسية</button>
-        <button onclick="exportApproved()">📦 تصدير الحزمة السيادية (ZIP)</button>
+        <button onclick="exportApproved()">📦 تصدير الحزمة الجينية ZIP</button>
       </div>
 
       <hr>
+
       <h3>قائمة الوحدات</h3>
       <div id="unitList"></div>
+
     </section>
+
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
   <script src="recording-manifest.js"></script>
+  <script src="storage.js"></script>
+  <script src="audio-lab.js"></script>
   <script src="app.js"></script>
 
-  </body>
+</body>
 </html>
