@@ -29,7 +29,7 @@
               font-weight:bold;
               border-bottom:5px solid #000;">
 
-    🧬 تم تحديث النظام: V3.2 — Genome Layout Stable
+    🧬 تم تحديث النظام: V3.3 — Genome Cards Layout
 
   </div>
 
@@ -86,34 +86,41 @@
         </div>
 
 
-        <!-- تقسيم الجينوم -->
+        <!-- بطاقات تقسيم الجينوم -->
         <div id="genome-display"
-             style="display:grid;
-                    grid-template-columns:repeat(4, minmax(0, 1fr));
-                    gap:4px;
-                    font-size:10px;
-                    color:#9ca3af;
-                    margin:8px 0 12px;
-                    text-align:center;
+             style="display:flex;
+                    justify-content:space-between;
+                    align-items:stretch;
+                    gap:6px;
+                    margin:10px 0 14px;
                     direction:ltr;
-          unicode-bidi:isolate;
+                    unicode-bidi:isolate;
                     overflow:hidden;">
 
           <!-- pre -->
           <div class="coord-box"
-               style="min-width:0;">
+               style="flex:1;
+                      min-width:0;
+                      background:#1f2937;
+                      border-radius:10px;
+                      padding:8px 3px;
+                      text-align:center;
+                      border-top:4px solid #94a3b8;">
 
-            <div style="color:#cbd5e1;">
-              pre
+            <div style="color:#94a3b8;
+                        font-size:10px;
+                        margin-bottom:5px;
+                        font-weight:bold;">
+              PRE
             </div>
 
             <div id="val-preCarrier"
-                 style="color:#cbd5e1;
+                 style="color:white;
+                        font-size:9px;
                         white-space:nowrap;
-                        font-size:10px;">
-
-              0.000→0.000
-
+                        overflow:hidden;
+                        text-overflow:clip;">
+              0.000 ⟶ 0.000
             </div>
 
           </div>
@@ -121,19 +128,28 @@
 
           <!-- carrier -->
           <div class="coord-box"
-               style="min-width:0;">
+               style="flex:1;
+                      min-width:0;
+                      background:#1f2937;
+                      border-radius:10px;
+                      padding:8px 3px;
+                      text-align:center;
+                      border-top:4px solid #facc15;">
 
-            <div style="color:#facc15;">
-              carrier
+            <div style="color:#facc15;
+                        font-size:10px;
+                        margin-bottom:5px;
+                        font-weight:bold;">
+              CARRIER
             </div>
 
             <div id="val-carrier"
-                 style="color:#facc15;
+                 style="color:white;
+                        font-size:9px;
                         white-space:nowrap;
-                        font-size:10px;">
-
-              0.000→0.000
-
+                        overflow:hidden;
+                        text-overflow:clip;">
+              0.000 ⟶ 0.000
             </div>
 
           </div>
@@ -141,19 +157,28 @@
 
           <!-- payload -->
           <div class="coord-box"
-               style="min-width:0;">
+               style="flex:1;
+                      min-width:0;
+                      background:#1f2937;
+                      border-radius:10px;
+                      padding:8px 3px;
+                      text-align:center;
+                      border-top:4px solid #00f2ff;">
 
-            <div style="color:#00f2ff;">
-              payload
+            <div style="color:#00f2ff;
+                        font-size:10px;
+                        margin-bottom:5px;
+                        font-weight:bold;">
+              PAYLOAD
             </div>
 
             <div id="val-payload"
-                 style="color:#00f2ff;
+                 style="color:white;
+                        font-size:9px;
                         white-space:nowrap;
-                        font-size:10px;">
-
-              0.000→0.000
-
+                        overflow:hidden;
+                        text-overflow:clip;">
+              0.000 ⟶ 0.000
             </div>
 
           </div>
@@ -161,19 +186,28 @@
 
           <!-- tail -->
           <div class="coord-box"
-               style="min-width:0;">
+               style="flex:1;
+                      min-width:0;
+                      background:#1f2937;
+                      border-radius:10px;
+                      padding:8px 3px;
+                      text-align:center;
+                      border-top:4px solid #f87171;">
 
-            <div style="color:#f87171;">
-              tail
+            <div style="color:#f87171;
+                        font-size:10px;
+                        margin-bottom:5px;
+                        font-weight:bold;">
+              TAIL
             </div>
 
             <div id="val-tail"
-                 style="color:#f87171;
+                 style="color:white;
+                        font-size:9px;
                         white-space:nowrap;
-                        font-size:10px;">
-
-              0.000→0.000
-
+                        overflow:hidden;
+                        text-overflow:clip;">
+              0.000 ⟶ 0.000
             </div>
 
           </div>
@@ -185,8 +219,8 @@
         <div id="coords-display"
              style="display:grid;
                     grid-template-columns:1fr 1fr 1fr;
-                    gap:10px;
-                    font-size:12px;
+                    gap:8px;
+                    font-size:11px;
                     color:#9ca3af;
                     margin:10px 0;">
 
