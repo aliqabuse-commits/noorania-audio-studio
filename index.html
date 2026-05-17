@@ -42,7 +42,29 @@
           <div id="waveform"></div>
         </div>
 
-        <div id="genome-display" style="display:grid; grid-template-columns:1fr; gap:8px; font-size:13px; color:#9ca3af; margin:12px 0; text-align:right;">
+        <div id="genome-display" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; font-size:12px; color:#9ca3af; margin:10px 0 14px; text-align:center; direction:ltr;">
+
+  <div class="coord-box">
+    <div style="color:#cbd5e1;">preCarrier</div>
+    <div id="val-preCarrier" style="color:#cbd5e1">0.000 → 0.000</div>
+  </div>
+
+  <div class="coord-box">
+    <div style="color:#facc15;">carrier</div>
+    <div id="val-carrier" style="color:#facc15">0.000 → 0.000</div>
+  </div>
+
+  <div class="coord-box">
+    <div style="color:#00f2ff;">payload</div>
+    <div id="val-payload" style="color:#00f2ff">0.000 → 0.000</div>
+  </div>
+
+  <div class="coord-box">
+    <div style="color:#f87171;">tail</div>
+    <div id="val-tail" style="color:#f87171">0.000 → 0.000</div>
+  </div>
+
+</div>
           <div class="coord-box">ما قبل الحامل: <span id="val-preCarrier" style="color:#cbd5e1">0.000 → 0.000</span></div>
           <div class="coord-box">الحامل: <span id="val-carrier" style="color:#facc15">0.000 → 0.000</span></div>
           <div class="coord-box">المحمول: <span id="val-payload" style="color:#00f2ff">0.000 → 0.000</span></div>
