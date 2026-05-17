@@ -147,7 +147,25 @@ function getGenomeRegionsMap() {
 
 
 // =====================================
-// 6️⃣ تحديث عرض الإحداثيات
+// 6️⃣ تنسيق الأرقام للعرض
+// =====================================
+
+function formatTime(num) {
+
+  return Number(num).toFixed(3);
+
+}
+
+
+function formatRange(start, end) {
+
+  return formatTime(start) + " ⟶ " + formatTime(end);
+
+}
+
+
+// =====================================
+// 7️⃣ تحديث عرض الإحداثيات
 // =====================================
 
 function updateGenomeDisplay() {
@@ -165,27 +183,27 @@ function updateGenomeDisplay() {
 
   setText(
     "val-preCarrier",
-    preCarrier.start.toFixed(3) + " → " + preCarrier.end.toFixed(3)
+    formatRange(preCarrier.start, preCarrier.end)
   );
 
   setText(
     "val-carrier",
-    carrier.start.toFixed(3) + " → " + carrier.end.toFixed(3)
+    formatRange(carrier.start, carrier.end)
   );
 
   setText(
     "val-payload",
-    payload.start.toFixed(3) + " → " + payload.end.toFixed(3)
+    formatRange(payload.start, payload.end)
   );
 
   setText(
     "val-tail",
-    tail.start.toFixed(3) + " → " + tail.end.toFixed(3)
+    formatRange(tail.start, tail.end)
   );
 
-  setText("val-x", carrier.start.toFixed(3));
-  setText("val-y", (payload.end - payload.start).toFixed(3));
-  setText("val-z", (tail.end - tail.start).toFixed(3));
+  setText("val-x", formatTime(carrier.start));
+  setText("val-y", formatTime(payload.end - payload.start));
+  setText("val-z", formatTime(tail.end - tail.start));
 
 }
 
@@ -202,7 +220,7 @@ function setText(id, value) {
 
 
 // =====================================
-// 7️⃣ التسجيل الصوتي
+// 8️⃣ التسجيل الصوتي
 // =====================================
 
 function toggleRecording() {
@@ -282,7 +300,7 @@ function stopRecording() {
 
 
 // =====================================
-// 8️⃣ معاينة الصوت والمناطق
+// 9️⃣ معاينة الصوت والمناطق
 // =====================================
 
 function play() {
@@ -364,7 +382,7 @@ function playCarrierPayload() {
 
 
 // =====================================
-// 9️⃣ بناء ملف الجينوم
+// 🔟 بناء ملف الجينوم
 // =====================================
 
 function buildGenome(referenceKey) {
@@ -434,7 +452,7 @@ function round(num) {
 
 
 // =====================================
-// 🔟 أدوات مساعدة للتعامل مع app.js
+// 1️⃣1️⃣ أدوات مساعدة للتعامل مع app.js
 // =====================================
 
 function getCurrentAudioBlob() {
