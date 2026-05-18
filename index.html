@@ -1,408 +1,438 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+// ================================
+// common-payload-finder.js
+// كاشف المحمول المشترك — نسخة الباء الساكنة
+// ================================
 
-<head>
+const BA_COMMON_PAYLOAD_KEYS = [
+  "ab_sukoon.wav",
+  "qab_sukoon.wav",
+  "fab_sukoon.wav",
+  "bab_sukoon.wav",
+  "baab_sukoon.wav"
+];
 
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>غرفة العمليات الصوتية V3 - مختبر الفصل الصوتي</title>
+// =====================================
+// 1️⃣ تشغيل اختبار الباء الساكنة
+// =====================================
 
-  <meta name="theme-color" content="#111827">
+async function runBaCommonPayloadTest() {
 
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css">
+  try {
 
-  <script src="https://unpkg.com/wavesurfer.js@7"></script>
-  <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
-  <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/spectrogram.min.js"></script>
+    const result = await findCommonPayloadForKeys(
+      BA_COMMON_PAYLOAD_KEYS
+    );
 
-</head>
+    console.log("🧠 نتيجة كاشف المحمول المشترك:", result);
 
-<body>
+    localStorage.setItem(
+      "ba_common_payload_result",
+      JSON.stringify(result, null, 2)
+    );
 
-  <!-- شريط النسخة -->
-  <div id="check-version"
-       style="background:#7c2d12;
-              color:white;
-              text-align:center;
-              padding:14px;
-              font-size:20px;
-              font-weight:bold;
-              border-bottom:5px solid #facc15;
-              line-height:1.1;">
+    alert(
+      "تم اكتشاف المحمول المشترك تقريبياً\n" +
+      "المدة: " + result.bestDurationSeconds.toFixed(3) + " ثانية\n" +
+      "درجة التشابه: " + result.score.toFixed(4)
+    );
 
-    🧪 V901 — واجهة مبسطة مستقرة
+  } catch (err) {
 
-  </div>
+    console.error("❌ فشل كاشف المحمول المشترك", err);
 
+    alert(
+      "فشل اكتشاف المحمول المشترك:\n" +
+      err.message
+    );
 
-  <!-- رأس التطبيق -->
-  <header class="app-header">
+  }
 
-    <h1>🔬 غرفة العمليات الصوتية</h1>
+}
 
-    <p>
-      النورانية العالمية — مختبر الفصل والتحليل الصوتي
-    </p>
 
-  </header>
+// =====================================
+// 2️⃣ البحث عن المحمول المشترك
+// =====================================
 
+async function findCommonPayloadForKeys(keys) {
 
-  <main>
+  const samples = [];
 
-    <!-- الصفحة الرئيسية -->
-    <section id="homeView" class="panel">
+  for (const key of keys) {
 
-      <h2>القوائم الرئيسية</h2>
+    const blob = await getAudioPromise(key);
 
-      <div id="categoryList"></div>
+    if (!blob) {
+      throw new Error("الصوت غير موجود: " + key);
+    }
 
-    </section>
+    const decoded = await decodeBlobToMono(blob);
 
+    const features = extractFeatures(
+      decoded.samples,
+      decoded.sampleRate
+    );
 
-    <!-- غرفة العمليات -->
-    <section id="recordView"
-             class="panel"
-             style="display:none;">
+    const active = detectActiveRange(features);
 
-      <div class="unit-card">
+    samples.push({
+      key: key,
+      sampleRate: decoded.sampleRate,
+      duration: decoded.samples.length / decoded.sampleRate,
+      features: features,
+      active: active
+    });
 
-        <!-- الوحدة -->
-        <div id="unit">بَ</div>
+  }
 
-        <p id="filename">
-          ba_fatha.wav
-        </p>
+  const best = findBestSharedEnding(samples);
 
+  return {
+    method: "Common Payload Finder v1",
+    target: "ba_sukoon",
+    keys: keys,
+    score: best.score,
+    bestDurationFrames: best.durationFrames,
+    bestDurationSeconds: best.durationSeconds,
+    payloads: best.payloads
+  };
 
-        <!-- مختبر التحليل -->
-        <div id="analysis-shell"
-             style="background:#000;
-                    border-radius:14px;
-                    margin:12px 0;
-                    padding:10px;
-                    border:1px solid #374151;">
+}
 
-          <!-- الموجة -->
-          <div id="waveform-container"
-               style="background:#050505;
-                      border-radius:10px;
-                      border:1px solid #111827;
-                      overflow:auto;
-                      min-height:140px;">
 
-            <div id="waveform"
-                 style="min-height:140px;"></div>
+// =====================================
+// 3️⃣ قراءة الصوت من التخزين
+// =====================================
 
-          </div>
+function getAudioPromise(key) {
 
+  return new Promise(function (resolve) {
+    getAudio(key, resolve);
+  });
 
-          <!-- الطيف -->
-          <div id="spectrogram-container"
-               style="background:#050505;
-                      border-radius:10px;
-                      border:1px solid #111827;
-                      margin-top:8px;
-                      overflow:auto;
-                      min-height:220px;">
-
-            <div id="spectrogram"
-                 style="min-height:220px;"></div>
-
-          </div>
-
-        </div>
-
-
-        <!-- بطاقات التقسيم -->
-        <div id="genome-display"
-             style="display:flex;
-                    justify-content:space-between;
-                    align-items:stretch;
-                    gap:4px;
-                    margin:8px 0;
-                    direction:ltr;
-                    overflow:hidden;">
-
-          <!-- PRE -->
-          <div class="coord-box"
-               style="flex:1;
-                      background:#1f2937;
-                      border-radius:8px;
-                      padding:5px 2px;
-                      text-align:center;
-                      border-top:3px solid #94a3b8;">
-
-            <div style="color:#94a3b8;
-                        font-size:8px;
-                        font-weight:bold;">
-              PRE
-            </div>
-
-            <div id="val-preCarrier"
-                 style="color:white;
-                        font-size:7px;
-                        white-space:nowrap;">
-              0.000 ⟶ 0.000
-            </div>
-
-          </div>
-
-
-          <!-- CARRIER -->
-          <div class="coord-box"
-               style="flex:1;
-                      background:#1f2937;
-                      border-radius:8px;
-                      padding:5px 2px;
-                      text-align:center;
-                      border-top:3px solid #facc15;">
-
-            <div style="color:#facc15;
-                        font-size:8px;
-                        font-weight:bold;">
-              CARRIER
-            </div>
-
-            <div id="val-carrier"
-                 style="color:white;
-                        font-size:7px;
-                        white-space:nowrap;">
-              0.000 ⟶ 0.000
-            </div>
-
-          </div>
-
-
-          <!-- PAYLOAD -->
-          <div class="coord-box"
-               style="flex:1;
-                      background:#1f2937;
-                      border-radius:8px;
-                      padding:5px 2px;
-                      text-align:center;
-                      border-top:3px solid #00f2ff;">
-
-            <div style="color:#00f2ff;
-                        font-size:8px;
-                        font-weight:bold;">
-              PAYLOAD
-            </div>
-
-            <div id="val-payload"
-                 style="color:white;
-                        font-size:7px;
-                        white-space:nowrap;">
-              0.000 ⟶ 0.000
-            </div>
-
-          </div>
+}
 
 
-          <!-- TAIL -->
-          <div class="coord-box"
-               style="flex:1;
-                      background:#1f2937;
-                      border-radius:8px;
-                      padding:5px 2px;
-                      text-align:center;
-                      border-top:3px solid #f87171;">
+async function decodeBlobToMono(blob) {
 
-            <div style="color:#f87171;
-                        font-size:8px;
-                        font-weight:bold;">
-              TAIL
-            </div>
+  const arrayBuffer = await blob.arrayBuffer();
 
-            <div id="val-tail"
-                 style="color:white;
-                        font-size:7px;
-                        white-space:nowrap;">
-              0.000 ⟶ 0.000
-            </div>
+  const AudioContextClass =
+    window.AudioContext || window.webkitAudioContext;
 
-          </div>
+  const ctx = new AudioContextClass();
 
-        </div>
+  const audioBuffer =
+    await ctx.decodeAudioData(arrayBuffer);
 
+  return {
+    samples: audioBuffer.getChannelData(0),
+    sampleRate: audioBuffer.sampleRate
+  };
 
-        <!-- الإحداثيات -->
-        <div id="coords-display"
-             style="display:grid;
-                    grid-template-columns:1fr 1fr 1fr;
-                    gap:5px;
-                    font-size:10px;
-                    color:#9ca3af;
-                    margin:6px 0;
-                    line-height:1.1;">
+}
 
-          <div class="coord-box">
 
-            بداية:
-            <span id="val-x"
-                  style="color:#00f2ff">
-              0.00
-            </span>
+// =====================================
+// 4️⃣ استخراج بصمة بسيطة للصوت
+// =====================================
 
-          </div>
+function extractFeatures(samples, sampleRate) {
 
-          <div class="coord-box">
+  const frameSize = Math.floor(sampleRate * 0.025);
+  const hopSize = Math.floor(sampleRate * 0.010);
 
-            المحمول:
-            <span id="val-y"
-                  style="color:#00f2ff">
-              0.00
-            </span>
+  const features = [];
 
-          </div>
+  for (
+    let start = 0;
+    start + frameSize < samples.length;
+    start += hopSize
+  ) {
 
-          <div class="coord-box">
+    const frame = samples.slice(
+      start,
+      start + frameSize
+    );
 
-            الذيل:
-            <span id="val-z"
-                  style="color:#00f2ff">
-              0.00
-            </span>
+    const vector = normalizeVector([
+      calcRms(frame),
+      calcZeroCrossingRate(frame),
+      Math.log(1 + goertzelPower(frame, sampleRate, 500)),
+      Math.log(1 + goertzelPower(frame, sampleRate, 1000)),
+      Math.log(1 + goertzelPower(frame, sampleRate, 2000)),
+      Math.log(1 + goertzelPower(frame, sampleRate, 4000))
+    ]);
 
-          </div>
+    features.push({
+      time: start / sampleRate,
+      vector: vector
+    });
 
-        </div>
+  }
 
+  return features;
 
-        <!-- العداد -->
-        <p id="counter"
-           style="margin:4px 0 0;">
-          1 / 6
-        </p>
+}
 
-      </div>
 
+function calcRms(frame) {
 
-      <!-- أدوات التحكم -->
-      <div class="controls"
-           style="gap:6px;">
+  let sum = 0;
 
-        <button id="recordBtn"
-                onclick="toggleRecording()">
+  for (let i = 0; i < frame.length; i++) {
+    sum += frame[i] * frame[i];
+  }
 
-          🎙 تسجيل
+  return Math.sqrt(sum / frame.length);
 
-        </button>
+}
 
 
-        <button onclick="playRaw()">
+function calcZeroCrossingRate(frame) {
 
-          ▶ استماع التسجيل
+  let count = 0;
 
-        </button>
+  for (let i = 1; i < frame.length; i++) {
 
+    if (
+      (frame[i - 1] >= 0 && frame[i] < 0) ||
+      (frame[i - 1] < 0 && frame[i] >= 0)
+    ) {
+      count++;
+    }
 
-        <button onclick="playPayloadOnly()">
+  }
 
-          ▶ تشغيل المحمول فقط
+  return count / frame.length;
 
-        </button>
+}
 
 
-        <button class="approve"
-                onclick="approveAndNext()">
+function goertzelPower(frame, sampleRate, freq) {
 
-          اعتماد وحفظ
+  const w = 2 * Math.PI * freq / sampleRate;
+  const coeff = 2 * Math.cos(w);
 
-        </button>
+  let s0 = 0;
+  let s1 = 0;
+  let s2 = 0;
 
+  for (let i = 0; i < frame.length; i++) {
+    s0 = frame[i] + coeff * s1 - s2;
+    s2 = s1;
+    s1 = s0;
+  }
 
-        <button onclick="prevUnit()">
+  return s1 * s1 + s2 * s2 - coeff * s1 * s2;
 
-          ⬅ السابق
+}
 
-        </button>
 
+function normalizeVector(v) {
 
-        <button onclick="nextUnit()">
+  const norm = Math.sqrt(
+    v.reduce(function (sum, x) {
+      return sum + x * x;
+    }, 0)
+  );
 
-          اللاحق ➡
+  if (!norm) return v;
 
-        </button>
+  return v.map(function (x) {
+    return x / norm;
+  });
 
-      </div>
-<button onclick="rerunSmartAnalysis()">
-  🔬 إعادة التحليل الذكي
-</button>
+}
 
-      <!-- أدوات ثانوية -->
-      <div class="secondary-controls">
 
-        <button onclick="goHome()">
+// =====================================
+// 5️⃣ تحديد الجزء النشط
+// =====================================
 
-          🏠 الرئيسية
+function detectActiveRange(features) {
 
-        </button>
+  const energies = features.map(function (f) {
+    return f.vector[0];
+  });
 
+  const max = Math.max.apply(null, energies);
+  const threshold = max * 0.12;
 
-        <button onclick="exportApproved()">
+  let start = 0;
+  let end = features.length - 1;
 
-          📦 تصدير
+  for (let i = 0; i < energies.length; i++) {
+    if (energies[i] > threshold) {
+      start = i;
+      break;
+    }
+  }
 
-        </button>
+  for (let i = energies.length - 1; i >= 0; i--) {
+    if (energies[i] > threshold) {
+      end = i;
+      break;
+    }
+  }
 
-      </div>
+  return {
+    start: start,
+    end: end
+  };
 
+}
 
-      <hr>
 
+// =====================================
+// 6️⃣ اختيار أفضل نهاية مشتركة
+// =====================================
 
-      <!-- قائمة الوحدات -->
-      <h3>قائمة الوحدات</h3>
+function findBestSharedEnding(samples) {
 
-      <div id="unitList"></div>
+  const minActiveLength = Math.min.apply(
+    null,
+    samples.map(function (s) {
+      return s.active.end - s.active.start;
+    })
+  );
 
-    </section>
+  let best = {
+    score: Infinity,
+    durationFrames: 0,
+    durationSeconds: 0,
+    payloads: []
+  };
 
-  </main>
+  const minFrames = 4;
+  const maxFrames = Math.min(45, minActiveLength);
 
+  for (let d = minFrames; d <= maxFrames; d++) {
 
-  <!-- JSZip -->
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    const segments = samples.map(function (s) {
 
+      const end = s.active.end;
+      const start = Math.max(
+        s.active.start,
+        end - d
+      );
 
-  <!-- ملفات النظام -->
-  <script src="recording-manifest.js?v=901"></script>
-  <script src="storage.js?v=901"></script>
-  <script src="audio-lab.js?v=901"></script>
-  <script src="app.js?v=901"></script>
+      return {
+        key: s.key,
+        frames: s.features.slice(start, end),
+        startTime: s.features[start]?.time || 0,
+        endTime: s.features[end]?.time || s.duration
+      };
 
+    });
 
-  <!-- تنظيف الكاش -->
-  <script>
+    const score = averagePairwiseDtw(segments);
 
-    if ("serviceWorker" in navigator) {
+    if (score < best.score) {
 
-      navigator.serviceWorker.getRegistrations()
-      .then(function (registrations) {
+      best.score = score;
+      best.durationFrames = d;
+      best.durationSeconds = d * 0.010;
 
-        registrations.forEach(function (registration) {
-          registration.unregister();
-        });
-
+      best.payloads = segments.map(function (seg) {
+        return {
+          key: seg.key,
+          start: seg.startTime,
+          end: seg.endTime
+        };
       });
 
     }
 
-    if ("caches" in window) {
+  }
 
-      caches.keys().then(function (names) {
+  return best;
 
-        names.forEach(function (name) {
-          caches.delete(name);
-        });
+}
 
-      });
+
+// =====================================
+// 7️⃣ المقارنة بين المقاطع
+// =====================================
+
+function averagePairwiseDtw(segments) {
+
+  let sum = 0;
+  let count = 0;
+
+  for (let i = 0; i < segments.length; i++) {
+
+    for (let j = i + 1; j < segments.length; j++) {
+
+      sum += dtwDistance(
+        segments[i].frames,
+        segments[j].frames
+      );
+
+      count++;
 
     }
 
-  </script>
+  }
 
-</body>
-</html>
+  return sum / count;
+
+}
+
+
+function dtwDistance(a, b) {
+
+  const n = a.length;
+  const m = b.length;
+
+  const dp = Array.from(
+    { length: n + 1 },
+    function () {
+      return Array(m + 1).fill(Infinity);
+    }
+  );
+
+  dp[0][0] = 0;
+
+  for (let i = 1; i <= n; i++) {
+
+    for (let j = 1; j <= m; j++) {
+
+      const cost = vectorDistance(
+        a[i - 1].vector,
+        b[j - 1].vector
+      );
+
+      dp[i][j] =
+        cost +
+        Math.min(
+          dp[i - 1][j],
+          dp[i][j - 1],
+          dp[i - 1][j - 1]
+        );
+
+    }
+
+  }
+
+  return dp[n][m] / (n + m);
+
+}
+
+
+function vectorDistance(a, b) {
+
+  let sum = 0;
+
+  for (let i = 0; i < a.length; i++) {
+    const d = a[i] - b[i];
+    sum += d * d;
+  }
+
+  return Math.sqrt(sum);
+
+}
+
+
+console.log("🧠 common-payload-finder.js جاهز — كاشف المحمول المشترك يعمل");
