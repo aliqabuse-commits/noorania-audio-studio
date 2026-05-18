@@ -21,20 +21,23 @@
 
 <body>
 
+  <!-- شريط النسخة -->
   <div id="check-version"
        style="background:#7c2d12;
               color:white;
               text-align:center;
-              padding:16px;
-              font-size:22px;
+              padding:14px;
+              font-size:20px;
               font-weight:bold;
-              border-bottom:6px solid #facc15;
-              line-height:1.2;">
+              border-bottom:5px solid #facc15;
+              line-height:1.1;">
 
-    🧪 V900 — مختبر الفصل الصوتي الجديد
+    🧪 V901 — واجهة مبسطة مستقرة
 
   </div>
 
+
+  <!-- رأس التطبيق -->
   <header class="app-header">
 
     <h1>🔬 غرفة العمليات الصوتية</h1>
@@ -45,8 +48,10 @@
 
   </header>
 
+
   <main>
 
+    <!-- الصفحة الرئيسية -->
     <section id="homeView" class="panel">
 
       <h2>القوائم الرئيسية</h2>
@@ -55,86 +60,29 @@
 
     </section>
 
+
+    <!-- غرفة العمليات -->
     <section id="recordView"
              class="panel"
              style="display:none;">
 
       <div class="unit-card">
 
+        <!-- الوحدة -->
         <div id="unit">بَ</div>
 
         <p id="filename">
           ba_fatha.wav
         </p>
 
-        <!-- مختبر التحليل الصوتي -->
+
+        <!-- مختبر التحليل -->
         <div id="analysis-shell"
              style="background:#000;
                     border-radius:14px;
                     margin:12px 0;
                     padding:10px;
                     border:1px solid #374151;">
-
-          <!-- أدوات التكبير -->
-          <div id="zoom-controls"
-               style="display:grid;
-                      grid-template-columns:1fr 1fr 1fr;
-                      gap:6px;
-                      margin-bottom:8px;">
-
-            <button onclick="zoomOutWave()">
-              ➖ تصغير
-            </button>
-
-            <button onclick="zoomResetWave()">
-              🔄 إعادة
-            </button>
-
-            <button onclick="zoomInWave()">
-              ➕ تكبير
-            </button>
-
-          </div>
-
-          <!-- أدوات الفصل -->
-          <div id="payload-controls"
-               style="display:grid;
-                      grid-template-columns:1fr 1fr;
-                      gap:6px;
-                      margin-bottom:8px;">
-
-            <button onclick="setPayloadStart()"
-                    style="background:#0f766e;color:white;">
-              🎯 بداية المحمول
-            </button>
-
-            <button onclick="setPayloadEnd()"
-                    style="background:#7c2d12;color:white;">
-              🛑 نهاية المحمول
-            </button>
-
-          </div>
-
-          <!-- أدوات السرعة -->
-          <div id="speed-controls"
-               style="display:grid;
-                      grid-template-columns:1fr 1fr 1fr;
-                      gap:6px;
-                      margin-bottom:8px;">
-
-            <button onclick="setPlaybackRate(1)">
-              ▶ عادي
-            </button>
-
-            <button onclick="setPlaybackRate(0.5)">
-              🐢 نصف
-            </button>
-
-            <button onclick="setPlaybackRate(0.25)">
-              🐌 ربع
-            </button>
-
-          </div>
 
           <!-- الموجة -->
           <div id="waveform-container"
@@ -148,6 +96,7 @@
                  style="min-height:140px;"></div>
 
           </div>
+
 
           <!-- الطيف -->
           <div id="spectrogram-container"
@@ -165,162 +114,244 @@
 
         </div>
 
-        <!-- بطاقات تقسيم الجينوم -->
+
+        <!-- بطاقات التقسيم -->
         <div id="genome-display"
              style="display:flex;
                     justify-content:space-between;
                     align-items:stretch;
-                    gap:5px;
-                    margin:8px 0 10px;
+                    gap:4px;
+                    margin:8px 0;
                     direction:ltr;
-                    unicode-bidi:isolate;
                     overflow:hidden;">
 
+          <!-- PRE -->
           <div class="coord-box"
                style="flex:1;
-                      min-width:0;
                       background:#1f2937;
-                      border-radius:9px;
-                      padding:7px 2px;
+                      border-radius:8px;
+                      padding:5px 2px;
                       text-align:center;
                       border-top:3px solid #94a3b8;">
-            <div style="color:#94a3b8;font-size:9px;font-weight:bold;">
+
+            <div style="color:#94a3b8;
+                        font-size:8px;
+                        font-weight:bold;">
               PRE
             </div>
+
             <div id="val-preCarrier"
-                 style="color:white;font-size:8px;white-space:nowrap;">
+                 style="color:white;
+                        font-size:7px;
+                        white-space:nowrap;">
               0.000 ⟶ 0.000
             </div>
+
           </div>
 
+
+          <!-- CARRIER -->
           <div class="coord-box"
                style="flex:1;
-                      min-width:0;
                       background:#1f2937;
-                      border-radius:9px;
-                      padding:7px 2px;
+                      border-radius:8px;
+                      padding:5px 2px;
                       text-align:center;
                       border-top:3px solid #facc15;">
-            <div style="color:#facc15;font-size:9px;font-weight:bold;">
+
+            <div style="color:#facc15;
+                        font-size:8px;
+                        font-weight:bold;">
               CARRIER
             </div>
+
             <div id="val-carrier"
-                 style="color:white;font-size:8px;white-space:nowrap;">
+                 style="color:white;
+                        font-size:7px;
+                        white-space:nowrap;">
               0.000 ⟶ 0.000
             </div>
+
           </div>
 
+
+          <!-- PAYLOAD -->
           <div class="coord-box"
                style="flex:1;
-                      min-width:0;
                       background:#1f2937;
-                      border-radius:9px;
-                      padding:7px 2px;
+                      border-radius:8px;
+                      padding:5px 2px;
                       text-align:center;
                       border-top:3px solid #00f2ff;">
-            <div style="color:#00f2ff;font-size:9px;font-weight:bold;">
+
+            <div style="color:#00f2ff;
+                        font-size:8px;
+                        font-weight:bold;">
               PAYLOAD
             </div>
+
             <div id="val-payload"
-                 style="color:white;font-size:8px;white-space:nowrap;">
+                 style="color:white;
+                        font-size:7px;
+                        white-space:nowrap;">
               0.000 ⟶ 0.000
             </div>
+
           </div>
 
+
+          <!-- TAIL -->
           <div class="coord-box"
                style="flex:1;
-                      min-width:0;
                       background:#1f2937;
-                      border-radius:9px;
-                      padding:7px 2px;
+                      border-radius:8px;
+                      padding:5px 2px;
                       text-align:center;
                       border-top:3px solid #f87171;">
-            <div style="color:#f87171;font-size:9px;font-weight:bold;">
+
+            <div style="color:#f87171;
+                        font-size:8px;
+                        font-weight:bold;">
               TAIL
             </div>
+
             <div id="val-tail"
-                 style="color:white;font-size:8px;white-space:nowrap;">
+                 style="color:white;
+                        font-size:7px;
+                        white-space:nowrap;">
               0.000 ⟶ 0.000
             </div>
+
           </div>
 
         </div>
 
-        <!-- الإحداثيات المختصرة -->
+
+        <!-- الإحداثيات -->
         <div id="coords-display"
              style="display:grid;
                     grid-template-columns:1fr 1fr 1fr;
-                    gap:6px;
-                    font-size:11px;
+                    gap:5px;
+                    font-size:10px;
                     color:#9ca3af;
-                    margin:8px 0;">
+                    margin:6px 0;
+                    line-height:1.1;">
 
           <div class="coord-box">
-            بداية الحامل:
-            <span id="val-x" style="color:#00f2ff">0.00</span>
+
+            بداية:
+            <span id="val-x"
+                  style="color:#00f2ff">
+              0.00
+            </span>
+
           </div>
 
           <div class="coord-box">
-            طول المحمول:
-            <span id="val-y" style="color:#00f2ff">0.00</span>
+
+            المحمول:
+            <span id="val-y"
+                  style="color:#00f2ff">
+              0.00
+            </span>
+
           </div>
 
           <div class="coord-box">
-            طول الذيل:
-            <span id="val-z" style="color:#00f2ff">0.00</span>
+
+            الذيل:
+            <span id="val-z"
+                  style="color:#00f2ff">
+              0.00
+            </span>
+
           </div>
 
         </div>
 
-        <p id="counter" style="margin:6px 0 0;">
+
+        <!-- العداد -->
+        <p id="counter"
+           style="margin:4px 0 0;">
           1 / 6
         </p>
 
       </div>
 
-      <!-- أدوات التحكم الأساسية -->
-      <div class="controls">
 
-        <button id="recordBtn" onclick="toggleRecording()">
+      <!-- أدوات التحكم -->
+      <div class="controls"
+           style="gap:6px;">
+
+        <button id="recordBtn"
+                onclick="toggleRecording()">
+
           🎙 تسجيل
+
         </button>
+
 
         <button onclick="playRaw()">
+
           ▶ استماع التسجيل
+
         </button>
+
 
         <button onclick="playPayloadOnly()">
+
           ▶ تشغيل المحمول فقط
+
         </button>
 
-        <button class="approve" onclick="approveAndNext()">
+
+        <button class="approve"
+                onclick="approveAndNext()">
+
           اعتماد وحفظ
+
         </button>
+
 
         <button onclick="prevUnit()">
+
           ⬅ السابق
+
         </button>
 
+
         <button onclick="nextUnit()">
+
           اللاحق ➡
+
         </button>
 
       </div>
 
+
+      <!-- أدوات ثانوية -->
       <div class="secondary-controls">
 
         <button onclick="goHome()">
+
           🏠 الرئيسية
+
         </button>
 
+
         <button onclick="exportApproved()">
+
           📦 تصدير
+
         </button>
 
       </div>
 
+
       <hr>
 
+
+      <!-- قائمة الوحدات -->
       <h3>قائمة الوحدات</h3>
 
       <div id="unitList"></div>
@@ -329,31 +360,44 @@
 
   </main>
 
+
+  <!-- JSZip -->
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
-  <script src="recording-manifest.js?v=900"></script>
-  <script src="storage.js?v=900"></script>
-  <script src="audio-lab.js?v=900"></script>
-  <script src="app.js?v=900"></script>
 
+  <!-- ملفات النظام -->
+  <script src="recording-manifest.js?v=901"></script>
+  <script src="storage.js?v=901"></script>
+  <script src="audio-lab.js?v=901"></script>
+  <script src="app.js?v=901"></script>
+
+
+  <!-- تنظيف الكاش -->
   <script>
 
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+
+      navigator.serviceWorker.getRegistrations()
+      .then(function (registrations) {
+
         registrations.forEach(function (registration) {
           registration.unregister();
         });
-        console.log("✅ تم إلغاء Service Worker القديم");
+
       });
+
     }
 
     if ("caches" in window) {
+
       caches.keys().then(function (names) {
+
         names.forEach(function (name) {
           caches.delete(name);
         });
-        console.log("✅ تم حذف الكاش القديم");
+
       });
+
     }
 
   </script>
