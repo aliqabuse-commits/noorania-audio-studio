@@ -13,7 +13,7 @@ let audioBlob = null;
 let isRecording = false;
 
 let activeRegionTimer = null;
-let currentZoom = 0;
+let currentZoom = 300;
 
 
 // =====================================
@@ -21,26 +21,26 @@ let currentZoom = 0;
 // =====================================
 
 const GENOME_REGIONS = [
-  {
-    id: "preCarrier",
-    label: "ما قبل الحامل",
-    color: "rgba(148, 163, 184, 0.30)"
-  },
-  {
-    id: "carrier",
-    label: "الحامل",
-    color: "rgba(250, 204, 21, 0.35)"
-  },
-  {
-    id: "payload",
-    label: "المحمول",
-    color: "rgba(0, 242, 255, 0.35)"
-  },
-  {
-    id: "tail",
-    label: "الذيل",
-    color: "rgba(248, 113, 113, 0.30)"
-  }
+{
+  id: "preCarrier",
+  label: "ما قبل الحامل",
+  color: "rgba(148,163,184,0.30)"
+},
+{
+  id: "carrier",
+  label: "الحامل",
+  color: "rgba(250,204,21,0.35)"
+},
+{
+  id: "payload",
+  label: "المحمول",
+  color: "rgba(0,242,255,0.35)"
+},
+{
+  id: "tail",
+  label: "الذيل",
+  color: "rgba(248,113,113,0.30)"
+}
 ];
 
 
@@ -61,7 +61,7 @@ function initWaveform(blob) {
     wavesurfer.destroy();
   }
 
-  currentZoom = 80;
+  currentZoom = 300;
 
   wavesurfer = WaveSurfer.create({
     container: "#waveform",
@@ -70,8 +70,6 @@ function initWaveform(blob) {
     cursorColor: "#ff0000",
     height: 120,
     normalize: true,
-
-    // يجعل الخطوط متقاربة وممتدة أفقيا منذ البداية
     minPxPerSec: currentZoom,
     autoScroll: true,
     autoCenter: true,
@@ -88,6 +86,7 @@ function initWaveform(blob) {
     WaveSurfer.Spectrogram &&
     document.getElementById("spectrogram")
   ) {
+
     wsSpectrogram = wavesurfer.registerPlugin(
       WaveSurfer.Spectrogram.create({
         container: "#spectrogram",
@@ -101,12 +100,15 @@ function initWaveform(blob) {
         labelsColor: "#94a3b8"
       })
     );
+
   }
 
   wavesurfer.on("ready", function () {
+
     createSmartGenomeRegions();
     updateGenomeDisplay();
     wavesurfer.zoom(currentZoom);
+
   });
 
   wsRegions.on("region-updated", function () {
@@ -114,8 +116,10 @@ function initWaveform(blob) {
   });
 
   if (blob) {
+
     const url = URL.createObjectURL(blob);
     wavesurfer.load(url);
+
   }
 
 }
@@ -136,28 +140,35 @@ function createSmartGenomeRegions() {
   let peaksData;
 
   try {
+
     peaksData = wavesurfer.exportPeaks({
       channels: 1,
       maxLength: 2400
     });
+
   } catch (err) {
+
     console.error("❌ تعذر تحليل الموجة", err);
     createFallbackGenomeRegions(duration);
     return;
+
   }
 
-  const peaks = Array.isArray(peaksData[0]) ? peaksData[0] : peaksData;
+  const peaks = Array.isArray(peaksData[0])
+    ? peaksData[0]
+    : peaksData;
 
   if (!peaks || !peaks.length) {
+
     createFallbackGenomeRegions(duration);
     return;
+
   }
 
   const energy = peaks.map(function (v) {
     return Math.abs(v);
   });
 
-  // نافذة أخف حتى لا تدمج التفاصيل الدقيقة كثيرا
   const smoothed = smoothEnergy(energy, 5);
 
   const noiseSampleCount = Math.max(
@@ -168,11 +179,14 @@ function createSmartGenomeRegions() {
   const noiseSlice = smoothed.slice(0, noiseSampleCount);
 
   const noiseFloor = average(noiseSlice);
+
   const maxEnergy = Math.max.apply(null, smoothed);
 
   if (!maxEnergy || maxEnergy <= noiseFloor) {
+
     createFallbackGenomeRegions(duration);
     return;
+
   }
 
   const soundThreshold =
@@ -211,8 +225,10 @@ function createSmartGenomeRegions() {
     lastStrong === -1 ||
     lastSound === -1
   ) {
+
     createFallbackGenomeRegions(duration);
     return;
+
   }
 
   function idxToTime(i) {
@@ -269,7 +285,7 @@ function createSmartGenomeRegions() {
 
 
 // =====================================
-// 4️⃣ دوال التحليل الذكي المساعدة
+// 4️⃣ أدوات التحليل
 // =====================================
 
 function smoothEnergy(values, windowSize) {
@@ -284,8 +300,10 @@ function smoothEnergy(values, windowSize) {
     for (let j = i - windowSize; j <= i + windowSize; j++) {
 
       if (j >= 0 && j < values.length) {
+
         sum += values[j];
         count++;
+
       }
 
     }
@@ -367,7 +385,7 @@ function findLastAbove(values, threshold, consecutive) {
 
 
 // =====================================
-// 5️⃣ مناطق احتياطية إذا فشل التحليل
+// 5️⃣ مناطق احتياطية
 // =====================================
 
 function createFallbackGenomeRegions(duration) {
@@ -385,7 +403,7 @@ function createFallbackGenomeRegions(duration) {
 
 
 // =====================================
-// 6️⃣ إضافة منطقة جينومية
+// 6️⃣ إضافة منطقة
 // =====================================
 
 function addGenomeRegion(id, start, end) {
@@ -409,7 +427,7 @@ function addGenomeRegion(id, start, end) {
 
 
 // =====================================
-// 7️⃣ قراءة المناطق كخريطة
+// 7️⃣ خريطة المناطق
 // =====================================
 
 function getGenomeRegionsMap() {
@@ -428,7 +446,7 @@ function getGenomeRegionsMap() {
 
 
 // =====================================
-// 8️⃣ أدوات الأرقام
+// 8️⃣ أدوات الوقت
 // =====================================
 
 function clamp(value, min, max) {
@@ -456,7 +474,7 @@ function formatRange(start, end) {
 
 
 // =====================================
-// 9️⃣ تحديث عرض الإحداثيات
+// 9️⃣ تحديث الواجهة
 // =====================================
 
 function updateGenomeDisplay() {
@@ -472,29 +490,26 @@ function updateGenomeDisplay() {
 
   if (!preCarrier || !carrier || !payload || !tail) return;
 
-  setText(
-    "val-preCarrier",
-    formatRange(preCarrier.start, preCarrier.end)
-  );
+  setText("val-preCarrier",
+    formatRange(preCarrier.start, preCarrier.end));
 
-  setText(
-    "val-carrier",
-    formatRange(carrier.start, carrier.end)
-  );
+  setText("val-carrier",
+    formatRange(carrier.start, carrier.end));
 
-  setText(
-    "val-payload",
-    formatRange(payload.start, payload.end)
-  );
+  setText("val-payload",
+    formatRange(payload.start, payload.end));
 
-  setText(
-    "val-tail",
-    formatRange(tail.start, tail.end)
-  );
+  setText("val-tail",
+    formatRange(tail.start, tail.end));
 
-  setText("val-x", formatTime(carrier.start));
-  setText("val-y", formatTime(payload.end - payload.start));
-  setText("val-z", formatTime(tail.end - tail.start));
+  setText("val-x",
+    formatTime(carrier.start));
+
+  setText("val-y",
+    formatTime(payload.end - payload.start));
+
+  setText("val-z",
+    formatTime(tail.end - tail.start));
 
 }
 
@@ -511,7 +526,7 @@ function setText(id, value) {
 
 
 // =====================================
-// 🔟 التسجيل الصوتي
+// 🔟 التسجيل
 // =====================================
 
 function toggleRecording() {
@@ -531,9 +546,10 @@ async function startRecording() {
 
     stopRegionTimer();
 
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: true
-    });
+    const stream =
+      await navigator.mediaDevices.getUserMedia({
+        audio: true
+      });
 
     mediaRecorder = new MediaRecorder(stream);
 
@@ -551,7 +567,8 @@ async function startRecording() {
 
       initWaveform(audioBlob);
 
-      const btn = document.getElementById("recordBtn");
+      const btn =
+        document.getElementById("recordBtn");
 
       if (btn) {
         btn.innerText = "🎙 تسجيل";
@@ -563,7 +580,8 @@ async function startRecording() {
 
     isRecording = true;
 
-    const btn = document.getElementById("recordBtn");
+    const btn =
+      document.getElementById("recordBtn");
 
     if (btn) {
       btn.innerText = "⏹ إيقاف";
@@ -572,6 +590,7 @@ async function startRecording() {
   } catch (err) {
 
     console.error("❌ فشل تشغيل الميكروفون", err);
+
     alert("❌ الميكروفون لم يعمل");
 
   }
@@ -593,14 +612,16 @@ function stopRecording() {
 
 
 // =====================================
-// 1️⃣1️⃣ معاينة الصوت والمناطق
+// 1️⃣1️⃣ التشغيل
 // =====================================
 
 function play() {
 
   if (wavesurfer) {
+
     stopRegionTimer();
     wavesurfer.playPause();
+
   }
 
 }
@@ -628,14 +649,13 @@ function playRegion(regionId) {
   const region = regions[regionId];
 
   if (!region) {
+
     alert("هذه المنطقة غير موجودة");
     return;
+
   }
 
-  playStrictRange(
-    region.start,
-    region.end
-  );
+  playStrictRange(region.start, region.end);
 
 }
 
@@ -647,22 +667,28 @@ function playStrictRange(start, end) {
   stopRegionTimer();
 
   wavesurfer.pause();
+
   wavesurfer.setTime(start);
+
   wavesurfer.play();
 
   activeRegionTimer = setInterval(function () {
 
     if (!wavesurfer) {
+
       stopRegionTimer();
       return;
+
     }
 
-    const currentTime = wavesurfer.getCurrentTime();
+    const currentTime =
+      wavesurfer.getCurrentTime();
 
     if (currentTime >= end) {
 
       wavesurfer.pause();
       wavesurfer.setTime(start);
+
       stopRegionTimer();
 
     }
@@ -675,20 +701,13 @@ function playStrictRange(start, end) {
 function stopRegionTimer() {
 
   if (activeRegionTimer) {
+
     clearInterval(activeRegionTimer);
+
     activeRegionTimer = null;
+
   }
 
-}
-
-
-function playPreCarrierOnly() {
-  playRegion("preCarrier");
-}
-
-
-function playCarrierOnly() {
-  playRegion("carrier");
 }
 
 
@@ -697,42 +716,23 @@ function playPayloadOnly() {
 }
 
 
-function playTailOnly() {
-  playRegion("tail");
-}
-
-
-function playCarrierPayload() {
-
-  if (!wavesurfer || !wsRegions) return;
-
-  const regions = getGenomeRegionsMap();
-
-  if (!regions.carrier || !regions.payload) return;
-
-  playStrictRange(
-    regions.carrier.start,
-    regions.payload.end
-  );
-
-}
-
-
 // =====================================
-// 1️⃣2️⃣ أدوات التكبير
+// 1️⃣2️⃣ التكبير
 // =====================================
 
 function zoomInWave() {
 
   if (!wavesurfer) return;
 
-  currentZoom += 40;
+  currentZoom += 200;
 
-  if (currentZoom > 800) {
-    currentZoom = 800;
+  if (currentZoom > 3000) {
+    currentZoom = 3000;
   }
 
   wavesurfer.zoom(currentZoom);
+
+  console.log("🔍 Zoom In:", currentZoom);
 
 }
 
@@ -741,13 +741,15 @@ function zoomOutWave() {
 
   if (!wavesurfer) return;
 
-  currentZoom -= 40;
+  currentZoom -= 200;
 
   if (currentZoom < 20) {
     currentZoom = 20;
   }
 
   wavesurfer.zoom(currentZoom);
+
+  console.log("🔎 Zoom Out:", currentZoom);
 
 }
 
@@ -756,15 +758,17 @@ function zoomResetWave() {
 
   if (!wavesurfer) return;
 
-  currentZoom = 80;
+  currentZoom = 300;
 
   wavesurfer.zoom(currentZoom);
+
+  console.log("↩️ Zoom Reset:", currentZoom);
 
 }
 
 
 // =====================================
-// 1️⃣3️⃣ بناء ملف الجينوم
+// 1️⃣3️⃣ بناء الجينوم
 // =====================================
 
 function buildGenome(referenceKey) {
@@ -788,7 +792,8 @@ function buildGenome(referenceKey) {
 
   return {
     reference: referenceKey.replace(".wav", ""),
-    version: "genome-v3-smart-noise-aware-spectrogram",
+    version:
+      "genome-v3-smart-noise-aware-spectrogram",
 
     fileStart: 0,
 
@@ -800,11 +805,17 @@ function buildGenome(referenceKey) {
     },
 
     extraction: {
-      recommendedStart: round(regions.carrier.start),
-      recommendedEnd: round(regions.payload.end),
+      recommendedStart:
+        round(regions.carrier.start),
 
-      purePayloadStart: round(regions.payload.start),
-      purePayloadEnd: round(regions.payload.end)
+      recommendedEnd:
+        round(regions.payload.end),
+
+      purePayloadStart:
+        round(regions.payload.start),
+
+      purePayloadEnd:
+        round(regions.payload.end)
     },
 
     fileEnd: round(duration)
@@ -834,7 +845,7 @@ function round(num) {
 
 
 // =====================================
-// 1️⃣4️⃣ أدوات مساعدة للتعامل مع app.js
+// 1️⃣4️⃣ أدوات مساعدة
 // =====================================
 
 function getCurrentAudioBlob() {
@@ -866,11 +877,16 @@ function destroyWaveform() {
   stopRegionTimer();
 
   if (wavesurfer) {
+
     wavesurfer.destroy();
+
     wavesurfer = null;
+
   }
 
 }
 
 
-console.log("🧠 audio-lab.js جاهز — التحليل الذكي + الطيف + التكبير يعمل");
+console.log(
+  "🧠 audio-lab.js جاهز — التحليل الذكي + الطيف + التكبير يعمل"
+);
