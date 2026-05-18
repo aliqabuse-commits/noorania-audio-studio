@@ -14,6 +14,7 @@ let isRecording = false;
 
 let activeRegionTimer = null;
 let currentZoom = 300;
+let lastAnalysisMeta = null;
 
 
 // =====================================
@@ -21,26 +22,26 @@ let currentZoom = 300;
 // =====================================
 
 const GENOME_REGIONS = [
-{
-  id: "preCarrier",
-  label: "ما قبل الحامل",
-  color: "rgba(148,163,184,0.30)"
-},
-{
-  id: "carrier",
-  label: "الحامل",
-  color: "rgba(250,204,21,0.35)"
-},
-{
-  id: "payload",
-  label: "المحمول",
-  color: "rgba(0,242,255,0.35)"
-},
-{
-  id: "tail",
-  label: "الذيل",
-  color: "rgba(248,113,113,0.30)"
-}
+  {
+    id: "preCarrier",
+    label: "ما قبل الحامل",
+    color: "rgba(148,163,184,0.30)"
+  },
+  {
+    id: "carrier",
+    label: "الحامل",
+    color: "rgba(250,204,21,0.35)"
+  },
+  {
+    id: "payload",
+    label: "المحمول",
+    color: "rgba(0,242,255,0.35)"
+  },
+  {
+    id: "tail",
+    label: "الذيل",
+    color: "rgba(248,113,113,0.30)"
+  }
 ];
 
 
@@ -62,6 +63,7 @@ function initWaveform(blob) {
   }
 
   currentZoom = 300;
+  lastAnalysisMeta = null;
 
   wavesurfer = WaveSurfer.create({
     container: "#waveform",
@@ -86,7 +88,6 @@ function initWaveform(blob) {
     WaveSurfer.Spectrogram &&
     document.getElementById("spectrogram")
   ) {
-
     wsSpectrogram = wavesurfer.registerPlugin(
       WaveSurfer.Spectrogram.create({
         container: "#spectrogram",
@@ -100,15 +101,12 @@ function initWaveform(blob) {
         labelsColor: "#94a3b8"
       })
     );
-
   }
 
   wavesurfer.on("ready", function () {
-
     createSmartGenomeRegions();
     updateGenomeDisplay();
     wavesurfer.zoom(currentZoom);
-
   });
 
   wsRegions.on("region-updated", function () {
@@ -116,17 +114,34 @@ function initWaveform(blob) {
   });
 
   if (blob) {
-
     const url = URL.createObjectURL(blob);
     wavesurfer.load(url);
-
   }
 
 }
 
 
 // =====================================
-// 3️⃣ إنشاء مناطق ذكية حسب طاقة الصوت
+// 3️⃣ إعادة التحليل الذكي
+// =====================================
+
+function rerunSmartAnalysis() {
+
+  if (!wavesurfer || !wsRegions) {
+    alert("لا يوجد تسجيل لتحليله");
+    return;
+  }
+
+  createSmartGenomeRegions();
+  updateGenomeDisplay();
+
+  console.log("🔬 تمت إعادة التحليل الذكي للمناطق");
+
+}
+
+
+// =====================================
+// 4️⃣ إنشاء مناطق ذكية حسب طاقة الصوت
 // =====================================
 
 function createSmartGenomeRegions() {
@@ -140,18 +155,14 @@ function createSmartGenomeRegions() {
   let peaksData;
 
   try {
-
     peaksData = wavesurfer.exportPeaks({
       channels: 1,
       maxLength: 2400
     });
-
   } catch (err) {
-
     console.error("❌ تعذر تحليل الموجة", err);
     createFallbackGenomeRegions(duration);
     return;
-
   }
 
   const peaks = Array.isArray(peaksData[0])
@@ -159,10 +170,8 @@ function createSmartGenomeRegions() {
     : peaksData;
 
   if (!peaks || !peaks.length) {
-
     createFallbackGenomeRegions(duration);
     return;
-
   }
 
   const energy = peaks.map(function (v) {
@@ -179,14 +188,11 @@ function createSmartGenomeRegions() {
   const noiseSlice = smoothed.slice(0, noiseSampleCount);
 
   const noiseFloor = average(noiseSlice);
-
   const maxEnergy = Math.max.apply(null, smoothed);
 
   if (!maxEnergy || maxEnergy <= noiseFloor) {
-
     createFallbackGenomeRegions(duration);
     return;
-
   }
 
   const soundThreshold =
@@ -194,6 +200,14 @@ function createSmartGenomeRegions() {
 
   const strongThreshold =
     noiseFloor + (maxEnergy - noiseFloor) * 0.30;
+
+  lastAnalysisMeta = {
+    method: "energy-smoothed-noise-aware",
+    noiseFloor: round(noiseFloor),
+    maxEnergy: round(maxEnergy),
+    soundThreshold: round(soundThreshold),
+    strongThreshold: round(strongThreshold)
+  };
 
   const firstSound = findFirstAbove(
     smoothed,
@@ -225,10 +239,8 @@ function createSmartGenomeRegions() {
     lastStrong === -1 ||
     lastSound === -1
   ) {
-
     createFallbackGenomeRegions(duration);
     return;
-
   }
 
   function idxToTime(i) {
@@ -285,7 +297,7 @@ function createSmartGenomeRegions() {
 
 
 // =====================================
-// 4️⃣ أدوات التحليل
+// 5️⃣ أدوات التحليل
 // =====================================
 
 function smoothEnergy(values, windowSize) {
@@ -298,14 +310,10 @@ function smoothEnergy(values, windowSize) {
     let count = 0;
 
     for (let j = i - windowSize; j <= i + windowSize; j++) {
-
       if (j >= 0 && j < values.length) {
-
         sum += values[j];
         count++;
-
       }
-
     }
 
     result.push(sum / count);
@@ -345,9 +353,7 @@ function findFirstAbove(values, threshold, consecutive) {
       }
 
     } else {
-
       streak = 0;
-
     }
 
   }
@@ -372,9 +378,7 @@ function findLastAbove(values, threshold, consecutive) {
       }
 
     } else {
-
       streak = 0;
-
     }
 
   }
@@ -385,12 +389,17 @@ function findLastAbove(values, threshold, consecutive) {
 
 
 // =====================================
-// 5️⃣ مناطق احتياطية
+// 6️⃣ مناطق احتياطية
 // =====================================
 
 function createFallbackGenomeRegions(duration) {
 
   if (!wsRegions) return;
+
+  lastAnalysisMeta = {
+    method: "fallback-percentage",
+    reason: "smart-analysis-failed"
+  };
 
   wsRegions.clearRegions();
 
@@ -403,7 +412,7 @@ function createFallbackGenomeRegions(duration) {
 
 
 // =====================================
-// 6️⃣ إضافة منطقة
+// 7️⃣ إضافة منطقة
 // =====================================
 
 function addGenomeRegion(id, start, end) {
@@ -427,7 +436,7 @@ function addGenomeRegion(id, start, end) {
 
 
 // =====================================
-// 7️⃣ خريطة المناطق
+// 8️⃣ خريطة المناطق
 // =====================================
 
 function getGenomeRegionsMap() {
@@ -446,7 +455,7 @@ function getGenomeRegionsMap() {
 
 
 // =====================================
-// 8️⃣ أدوات الوقت
+// 9️⃣ أدوات الوقت
 // =====================================
 
 function clamp(value, min, max) {
@@ -474,7 +483,7 @@ function formatRange(start, end) {
 
 
 // =====================================
-// 9️⃣ تحديث الواجهة
+// 🔟 تحديث الواجهة
 // =====================================
 
 function updateGenomeDisplay() {
@@ -490,26 +499,29 @@ function updateGenomeDisplay() {
 
   if (!preCarrier || !carrier || !payload || !tail) return;
 
-  setText("val-preCarrier",
-    formatRange(preCarrier.start, preCarrier.end));
+  setText(
+    "val-preCarrier",
+    formatRange(preCarrier.start, preCarrier.end)
+  );
 
-  setText("val-carrier",
-    formatRange(carrier.start, carrier.end));
+  setText(
+    "val-carrier",
+    formatRange(carrier.start, carrier.end)
+  );
 
-  setText("val-payload",
-    formatRange(payload.start, payload.end));
+  setText(
+    "val-payload",
+    formatRange(payload.start, payload.end)
+  );
 
-  setText("val-tail",
-    formatRange(tail.start, tail.end));
+  setText(
+    "val-tail",
+    formatRange(tail.start, tail.end)
+  );
 
-  setText("val-x",
-    formatTime(carrier.start));
-
-  setText("val-y",
-    formatTime(payload.end - payload.start));
-
-  setText("val-z",
-    formatTime(tail.end - tail.start));
+  setText("val-x", formatTime(carrier.start));
+  setText("val-y", formatTime(payload.end - payload.start));
+  setText("val-z", formatTime(tail.end - tail.start));
 
 }
 
@@ -526,7 +538,7 @@ function setText(id, value) {
 
 
 // =====================================
-// 🔟 التسجيل
+// 1️⃣1️⃣ التسجيل
 // =====================================
 
 function toggleRecording() {
@@ -612,7 +624,7 @@ function stopRecording() {
 
 
 // =====================================
-// 1️⃣1️⃣ التشغيل
+// 1️⃣2️⃣ التشغيل
 // =====================================
 
 function play() {
@@ -667,18 +679,14 @@ function playStrictRange(start, end) {
   stopRegionTimer();
 
   wavesurfer.pause();
-
   wavesurfer.setTime(start);
-
   wavesurfer.play();
 
   activeRegionTimer = setInterval(function () {
 
     if (!wavesurfer) {
-
       stopRegionTimer();
       return;
-
     }
 
     const currentTime =
@@ -688,7 +696,6 @@ function playStrictRange(start, end) {
 
       wavesurfer.pause();
       wavesurfer.setTime(start);
-
       stopRegionTimer();
 
     }
@@ -701,11 +708,8 @@ function playStrictRange(start, end) {
 function stopRegionTimer() {
 
   if (activeRegionTimer) {
-
     clearInterval(activeRegionTimer);
-
     activeRegionTimer = null;
-
   }
 
 }
@@ -717,7 +721,7 @@ function playPayloadOnly() {
 
 
 // =====================================
-// 1️⃣2️⃣ التكبير
+// 1️⃣3️⃣ التكبير
 // =====================================
 
 function zoomInWave() {
@@ -731,8 +735,6 @@ function zoomInWave() {
   }
 
   wavesurfer.zoom(currentZoom);
-
-  console.log("🔍 Zoom In:", currentZoom);
 
 }
 
@@ -749,8 +751,6 @@ function zoomOutWave() {
 
   wavesurfer.zoom(currentZoom);
 
-  console.log("🔎 Zoom Out:", currentZoom);
-
 }
 
 
@@ -762,13 +762,11 @@ function zoomResetWave() {
 
   wavesurfer.zoom(currentZoom);
 
-  console.log("↩️ Zoom Reset:", currentZoom);
-
 }
 
 
 // =====================================
-// 1️⃣3️⃣ بناء الجينوم
+// 1️⃣4️⃣ بناء الجينوم
 // =====================================
 
 function buildGenome(referenceKey) {
@@ -793,7 +791,7 @@ function buildGenome(referenceKey) {
   return {
     reference: referenceKey.replace(".wav", ""),
     version:
-      "genome-v3-smart-noise-aware-spectrogram",
+      "genome-v3-smart-noise-aware-experiment",
 
     fileStart: 0,
 
@@ -818,6 +816,8 @@ function buildGenome(referenceKey) {
         round(regions.payload.end)
     },
 
+    analysis: lastAnalysisMeta,
+
     fileEnd: round(duration)
   };
 
@@ -838,14 +838,14 @@ function cleanRegion(region) {
 function round(num) {
 
   return parseFloat(
-    num.toFixed(4)
+    Number(num).toFixed(4)
   );
 
 }
 
 
 // =====================================
-// 1️⃣4️⃣ أدوات مساعدة
+// 1️⃣5️⃣ أدوات مساعدة
 // =====================================
 
 function getCurrentAudioBlob() {
@@ -877,16 +877,13 @@ function destroyWaveform() {
   stopRegionTimer();
 
   if (wavesurfer) {
-
     wavesurfer.destroy();
-
     wavesurfer = null;
-
   }
 
 }
 
 
 console.log(
-  "🧠 audio-lab.js جاهز — التحليل الذكي + الطيف + التكبير يعمل"
+  "🧠 audio-lab.js جاهز — إعادة التحليل + حفظ بيانات التحليل تعمل"
 );
