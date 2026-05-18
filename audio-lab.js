@@ -16,6 +16,8 @@ let audioChunks = [];
 let audioBlob = null;
 let isRecording = false;
 
+let activeRegionTimer = null;
+
 
 // =====================================
 // 2️⃣ تعريف مناطق الجينوم الأربع
@@ -55,6 +57,8 @@ function initWaveform(blob) {
     console.error("❌ مكتبة WaveSurfer لم تُحمّل");
     return;
   }
+
+  stopRegionTimer();
 
   if (wavesurfer) {
     wavesurfer.destroy();
@@ -238,6 +242,8 @@ async function startRecording() {
 
   try {
 
+    stopRegionTimer();
+
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: true
     });
@@ -306,6 +312,7 @@ function stopRecording() {
 function play() {
 
   if (wavesurfer) {
+    stopRegionTimer();
     wavesurfer.playPause();
   }
 
@@ -316,10 +323,11 @@ function playRaw() {
 
   if (!wavesurfer) return;
 
-  wavesurfer.play(
-    0,
-    wavesurfer.getDuration()
-  );
+  stopRegionTimer();
+
+  wavesurfer.pause();
+  wavesurfer.setTime(0);
+  wavesurfer.play();
 
 }
 
@@ -337,10 +345,51 @@ function playRegion(regionId) {
     return;
   }
 
-  wavesurfer.play(
+  playStrictRange(
     region.start,
     region.end
   );
+
+}
+
+
+// تشغيل مقطع زمني محدد بصرامة
+function playStrictRange(start, end) {
+
+  if (!wavesurfer) return;
+
+  stopRegionTimer();
+
+  wavesurfer.pause();
+  wavesurfer.setTime(start);
+  wavesurfer.play();
+
+  activeRegionTimer = setInterval(function () {
+
+    if (!wavesurfer) {
+      stopRegionTimer();
+      return;
+    }
+
+    const currentTime = wavesurfer.getCurrentTime();
+
+    if (currentTime >= end) {
+      wavesurfer.pause();
+      wavesurfer.setTime(start);
+      stopRegionTimer();
+    }
+
+  }, 15);
+
+}
+
+
+function stopRegionTimer() {
+
+  if (activeRegionTimer) {
+    clearInterval(activeRegionTimer);
+    activeRegionTimer = null;
+  }
 
 }
 
@@ -373,7 +422,7 @@ function playCarrierPayload() {
 
   if (!regions.carrier || !regions.payload) return;
 
-  wavesurfer.play(
+  playStrictRange(
     regions.carrier.start,
     regions.payload.end
   );
@@ -480,6 +529,8 @@ function hasGenomeRegions() {
 
 
 function destroyWaveform() {
+
+  stopRegionTimer();
 
   if (wavesurfer) {
     wavesurfer.destroy();
