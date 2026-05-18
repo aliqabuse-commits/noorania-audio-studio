@@ -1,1 +1,392 @@
+// ================================
+// common-payload-finder.js
+// كاشف المحمول المشترك — النسخة الأولى
+// ================================
 
+const BA_COMMON_PAYLOAD_KEYS = [
+  "ab_sukoon.wav",
+  "qab_sukoon.wav",
+  "fab_sukoon.wav",
+  "bab_sukoon.wav",
+  "baab_sukoon.wav"
+];
+
+async function runBaCommonPayloadTest() {
+
+  try {
+
+    const result = await findCommonPayloadForKeys(
+      BA_COMMON_PAYLOAD_KEYS
+    );
+
+    console.log("🧠 نتيجة المحمول المشترك:", result);
+
+    alert(
+      "تم اكتشاف المحمول المشترك تقريبياً:\n" +
+      "المدة: " + result.bestDurationSeconds.toFixed(3) + " ثانية"
+    );
+
+    localStorage.setItem(
+      "ba_common_payload_result",
+      JSON.stringify(result, null, 2)
+    );
+
+  } catch (err) {
+
+    console.error("❌ فشل اكتشاف المحمول المشترك", err);
+    alert("فشل اكتشاف المحمول المشترك");
+
+  }
+
+}
+
+
+async function findCommonPayloadForKeys(keys) {
+
+  const samples = [];
+
+  for (const key of keys) {
+
+    const blob = await getAudioPromise(key);
+
+    if (!blob) {
+      throw new Error("الصوت غير موجود: " + key);
+    }
+
+    const data = await decodeBlobToMono(blob);
+
+    const features = extractFeatures(
+      data.samples,
+      data.sampleRate
+    );
+
+    const active = detectActiveRange(features);
+
+    samples.push({
+      key,
+      sampleRate: data.sampleRate,
+      duration: data.samples.length / data.sampleRate,
+      features,
+      active
+    });
+
+  }
+
+  const best = findBestSharedTail(samples);
+
+  return {
+    method: "Common Payload Finder v1",
+    keys,
+    bestDurationFrames: best.durationFrames,
+    bestDurationSeconds: best.durationSeconds,
+    score: best.score,
+    payloads: best.payloads
+  };
+
+}
+
+
+function getAudioPromise(key) {
+
+  return new Promise(function (resolve) {
+    getAudio(key, resolve);
+  });
+
+}
+
+
+async function decodeBlobToMono(blob) {
+
+  const arrayBuffer = await blob.arrayBuffer();
+
+  const AudioContextClass =
+    window.AudioContext || window.webkitAudioContext;
+
+  const ctx = new AudioContextClass();
+
+  const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+
+  const channel = audioBuffer.getChannelData(0);
+
+  return {
+    samples: channel,
+    sampleRate: audioBuffer.sampleRate
+  };
+
+}
+
+
+function extractFeatures(samples, sampleRate) {
+
+  const frameSize = Math.floor(sampleRate * 0.025);
+  const hopSize = Math.floor(sampleRate * 0.010);
+
+  const features = [];
+
+  for (
+    let start = 0;
+    start + frameSize < samples.length;
+    start += hopSize
+  ) {
+
+    const frame = samples.slice(start, start + frameSize);
+
+    const rms = calcRms(frame);
+    const zcr = calcZeroCrossingRate(frame);
+
+    const p500 = goertzelPower(frame, sampleRate, 500);
+    const p1000 = goertzelPower(frame, sampleRate, 1000);
+    const p2000 = goertzelPower(frame, sampleRate, 2000);
+    const p4000 = goertzelPower(frame, sampleRate, 4000);
+
+    features.push({
+      time: start / sampleRate,
+      vector: normalizeVector([
+        rms,
+        zcr,
+        Math.log(1 + p500),
+        Math.log(1 + p1000),
+        Math.log(1 + p2000),
+        Math.log(1 + p4000)
+      ])
+    });
+
+  }
+
+  return features;
+
+}
+
+
+function calcRms(frame) {
+
+  let sum = 0;
+
+  for (let i = 0; i < frame.length; i++) {
+    sum += frame[i] * frame[i];
+  }
+
+  return Math.sqrt(sum / frame.length);
+
+}
+
+
+function calcZeroCrossingRate(frame) {
+
+  let count = 0;
+
+  for (let i = 1; i < frame.length; i++) {
+    if (
+      (frame[i - 1] >= 0 && frame[i] < 0) ||
+      (frame[i - 1] < 0 && frame[i] >= 0)
+    ) {
+      count++;
+    }
+  }
+
+  return count / frame.length;
+
+}
+
+
+function goertzelPower(frame, sampleRate, freq) {
+
+  const w = 2 * Math.PI * freq / sampleRate;
+  const coeff = 2 * Math.cos(w);
+
+  let s0 = 0;
+  let s1 = 0;
+  let s2 = 0;
+
+  for (let i = 0; i < frame.length; i++) {
+    s0 = frame[i] + coeff * s1 - s2;
+    s2 = s1;
+    s1 = s0;
+  }
+
+  return s1 * s1 + s2 * s2 - coeff * s1 * s2;
+
+}
+
+
+function normalizeVector(v) {
+
+  const norm = Math.sqrt(
+    v.reduce(function (sum, x) {
+      return sum + x * x;
+    }, 0)
+  );
+
+  if (!norm) return v;
+
+  return v.map(function (x) {
+    return x / norm;
+  });
+
+}
+
+
+function detectActiveRange(features) {
+
+  const energies = features.map(function (f) {
+    return f.vector[0];
+  });
+
+  const max = Math.max.apply(null, energies);
+  const threshold = max * 0.12;
+
+  let start = 0;
+  let end = features.length - 1;
+
+  for (let i = 0; i < energies.length; i++) {
+    if (energies[i] > threshold) {
+      start = i;
+      break;
+    }
+  }
+
+  for (let i = energies.length - 1; i >= 0; i--) {
+    if (energies[i] > threshold) {
+      end = i;
+      break;
+    }
+  }
+
+  return { start, end };
+
+}
+
+
+function findBestSharedTail(samples) {
+
+  const minActiveLength = Math.min.apply(
+    null,
+    samples.map(function (s) {
+      return s.active.end - s.active.start;
+    })
+  );
+
+  let best = {
+    score: Infinity,
+    durationFrames: 0,
+    durationSeconds: 0,
+    payloads: []
+  };
+
+  const minFrames = 4;
+  const maxFrames = Math.min(40, minActiveLength);
+
+  for (let d = minFrames; d <= maxFrames; d++) {
+
+    const segments = samples.map(function (s) {
+
+      const end = s.active.end;
+      const start = Math.max(s.active.start, end - d);
+
+      return {
+        key: s.key,
+        startFrame: start,
+        endFrame: end,
+        frames: s.features.slice(start, end)
+      };
+
+    });
+
+    const score = averagePairwiseDtw(segments);
+
+    if (score < best.score) {
+
+      best.score = score;
+      best.durationFrames = d;
+      best.durationSeconds = d * 0.010;
+
+      best.payloads = segments.map(function (seg) {
+        return {
+          key: seg.key,
+          start: seg.frames[0]?.time || 0,
+          end: seg.frames[seg.frames.length - 1]?.time || 0
+        };
+      });
+
+    }
+
+  }
+
+  return best;
+
+}
+
+
+function averagePairwiseDtw(segments) {
+
+  let sum = 0;
+  let count = 0;
+
+  for (let i = 0; i < segments.length; i++) {
+    for (let j = i + 1; j < segments.length; j++) {
+
+      sum += dtwDistance(
+        segments[i].frames,
+        segments[j].frames
+      );
+
+      count++;
+
+    }
+  }
+
+  return sum / count;
+
+}
+
+
+function dtwDistance(a, b) {
+
+  const n = a.length;
+  const m = b.length;
+
+  const dp = Array.from({ length: n + 1 }, function () {
+    return Array(m + 1).fill(Infinity);
+  });
+
+  dp[0][0] = 0;
+
+  for (let i = 1; i <= n; i++) {
+    for (let j = 1; j <= m; j++) {
+
+      const cost = vectorDistance(
+        a[i - 1].vector,
+        b[j - 1].vector
+      );
+
+      dp[i][j] =
+        cost +
+        Math.min(
+          dp[i - 1][j],
+          dp[i][j - 1],
+          dp[i - 1][j - 1]
+        );
+
+    }
+  }
+
+  return dp[n][m] / (n + m);
+
+}
+
+
+function vectorDistance(a, b) {
+
+  let sum = 0;
+
+  for (let i = 0; i < a.length; i++) {
+    const d = a[i] - b[i];
+    sum += d * d;
+  }
+
+  return Math.sqrt(sum);
+
+}
+
+
+console.log("🧠 common-payload-finder.js جاهز — كاشف المحمول المشترك يعمل");
