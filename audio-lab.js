@@ -1,6 +1,6 @@
 // ================================
 // audio-lab.js
-// غرفة العمليات الصوتية — مختبر الجينوم الصوتي
+// غرفة العمليات الصوتية — مختبر الجينوم الصوتي الذكي
 // ================================
 
 
@@ -78,7 +78,7 @@ function initWaveform(blob) {
   );
 
   wavesurfer.on("ready", function () {
-    createDefaultGenomeRegions();
+    createSmartGenomeRegions();
     updateGenomeDisplay();
   });
 
@@ -95,10 +95,10 @@ function initWaveform(blob) {
 
 
 // =====================================
-// 4️⃣ إنشاء المناطق الافتراضية
+// 4️⃣ إنشاء مناطق ذكية حسب طاقة الصوت
 // =====================================
 
-function createDefaultGenomeRegions() {
+function createSmartGenomeRegions() {
 
   if (!wavesurfer || !wsRegions) return;
 
@@ -106,33 +106,168 @@ function createDefaultGenomeRegions() {
 
   if (!duration) return;
 
+  let peaksData;
+
+  try {
+    peaksData = wavesurfer.exportPeaks({
+      channels: 1,
+      maxLength: 1200
+    });
+  } catch (err) {
+    console.error("❌ تعذر تحليل الموجة", err);
+    createFallbackGenomeRegions(duration);
+    return;
+  }
+
+  const peaks = Array.isArray(peaksData[0]) ? peaksData[0] : peaksData;
+
+  if (!peaks || !peaks.length) {
+    createFallbackGenomeRegions(duration);
+    return;
+  }
+
+  let max = 0;
+
+  peaks.forEach(function (v) {
+    const abs = Math.abs(v);
+    if (abs > max) max = abs;
+  });
+
+  if (max === 0) {
+    createFallbackGenomeRegions(duration);
+    return;
+  }
+
+  const noiseThreshold = max * 0.10;
+  const strongThreshold = max * 0.32;
+
+  let firstSound = -1;
+  let firstStrong = -1;
+  let lastStrong = -1;
+  let lastSound = -1;
+
+  for (let i = 0; i < peaks.length; i++) {
+
+    const amp = Math.abs(peaks[i]);
+
+    if (amp > noiseThreshold && firstSound === -1) {
+      firstSound = i;
+    }
+
+    if (amp > strongThreshold && firstStrong === -1) {
+      firstStrong = i;
+    }
+
+    if (amp > strongThreshold) {
+      lastStrong = i;
+    }
+
+    if (amp > noiseThreshold) {
+      lastSound = i;
+    }
+
+  }
+
+  if (
+    firstSound === -1 ||
+    firstStrong === -1 ||
+    lastStrong === -1 ||
+    lastSound === -1
+  ) {
+    createFallbackGenomeRegions(duration);
+    return;
+  }
+
+  function idxToTime(i) {
+    return (i / peaks.length) * duration;
+  }
+
+  let preStart = 0;
+  let preEnd = clamp(
+    idxToTime(firstSound) - 0.015,
+    0,
+    duration
+  );
+
+  let carrierStart = preEnd;
+  let carrierEnd = clamp(
+    idxToTime(firstStrong),
+    carrierStart + 0.015,
+    duration
+  );
+
+  let payloadStart = carrierEnd;
+  let payloadEnd = clamp(
+    idxToTime(lastStrong) + 0.025,
+    payloadStart + 0.015,
+    duration
+  );
+
+  let tailStart = payloadEnd;
+  let tailEnd = clamp(
+    idxToTime(lastSound) + 0.060,
+    tailStart + 0.015,
+    duration
+  );
+
+  if (tailEnd < duration * 0.96) {
+    tailEnd = Math.min(duration, tailEnd);
+  }
+
   wsRegions.clearRegions();
 
-  const points = {
-    preCarrier: [0, duration * 0.15],
-    carrier: [duration * 0.15, duration * 0.32],
-    payload: [duration * 0.32, duration * 0.82],
-    tail: [duration * 0.82, duration]
-  };
+  addGenomeRegion("preCarrier", preStart, preEnd);
+  addGenomeRegion("carrier", carrierStart, carrierEnd);
+  addGenomeRegion("payload", payloadStart, payloadEnd);
+  addGenomeRegion("tail", tailStart, tailEnd);
 
-  GENOME_REGIONS.forEach(function (item) {
+}
 
-    wsRegions.addRegion({
-      id: item.id,
-      start: points[item.id][0],
-      end: points[item.id][1],
-      color: item.color,
-      drag: true,
-      resize: true
-    });
 
+// =====================================
+// 5️⃣ مناطق احتياطية إذا فشل التحليل
+// =====================================
+
+function createFallbackGenomeRegions(duration) {
+
+  if (!wsRegions) return;
+
+  wsRegions.clearRegions();
+
+  addGenomeRegion("preCarrier", 0, duration * 0.15);
+  addGenomeRegion("carrier", duration * 0.15, duration * 0.32);
+  addGenomeRegion("payload", duration * 0.32, duration * 0.82);
+  addGenomeRegion("tail", duration * 0.82, duration);
+
+}
+
+
+// =====================================
+// 6️⃣ إضافة منطقة جينومية
+// =====================================
+
+function addGenomeRegion(id, start, end) {
+
+  const config = GENOME_REGIONS.find(function (item) {
+    return item.id === id;
+  });
+
+  if (!config || !wsRegions) return;
+
+  wsRegions.addRegion({
+    id: id,
+    start: start,
+    end: end,
+    color: config.color,
+    drag: true,
+    resize: true
   });
 
 }
 
 
 // =====================================
-// 5️⃣ قراءة المناطق كخريطة
+// 7️⃣ قراءة المناطق كخريطة
 // =====================================
 
 function getGenomeRegionsMap() {
@@ -151,8 +286,15 @@ function getGenomeRegionsMap() {
 
 
 // =====================================
-// 6️⃣ تنسيق الأرقام للعرض
+// 8️⃣ أدوات أرقام
 // =====================================
+
+function clamp(value, min, max) {
+
+  return Math.max(min, Math.min(max, value));
+
+}
+
 
 function formatTime(num) {
 
@@ -169,7 +311,7 @@ function formatRange(start, end) {
 
 
 // =====================================
-// 7️⃣ تحديث عرض الإحداثيات
+// 9️⃣ تحديث عرض الإحداثيات
 // =====================================
 
 function updateGenomeDisplay() {
@@ -185,25 +327,10 @@ function updateGenomeDisplay() {
 
   if (!preCarrier || !carrier || !payload || !tail) return;
 
-  setText(
-    "val-preCarrier",
-    formatRange(preCarrier.start, preCarrier.end)
-  );
-
-  setText(
-    "val-carrier",
-    formatRange(carrier.start, carrier.end)
-  );
-
-  setText(
-    "val-payload",
-    formatRange(payload.start, payload.end)
-  );
-
-  setText(
-    "val-tail",
-    formatRange(tail.start, tail.end)
-  );
+  setText("val-preCarrier", formatRange(preCarrier.start, preCarrier.end));
+  setText("val-carrier", formatRange(carrier.start, carrier.end));
+  setText("val-payload", formatRange(payload.start, payload.end));
+  setText("val-tail", formatRange(tail.start, tail.end));
 
   setText("val-x", formatTime(carrier.start));
   setText("val-y", formatTime(payload.end - payload.start));
@@ -224,7 +351,7 @@ function setText(id, value) {
 
 
 // =====================================
-// 8️⃣ التسجيل الصوتي
+// 🔟 التسجيل الصوتي
 // =====================================
 
 function toggleRecording() {
@@ -306,7 +433,7 @@ function stopRecording() {
 
 
 // =====================================
-// 9️⃣ معاينة الصوت والمناطق
+// 1️⃣1️⃣ معاينة الصوت والمناطق
 // =====================================
 
 function play() {
@@ -337,7 +464,6 @@ function playRegion(regionId) {
   if (!wavesurfer || !wsRegions) return;
 
   const regions = getGenomeRegionsMap();
-
   const region = regions[regionId];
 
   if (!region) {
@@ -345,15 +471,11 @@ function playRegion(regionId) {
     return;
   }
 
-  playStrictRange(
-    region.start,
-    region.end
-  );
+  playStrictRange(region.start, region.end);
 
 }
 
 
-// تشغيل مقطع زمني محدد بصرامة
 function playStrictRange(start, end) {
 
   if (!wavesurfer) return;
@@ -431,7 +553,7 @@ function playCarrierPayload() {
 
 
 // =====================================
-// 🔟 بناء ملف الجينوم
+// 1️⃣2️⃣ بناء ملف الجينوم
 // =====================================
 
 function buildGenome(referenceKey) {
@@ -455,7 +577,7 @@ function buildGenome(referenceKey) {
 
   return {
     reference: referenceKey.replace(".wav", ""),
-    version: "genome-v3",
+    version: "genome-v3-smart",
 
     fileStart: 0,
 
@@ -501,7 +623,7 @@ function round(num) {
 
 
 // =====================================
-// 1️⃣1️⃣ أدوات مساعدة للتعامل مع app.js
+// 1️⃣3️⃣ أدوات مساعدة للتعامل مع app.js
 // =====================================
 
 function getCurrentAudioBlob() {
@@ -540,4 +662,4 @@ function destroyWaveform() {
 }
 
 
-console.log("🧬 audio-lab.js جاهز — مختبر الجينوم الصوتي يعمل");
+console.log("🧠 audio-lab.js جاهز — التحليل الذكي للمناطق يعمل");
