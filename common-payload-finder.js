@@ -1,6 +1,6 @@
 // ================================
 // common-payload-finder.js
-// كاشف المحمول المشترك — النسخة الأولى
+// كاشف المحمول المشترك — نسخة الباء الساكنة
 // ================================
 
 const BA_COMMON_PAYLOAD_KEYS = [
@@ -11,6 +11,11 @@ const BA_COMMON_PAYLOAD_KEYS = [
   "baab_sukoon.wav"
 ];
 
+
+// =====================================
+// 1️⃣ تشغيل اختبار الباء الساكنة
+// =====================================
+
 async function runBaCommonPayloadTest() {
 
   try {
@@ -19,27 +24,36 @@ async function runBaCommonPayloadTest() {
       BA_COMMON_PAYLOAD_KEYS
     );
 
-    console.log("🧠 نتيجة المحمول المشترك:", result);
-
-    alert(
-      "تم اكتشاف المحمول المشترك تقريبياً:\n" +
-      "المدة: " + result.bestDurationSeconds.toFixed(3) + " ثانية"
-    );
+    console.log("🧠 نتيجة كاشف المحمول المشترك:", result);
 
     localStorage.setItem(
       "ba_common_payload_result",
       JSON.stringify(result, null, 2)
     );
 
+    alert(
+      "تم اكتشاف المحمول المشترك تقريبياً\n" +
+      "المدة: " + result.bestDurationSeconds.toFixed(3) + " ثانية\n" +
+      "درجة التشابه: " + result.score.toFixed(4)
+    );
+
   } catch (err) {
 
-    console.error("❌ فشل اكتشاف المحمول المشترك", err);
-    alert("فشل اكتشاف المحمول المشترك");
+    console.error("❌ فشل كاشف المحمول المشترك", err);
+
+    alert(
+      "فشل اكتشاف المحمول المشترك:\n" +
+      err.message
+    );
 
   }
 
 }
 
+
+// =====================================
+// 2️⃣ البحث عن المحمول المشترك
+// =====================================
 
 async function findCommonPayloadForKeys(keys) {
 
@@ -53,38 +67,43 @@ async function findCommonPayloadForKeys(keys) {
       throw new Error("الصوت غير موجود: " + key);
     }
 
-    const data = await decodeBlobToMono(blob);
+    const decoded = await decodeBlobToMono(blob);
 
     const features = extractFeatures(
-      data.samples,
-      data.sampleRate
+      decoded.samples,
+      decoded.sampleRate
     );
 
     const active = detectActiveRange(features);
 
     samples.push({
-      key,
-      sampleRate: data.sampleRate,
-      duration: data.samples.length / data.sampleRate,
-      features,
-      active
+      key: key,
+      sampleRate: decoded.sampleRate,
+      duration: decoded.samples.length / decoded.sampleRate,
+      features: features,
+      active: active
     });
 
   }
 
-  const best = findBestSharedTail(samples);
+  const best = findBestSharedEnding(samples);
 
   return {
     method: "Common Payload Finder v1",
-    keys,
+    target: "ba_sukoon",
+    keys: keys,
+    score: best.score,
     bestDurationFrames: best.durationFrames,
     bestDurationSeconds: best.durationSeconds,
-    score: best.score,
     payloads: best.payloads
   };
 
 }
 
+
+// =====================================
+// 3️⃣ قراءة الصوت من التخزين
+// =====================================
 
 function getAudioPromise(key) {
 
@@ -104,17 +123,20 @@ async function decodeBlobToMono(blob) {
 
   const ctx = new AudioContextClass();
 
-  const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
-
-  const channel = audioBuffer.getChannelData(0);
+  const audioBuffer =
+    await ctx.decodeAudioData(arrayBuffer);
 
   return {
-    samples: channel,
+    samples: audioBuffer.getChannelData(0),
     sampleRate: audioBuffer.sampleRate
   };
 
 }
 
+
+// =====================================
+// 4️⃣ استخراج بصمة بسيطة للصوت
+// =====================================
 
 function extractFeatures(samples, sampleRate) {
 
@@ -129,26 +151,27 @@ function extractFeatures(samples, sampleRate) {
     start += hopSize
   ) {
 
-    const frame = samples.slice(start, start + frameSize);
+    const frame = samples.slice(
+      start,
+      start + frameSize
+    );
 
     const rms = calcRms(frame);
     const zcr = calcZeroCrossingRate(frame);
 
-    const p500 = goertzelPower(frame, sampleRate, 500);
-    const p1000 = goertzelPower(frame, sampleRate, 1000);
-    const p2000 = goertzelPower(frame, sampleRate, 2000);
-    const p4000 = goertzelPower(frame, sampleRate, 4000);
+    const vector = normalizeVector([
+      rms,
+      zcr,
+      Math.log(1 + goertzelPower(frame, sampleRate, 500)),
+      Math.log(1 + goertzelPower(frame, sampleRate, 1000)),
+      Math.log(1 + goertzelPower(frame, sampleRate, 2000)),
+      Math.log(1 + goertzelPower(frame, sampleRate, 4000))
+    ]);
 
     features.push({
       time: start / sampleRate,
-      vector: normalizeVector([
-        rms,
-        zcr,
-        Math.log(1 + p500),
-        Math.log(1 + p1000),
-        Math.log(1 + p2000),
-        Math.log(1 + p4000)
-      ])
+      energy: rms,
+      vector: vector
     });
 
   }
@@ -176,12 +199,14 @@ function calcZeroCrossingRate(frame) {
   let count = 0;
 
   for (let i = 1; i < frame.length; i++) {
+
     if (
       (frame[i - 1] >= 0 && frame[i] < 0) ||
       (frame[i - 1] < 0 && frame[i] >= 0)
     ) {
       count++;
     }
+
   }
 
   return count / frame.length;
@@ -226,14 +251,18 @@ function normalizeVector(v) {
 }
 
 
+// =====================================
+// 5️⃣ تحديد الجزء النشط
+// =====================================
+
 function detectActiveRange(features) {
 
   const energies = features.map(function (f) {
-    return f.vector[0];
+    return f.energy || 0;
   });
 
   const max = Math.max.apply(null, energies);
-  const threshold = max * 0.12;
+  const threshold = max * 0.10;
 
   let start = 0;
   let end = features.length - 1;
@@ -252,12 +281,19 @@ function detectActiveRange(features) {
     }
   }
 
-  return { start, end };
+  return {
+    start: start,
+    end: end
+  };
 
 }
 
 
-function findBestSharedTail(samples) {
+// =====================================
+// 6️⃣ اختيار أفضل نهاية مشتركة
+// =====================================
+
+function findBestSharedEnding(samples) {
 
   const minActiveLength = Math.min.apply(
     null,
@@ -274,23 +310,34 @@ function findBestSharedTail(samples) {
   };
 
   const minFrames = 4;
-  const maxFrames = Math.min(40, minActiveLength);
+  const maxFrames = Math.min(55, minActiveLength);
 
   for (let d = minFrames; d <= maxFrames; d++) {
 
     const segments = samples.map(function (s) {
 
       const end = s.active.end;
-      const start = Math.max(s.active.start, end - d);
+      const start = Math.max(
+        s.active.start,
+        end - d
+      );
+
+      const frames = s.features.slice(start, end);
 
       return {
         key: s.key,
-        startFrame: start,
-        endFrame: end,
-        frames: s.features.slice(start, end)
+        frames: frames,
+        startTime: s.features[start]?.time || 0,
+        endTime: s.features[end]?.time || s.duration
       };
 
     });
+
+    if (segments.some(function (seg) {
+      return !seg.frames.length;
+    })) {
+      continue;
+    }
 
     const score = averagePairwiseDtw(segments);
 
@@ -303,8 +350,8 @@ function findBestSharedTail(samples) {
       best.payloads = segments.map(function (seg) {
         return {
           key: seg.key,
-          start: seg.frames[0]?.time || 0,
-          end: seg.frames[seg.frames.length - 1]?.time || 0
+          start: Number(seg.startTime.toFixed(4)),
+          end: Number(seg.endTime.toFixed(4))
         };
       });
 
@@ -317,12 +364,17 @@ function findBestSharedTail(samples) {
 }
 
 
+// =====================================
+// 7️⃣ المقارنة بين المقاطع
+// =====================================
+
 function averagePairwiseDtw(segments) {
 
   let sum = 0;
   let count = 0;
 
   for (let i = 0; i < segments.length; i++) {
+
     for (let j = i + 1; j < segments.length; j++) {
 
       sum += dtwDistance(
@@ -333,9 +385,10 @@ function averagePairwiseDtw(segments) {
       count++;
 
     }
+
   }
 
-  return sum / count;
+  return count ? sum / count : Infinity;
 
 }
 
@@ -345,13 +398,17 @@ function dtwDistance(a, b) {
   const n = a.length;
   const m = b.length;
 
-  const dp = Array.from({ length: n + 1 }, function () {
-    return Array(m + 1).fill(Infinity);
-  });
+  const dp = Array.from(
+    { length: n + 1 },
+    function () {
+      return Array(m + 1).fill(Infinity);
+    }
+  );
 
   dp[0][0] = 0;
 
   for (let i = 1; i <= n; i++) {
+
     for (let j = 1; j <= m; j++) {
 
       const cost = vectorDistance(
@@ -368,6 +425,7 @@ function dtwDistance(a, b) {
         );
 
     }
+
   }
 
   return dp[n][m] / (n + m);
