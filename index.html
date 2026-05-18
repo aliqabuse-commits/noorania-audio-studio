@@ -156,9 +156,12 @@ function extractFeatures(samples, sampleRate) {
       start + frameSize
     );
 
+    const rms = calcRms(frame);
+    const zcr = calcZeroCrossingRate(frame);
+
     const vector = normalizeVector([
-      calcRms(frame),
-      calcZeroCrossingRate(frame),
+      rms,
+      zcr,
       Math.log(1 + goertzelPower(frame, sampleRate, 500)),
       Math.log(1 + goertzelPower(frame, sampleRate, 1000)),
       Math.log(1 + goertzelPower(frame, sampleRate, 2000)),
@@ -167,6 +170,7 @@ function extractFeatures(samples, sampleRate) {
 
     features.push({
       time: start / sampleRate,
+      energy: rms,
       vector: vector
     });
 
@@ -254,11 +258,11 @@ function normalizeVector(v) {
 function detectActiveRange(features) {
 
   const energies = features.map(function (f) {
-    return f.vector[0];
+    return f.energy || 0;
   });
 
   const max = Math.max.apply(null, energies);
-  const threshold = max * 0.12;
+  const threshold = max * 0.10;
 
   let start = 0;
   let end = features.length - 1;
@@ -306,7 +310,7 @@ function findBestSharedEnding(samples) {
   };
 
   const minFrames = 4;
-  const maxFrames = Math.min(45, minActiveLength);
+  const maxFrames = Math.min(55, minActiveLength);
 
   for (let d = minFrames; d <= maxFrames; d++) {
 
@@ -318,14 +322,22 @@ function findBestSharedEnding(samples) {
         end - d
       );
 
+      const frames = s.features.slice(start, end);
+
       return {
         key: s.key,
-        frames: s.features.slice(start, end),
+        frames: frames,
         startTime: s.features[start]?.time || 0,
         endTime: s.features[end]?.time || s.duration
       };
 
     });
+
+    if (segments.some(function (seg) {
+      return !seg.frames.length;
+    })) {
+      continue;
+    }
 
     const score = averagePairwiseDtw(segments);
 
@@ -338,8 +350,8 @@ function findBestSharedEnding(samples) {
       best.payloads = segments.map(function (seg) {
         return {
           key: seg.key,
-          start: seg.startTime,
-          end: seg.endTime
+          start: Number(seg.startTime.toFixed(4)),
+          end: Number(seg.endTime.toFixed(4))
         };
       });
 
@@ -376,7 +388,7 @@ function averagePairwiseDtw(segments) {
 
   }
 
-  return sum / count;
+  return count ? sum / count : Infinity;
 
 }
 
