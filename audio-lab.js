@@ -5,6 +5,7 @@
 
 let wavesurfer;
 let wsRegions;
+let wsSpectrogram;
 
 let mediaRecorder;
 let audioChunks = [];
@@ -12,6 +13,7 @@ let audioBlob = null;
 let isRecording = false;
 
 let activeRegionTimer = null;
+let currentZoom = 0;
 
 
 // =====================================
@@ -59,22 +61,52 @@ function initWaveform(blob) {
     wavesurfer.destroy();
   }
 
+  currentZoom = 80;
+
   wavesurfer = WaveSurfer.create({
     container: "#waveform",
     waveColor: "#4B5563",
     progressColor: "#00f2ff",
     cursorColor: "#ff0000",
-    height: 90,
-    normalize: true
+    height: 120,
+    normalize: true,
+
+    // يجعل الخطوط متقاربة وممتدة أفقيا منذ البداية
+    minPxPerSec: currentZoom,
+    autoScroll: true,
+    autoCenter: true,
+    barWidth: 2,
+    barGap: 1,
+    barRadius: 2
   });
 
   wsRegions = wavesurfer.registerPlugin(
     WaveSurfer.Regions.create()
   );
 
+  if (
+    WaveSurfer.Spectrogram &&
+    document.getElementById("spectrogram")
+  ) {
+    wsSpectrogram = wavesurfer.registerPlugin(
+      WaveSurfer.Spectrogram.create({
+        container: "#spectrogram",
+        labels: true,
+        height: 180,
+        splitChannels: false,
+        scale: "mel",
+        frequencyMax: 8000,
+        frequencyMin: 0,
+        fftSamples: 2048,
+        labelsColor: "#94a3b8"
+      })
+    );
+  }
+
   wavesurfer.on("ready", function () {
     createSmartGenomeRegions();
     updateGenomeDisplay();
+    wavesurfer.zoom(currentZoom);
   });
 
   wsRegions.on("region-updated", function () {
@@ -106,7 +138,7 @@ function createSmartGenomeRegions() {
   try {
     peaksData = wavesurfer.exportPeaks({
       channels: 1,
-      maxLength: 1600
+      maxLength: 2400
     });
   } catch (err) {
     console.error("❌ تعذر تحليل الموجة", err);
@@ -125,7 +157,8 @@ function createSmartGenomeRegions() {
     return Math.abs(v);
   });
 
-  const smoothed = smoothEnergy(energy, 9);
+  // نافذة أخف حتى لا تدمج التفاصيل الدقيقة كثيرا
+  const smoothed = smoothEnergy(energy, 5);
 
   const noiseSampleCount = Math.max(
     20,
@@ -143,15 +176,15 @@ function createSmartGenomeRegions() {
   }
 
   const soundThreshold =
-    noiseFloor + (maxEnergy - noiseFloor) * 0.12;
+    noiseFloor + (maxEnergy - noiseFloor) * 0.10;
 
   const strongThreshold =
-    noiseFloor + (maxEnergy - noiseFloor) * 0.35;
+    noiseFloor + (maxEnergy - noiseFloor) * 0.30;
 
   const firstSound = findFirstAbove(
     smoothed,
     soundThreshold,
-    3
+    2
   );
 
   const firstStrong = findFirstAbove(
@@ -169,7 +202,7 @@ function createSmartGenomeRegions() {
   const lastSound = findLastAbove(
     smoothed,
     soundThreshold,
-    3
+    2
   );
 
   if (
@@ -194,7 +227,7 @@ function createSmartGenomeRegions() {
   let preStart = 0;
 
   let preEnd = clamp(
-    firstSoundTime - 0.010,
+    firstSoundTime - 0.006,
     0,
     duration
   );
@@ -203,23 +236,23 @@ function createSmartGenomeRegions() {
 
   let carrierEnd = clamp(
     firstStrongTime,
-    carrierStart + 0.015,
+    carrierStart + 0.008,
     duration
   );
 
   let payloadStart = carrierEnd;
 
   let payloadEnd = clamp(
-    lastStrongTime + 0.020,
-    payloadStart + 0.020,
+    lastStrongTime + 0.012,
+    payloadStart + 0.010,
     duration
   );
 
   let tailStart = payloadEnd;
 
   let tailEnd = clamp(
-    lastSoundTime + 0.050,
-    tailStart + 0.015,
+    lastSoundTime + 0.030,
+    tailStart + 0.010,
     duration
   );
 
@@ -343,10 +376,10 @@ function createFallbackGenomeRegions(duration) {
 
   wsRegions.clearRegions();
 
-  addGenomeRegion("preCarrier", 0, duration * 0.15);
-  addGenomeRegion("carrier", duration * 0.15, duration * 0.32);
-  addGenomeRegion("payload", duration * 0.32, duration * 0.82);
-  addGenomeRegion("tail", duration * 0.82, duration);
+  addGenomeRegion("preCarrier", 0, duration * 0.12);
+  addGenomeRegion("carrier", duration * 0.12, duration * 0.28);
+  addGenomeRegion("payload", duration * 0.28, duration * 0.86);
+  addGenomeRegion("tail", duration * 0.86, duration);
 
 }
 
@@ -634,7 +667,7 @@ function playStrictRange(start, end) {
 
     }
 
-  }, 15);
+  }, 10);
 
 }
 
@@ -686,7 +719,52 @@ function playCarrierPayload() {
 
 
 // =====================================
-// 1️⃣2️⃣ بناء ملف الجينوم
+// 1️⃣2️⃣ أدوات التكبير
+// =====================================
+
+function zoomInWave() {
+
+  if (!wavesurfer) return;
+
+  currentZoom += 40;
+
+  if (currentZoom > 800) {
+    currentZoom = 800;
+  }
+
+  wavesurfer.zoom(currentZoom);
+
+}
+
+
+function zoomOutWave() {
+
+  if (!wavesurfer) return;
+
+  currentZoom -= 40;
+
+  if (currentZoom < 20) {
+    currentZoom = 20;
+  }
+
+  wavesurfer.zoom(currentZoom);
+
+}
+
+
+function zoomResetWave() {
+
+  if (!wavesurfer) return;
+
+  currentZoom = 80;
+
+  wavesurfer.zoom(currentZoom);
+
+}
+
+
+// =====================================
+// 1️⃣3️⃣ بناء ملف الجينوم
 // =====================================
 
 function buildGenome(referenceKey) {
@@ -710,7 +788,7 @@ function buildGenome(referenceKey) {
 
   return {
     reference: referenceKey.replace(".wav", ""),
-    version: "genome-v3-smart-noise-aware",
+    version: "genome-v3-smart-noise-aware-spectrogram",
 
     fileStart: 0,
 
@@ -756,7 +834,7 @@ function round(num) {
 
 
 // =====================================
-// 1️⃣3️⃣ أدوات مساعدة للتعامل مع app.js
+// 1️⃣4️⃣ أدوات مساعدة للتعامل مع app.js
 // =====================================
 
 function getCurrentAudioBlob() {
@@ -795,4 +873,4 @@ function destroyWaveform() {
 }
 
 
-console.log("🧠 audio-lab.js جاهز — التحليل الذكي للمناطق يعمل");
+console.log("🧠 audio-lab.js جاهز — التحليل الذكي + الطيف + التكبير يعمل");
