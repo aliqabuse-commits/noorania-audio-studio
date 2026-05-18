@@ -3,11 +3,6 @@
 // غرفة العمليات الصوتية — مختبر الجينوم الصوتي الذكي
 // ================================
 
-
-// =====================================
-// 1️⃣ متغيرات مختبر الصوت
-// =====================================
-
 let wavesurfer;
 let wsRegions;
 
@@ -20,7 +15,7 @@ let activeRegionTimer = null;
 
 
 // =====================================
-// 2️⃣ تعريف مناطق الجينوم الأربع
+// 1️⃣ تعريف مناطق الجينوم الأربع
 // =====================================
 
 const GENOME_REGIONS = [
@@ -48,7 +43,7 @@ const GENOME_REGIONS = [
 
 
 // =====================================
-// 3️⃣ تشغيل WaveSurfer
+// 2️⃣ تشغيل WaveSurfer
 // =====================================
 
 function initWaveform(blob) {
@@ -95,7 +90,7 @@ function initWaveform(blob) {
 
 
 // =====================================
-// 4️⃣ إنشاء مناطق ذكية حسب طاقة الصوت
+// 3️⃣ إنشاء مناطق ذكية حسب طاقة الصوت
 // =====================================
 
 function createSmartGenomeRegions() {
@@ -111,7 +106,7 @@ function createSmartGenomeRegions() {
   try {
     peaksData = wavesurfer.exportPeaks({
       channels: 1,
-      maxLength: 1200
+      maxLength: 1600
     });
   } catch (err) {
     console.error("❌ تعذر تحليل الموجة", err);
@@ -126,47 +121,56 @@ function createSmartGenomeRegions() {
     return;
   }
 
-  let max = 0;
-
-  peaks.forEach(function (v) {
-    const abs = Math.abs(v);
-    if (abs > max) max = abs;
+  const energy = peaks.map(function (v) {
+    return Math.abs(v);
   });
 
-  if (max === 0) {
+  const smoothed = smoothEnergy(energy, 9);
+
+  const noiseSampleCount = Math.max(
+    20,
+    Math.floor(smoothed.length * 0.08)
+  );
+
+  const noiseSlice = smoothed.slice(0, noiseSampleCount);
+
+  const noiseFloor = average(noiseSlice);
+  const maxEnergy = Math.max.apply(null, smoothed);
+
+  if (!maxEnergy || maxEnergy <= noiseFloor) {
     createFallbackGenomeRegions(duration);
     return;
   }
 
-  const noiseThreshold = max * 0.10;
-  const strongThreshold = max * 0.32;
+  const soundThreshold =
+    noiseFloor + (maxEnergy - noiseFloor) * 0.12;
 
-  let firstSound = -1;
-  let firstStrong = -1;
-  let lastStrong = -1;
-  let lastSound = -1;
+  const strongThreshold =
+    noiseFloor + (maxEnergy - noiseFloor) * 0.35;
 
-  for (let i = 0; i < peaks.length; i++) {
+  const firstSound = findFirstAbove(
+    smoothed,
+    soundThreshold,
+    3
+  );
 
-    const amp = Math.abs(peaks[i]);
+  const firstStrong = findFirstAbove(
+    smoothed,
+    strongThreshold,
+    2
+  );
 
-    if (amp > noiseThreshold && firstSound === -1) {
-      firstSound = i;
-    }
+  const lastStrong = findLastAbove(
+    smoothed,
+    strongThreshold,
+    2
+  );
 
-    if (amp > strongThreshold && firstStrong === -1) {
-      firstStrong = i;
-    }
-
-    if (amp > strongThreshold) {
-      lastStrong = i;
-    }
-
-    if (amp > noiseThreshold) {
-      lastSound = i;
-    }
-
-  }
+  const lastSound = findLastAbove(
+    smoothed,
+    soundThreshold,
+    3
+  );
 
   if (
     firstSound === -1 ||
@@ -179,40 +183,45 @@ function createSmartGenomeRegions() {
   }
 
   function idxToTime(i) {
-    return (i / peaks.length) * duration;
+    return (i / smoothed.length) * duration;
   }
 
+  const firstSoundTime = idxToTime(firstSound);
+  const firstStrongTime = idxToTime(firstStrong);
+  const lastStrongTime = idxToTime(lastStrong);
+  const lastSoundTime = idxToTime(lastSound);
+
   let preStart = 0;
+
   let preEnd = clamp(
-    idxToTime(firstSound) - 0.015,
+    firstSoundTime - 0.010,
     0,
     duration
   );
 
   let carrierStart = preEnd;
+
   let carrierEnd = clamp(
-    idxToTime(firstStrong),
+    firstStrongTime,
     carrierStart + 0.015,
     duration
   );
 
   let payloadStart = carrierEnd;
+
   let payloadEnd = clamp(
-    idxToTime(lastStrong) + 0.025,
-    payloadStart + 0.015,
+    lastStrongTime + 0.020,
+    payloadStart + 0.020,
     duration
   );
 
   let tailStart = payloadEnd;
+
   let tailEnd = clamp(
-    idxToTime(lastSound) + 0.060,
+    lastSoundTime + 0.050,
     tailStart + 0.015,
     duration
   );
-
-  if (tailEnd < duration * 0.96) {
-    tailEnd = Math.min(duration, tailEnd);
-  }
 
   wsRegions.clearRegions();
 
@@ -220,6 +229,106 @@ function createSmartGenomeRegions() {
   addGenomeRegion("carrier", carrierStart, carrierEnd);
   addGenomeRegion("payload", payloadStart, payloadEnd);
   addGenomeRegion("tail", tailStart, tailEnd);
+
+  updateGenomeDisplay();
+
+}
+
+
+// =====================================
+// 4️⃣ دوال التحليل الذكي المساعدة
+// =====================================
+
+function smoothEnergy(values, windowSize) {
+
+  const result = [];
+
+  for (let i = 0; i < values.length; i++) {
+
+    let sum = 0;
+    let count = 0;
+
+    for (let j = i - windowSize; j <= i + windowSize; j++) {
+
+      if (j >= 0 && j < values.length) {
+        sum += values[j];
+        count++;
+      }
+
+    }
+
+    result.push(sum / count);
+
+  }
+
+  return result;
+
+}
+
+
+function average(values) {
+
+  if (!values.length) return 0;
+
+  const sum = values.reduce(function (a, b) {
+    return a + b;
+  }, 0);
+
+  return sum / values.length;
+
+}
+
+
+function findFirstAbove(values, threshold, consecutive) {
+
+  let streak = 0;
+
+  for (let i = 0; i < values.length; i++) {
+
+    if (values[i] >= threshold) {
+
+      streak++;
+
+      if (streak >= consecutive) {
+        return i - consecutive + 1;
+      }
+
+    } else {
+
+      streak = 0;
+
+    }
+
+  }
+
+  return -1;
+
+}
+
+
+function findLastAbove(values, threshold, consecutive) {
+
+  let streak = 0;
+
+  for (let i = values.length - 1; i >= 0; i--) {
+
+    if (values[i] >= threshold) {
+
+      streak++;
+
+      if (streak >= consecutive) {
+        return i + consecutive - 1;
+      }
+
+    } else {
+
+      streak = 0;
+
+    }
+
+  }
+
+  return -1;
 
 }
 
@@ -286,12 +395,15 @@ function getGenomeRegionsMap() {
 
 
 // =====================================
-// 8️⃣ أدوات أرقام
+// 8️⃣ أدوات الأرقام
 // =====================================
 
 function clamp(value, min, max) {
 
-  return Math.max(min, Math.min(max, value));
+  return Math.max(
+    min,
+    Math.min(max, value)
+  );
 
 }
 
@@ -327,10 +439,25 @@ function updateGenomeDisplay() {
 
   if (!preCarrier || !carrier || !payload || !tail) return;
 
-  setText("val-preCarrier", formatRange(preCarrier.start, preCarrier.end));
-  setText("val-carrier", formatRange(carrier.start, carrier.end));
-  setText("val-payload", formatRange(payload.start, payload.end));
-  setText("val-tail", formatRange(tail.start, tail.end));
+  setText(
+    "val-preCarrier",
+    formatRange(preCarrier.start, preCarrier.end)
+  );
+
+  setText(
+    "val-carrier",
+    formatRange(carrier.start, carrier.end)
+  );
+
+  setText(
+    "val-payload",
+    formatRange(payload.start, payload.end)
+  );
+
+  setText(
+    "val-tail",
+    formatRange(tail.start, tail.end)
+  );
 
   setText("val-x", formatTime(carrier.start));
   setText("val-y", formatTime(payload.end - payload.start));
@@ -464,6 +591,7 @@ function playRegion(regionId) {
   if (!wavesurfer || !wsRegions) return;
 
   const regions = getGenomeRegionsMap();
+
   const region = regions[regionId];
 
   if (!region) {
@@ -471,7 +599,10 @@ function playRegion(regionId) {
     return;
   }
 
-  playStrictRange(region.start, region.end);
+  playStrictRange(
+    region.start,
+    region.end
+  );
 
 }
 
@@ -496,9 +627,11 @@ function playStrictRange(start, end) {
     const currentTime = wavesurfer.getCurrentTime();
 
     if (currentTime >= end) {
+
       wavesurfer.pause();
       wavesurfer.setTime(start);
       stopRegionTimer();
+
     }
 
   }, 15);
@@ -577,7 +710,7 @@ function buildGenome(referenceKey) {
 
   return {
     reference: referenceKey.replace(".wav", ""),
-    version: "genome-v3-smart",
+    version: "genome-v3-smart-noise-aware",
 
     fileStart: 0,
 
