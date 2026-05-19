@@ -493,21 +493,7 @@ function renderSpectralSealReport(
     box.style.fontSize =
       "13px";
 
-    const target =
-      document.getElementById(
-        "burst-report-box"
-      );
-
-    if (
-      target &&
-      target.parentNode
-    ) {
-
-      target.parentNode.insertBefore(
-        box,
-        target
-      );
-    }
+    document.body.appendChild(box);
   }
 
   box.style.display = "block";
