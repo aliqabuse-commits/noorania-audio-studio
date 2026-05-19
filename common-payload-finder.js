@@ -7,8 +7,9 @@ const BA_COMMON_PAYLOAD_KEYS = [
   "ab_sukoon.wav",
   "qab_sukoon.wav",
   "fab_sukoon.wav",
- "sab_sukoon.wav",
+  "sab_sukoon.wav",
   "haab_sukoon.wav"
+];
 
 
 // =====================================
@@ -29,6 +30,10 @@ async function runBaCommonPayloadTest() {
       "ba_common_payload_result",
       JSON.stringify(result, null, 2)
     );
+
+    renderCommonPayloadReport(result);
+
+    showCommonPayloadForCurrentFile();
 
     alert(
       "تم اكتشاف المحمول المشترك تقريبياً\n" +
@@ -446,7 +451,93 @@ function vectorDistance(a, b) {
 }
 
 
-console.log("🧠 common-payload-finder.js جاهز — كاشف المحمول المشترك يعمل");
+// =====================================
+// 8️⃣ التقرير البصري
+// =====================================
+
+function renderCommonPayloadReport(result) {
+
+  const box = document.getElementById("common-payload-report");
+  const summary = document.getElementById("common-report-summary");
+  const tableBox = document.getElementById("common-report-table");
+
+  if (!box || !summary || !tableBox) return;
+
+  box.style.display = "block";
+
+  summary.innerHTML =
+    "الهدف: <b>" + result.target + "</b><br>" +
+    "الطريقة: <b>" + result.method + "</b><br>" +
+    "مدة المحمول المشتركة: <b>" +
+    result.bestDurationSeconds.toFixed(3) +
+    " ثانية</b><br>" +
+    "درجة التشابه العامة: <b>" +
+    result.score.toFixed(4) +
+    "</b>";
+
+  let html = "";
+
+  html += `
+    <table style="width:100%;
+                  border-collapse:collapse;
+                  font-size:12px;
+                  direction:ltr;
+                  text-align:center;">
+      <thead>
+        <tr style="background:#1f2937;">
+          <th style="border:1px solid #374151;padding:6px;">file</th>
+          <th style="border:1px solid #374151;padding:6px;">start</th>
+          <th style="border:1px solid #374151;padding:6px;">end</th>
+          <th style="border:1px solid #374151;padding:6px;">duration</th>
+          <th style="border:1px solid #374151;padding:6px;">visual</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  result.payloads.forEach(function (p) {
+
+    const duration = p.end - p.start;
+
+    html += `
+      <tr>
+        <td style="border:1px solid #374151;padding:6px;">${p.key}</td>
+        <td style="border:1px solid #374151;padding:6px;">${p.start.toFixed(4)}</td>
+        <td style="border:1px solid #374151;padding:6px;">${p.end.toFixed(4)}</td>
+        <td style="border:1px solid #374151;padding:6px;">${duration.toFixed(4)}</td>
+        <td style="border:1px solid #374151;padding:6px;">
+          <div style="height:12px;
+                      background:#374151;
+                      border-radius:10px;
+                      overflow:hidden;
+                      position:relative;">
+            <div style="height:100%;
+                        width:70%;
+                        margin-left:15%;
+                        background:#22c55e;
+                        border-radius:10px;">
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+
+  });
+
+  html += `
+      </tbody>
+    </table>
+  `;
+
+  tableBox.innerHTML = html;
+
+}
+
+
+// =====================================
+// 9️⃣ إظهار النتيجة فوق الموجة الحالية
+// =====================================
+
 function showCommonPayloadForCurrentFile() {
 
   if (!wavesurfer || !wsRegions) return;
@@ -487,6 +578,8 @@ function showCommonPayloadForCurrentFile() {
 
 function removeOldCommonPayloadRegion() {
 
+  if (!wsRegions) return;
+
   const regions = wsRegions.getRegions();
 
   regions.forEach(function (region) {
@@ -517,11 +610,15 @@ function showCommonPayloadText(found, result) {
     const waveformContainer =
       document.getElementById("waveform-container");
 
-    waveformContainer.parentNode.insertBefore(
-      box,
-      waveformContainer
-    );
+    if (waveformContainer && waveformContainer.parentNode) {
+      waveformContainer.parentNode.insertBefore(
+        box,
+        waveformContainer
+      );
+    }
   }
+
+  box.style.display = "block";
 
   box.innerText =
     "🧠 المحمول المشترك: " +
@@ -532,3 +629,6 @@ function showCommonPayloadText(found, result) {
     result.score.toFixed(4);
 
 }
+
+
+console.log("🧠 common-payload-finder.js جاهز — كاشف المحمول المشترك يعمل");
