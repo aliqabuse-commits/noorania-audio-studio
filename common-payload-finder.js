@@ -8,8 +8,7 @@ const BA_COMMON_PAYLOAD_KEYS = [
   "qab_sukoon.wav",
   "fab_sukoon.wav",
   "bab_sukoon.wav",
-  "baab_sukoon.wav"
-];
+  "haab_sukoon.wav"
 
 
 // =====================================
