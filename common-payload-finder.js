@@ -7,7 +7,7 @@ const BA_COMMON_PAYLOAD_KEYS = [
   "ab_sukoon.wav",
   "qab_sukoon.wav",
   "fab_sukoon.wav",
-  "bab_sukoon.wav",
+ "sab_sukoon.wav",
   "haab_sukoon.wav"
 
 
