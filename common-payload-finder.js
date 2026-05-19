@@ -447,3 +447,88 @@ function vectorDistance(a, b) {
 
 
 console.log("🧠 common-payload-finder.js جاهز — كاشف المحمول المشترك يعمل");
+function showCommonPayloadForCurrentFile() {
+
+  if (!wavesurfer || !wsRegions) return;
+
+  const filenameEl = document.getElementById("filename");
+
+  if (!filenameEl) return;
+
+  const currentKey = filenameEl.innerText.trim();
+
+  const saved = localStorage.getItem("ba_common_payload_result");
+
+  if (!saved) return;
+
+  const result = JSON.parse(saved);
+
+  const found = result.payloads.find(function (p) {
+    return p.key === currentKey;
+  });
+
+  if (!found) return;
+
+  removeOldCommonPayloadRegion();
+
+  wsRegions.addRegion({
+    id: "commonPayloadResult",
+    start: found.start,
+    end: found.end,
+    color: "rgba(34, 197, 94, 0.42)",
+    drag: false,
+    resize: false
+  });
+
+  showCommonPayloadText(found, result);
+
+}
+
+
+function removeOldCommonPayloadRegion() {
+
+  const regions = wsRegions.getRegions();
+
+  regions.forEach(function (region) {
+    if (region.id === "commonPayloadResult") {
+      region.remove();
+    }
+  });
+
+}
+
+
+function showCommonPayloadText(found, result) {
+
+  let box = document.getElementById("common-payload-box");
+
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "common-payload-box";
+
+    box.style.background = "#064e3b";
+    box.style.color = "white";
+    box.style.padding = "8px";
+    box.style.margin = "8px 0";
+    box.style.borderRadius = "8px";
+    box.style.fontSize = "13px";
+    box.style.textAlign = "center";
+
+    const waveformContainer =
+      document.getElementById("waveform-container");
+
+    waveformContainer.parentNode.insertBefore(
+      box,
+      waveformContainer
+    );
+  }
+
+  box.innerText =
+    "🧠 المحمول المشترك: " +
+    found.start.toFixed(3) +
+    " → " +
+    found.end.toFixed(3) +
+    " | درجة التشابه: " +
+    result.score.toFixed(4);
+
+}
