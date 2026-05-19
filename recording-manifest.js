@@ -84,8 +84,8 @@ const baCommonPayloadBag = [
   { text: "أَبْ", file: "ab_sukoon.wav" },
   { text: "قَبْ", file: "qab_sukoon.wav" },
   { text: "فَبْ", file: "fab_sukoon.wav" },
-  { text: "بَبْ", file: "bab_sukoon.wav" },
-  { text: "بابْ", file: "baab_sukoon.wav" }
+  { text: "صَبْ", file: "sab_sukoon.wav" },
+  { text: "حابْ", file: "haab_sukoon.wav" }
 ];
 
 window.allUnits = {
