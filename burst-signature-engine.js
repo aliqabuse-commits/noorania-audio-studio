@@ -1,9 +1,9 @@
 // ================================
 // burst-signature-engine.js
-// محرك بصمة الانفجار — باء ساكنة V1
+// محرك بصمة الانفجار — باء ساكنة V2
 // ================================
 
-console.log("💥 burst-signature-engine.js جاهز");
+console.log("💥 burst-signature-engine.js جاهز — Burst Marker Active");
 
 async function runBurstSignatureEngine() {
   try {
@@ -17,6 +17,7 @@ async function runBurstSignatureEngine() {
     );
 
     renderBurstReport(result);
+    showBurstMarkerForCurrentFile();
 
     alert(
       "تم استخراج نافذة انفجار الباء\n" +
@@ -63,7 +64,7 @@ async function buildBurstSignature(keys) {
   const confidence = calcBurstStability(samples);
 
   return {
-    method: "Burst Signature Engine V1",
+    method: "Burst Signature Engine V2",
     phoneme: "بْ",
     averageBurstTime,
     confidence,
@@ -112,11 +113,11 @@ function detectBurstWindow(frames) {
     }
   }
 
-  const thresholdLow = peakEnergy * 0.20;
+  const thresholdStart = peakEnergy * 0.20;
   const thresholdEnd = peakEnergy * 0.25;
 
   let startIndex = peakIndex;
-  while (startIndex > 0 && frames[startIndex].energy > thresholdLow) {
+  while (startIndex > 0 && frames[startIndex].energy > thresholdStart) {
     startIndex--;
   }
 
@@ -193,6 +194,105 @@ function renderBurstReport(result) {
     `).join("")}
   `;
 }
+
+// =====================================
+// إظهار نافذة الانفجار على الموجة الحالية
+// =====================================
+
+function showBurstMarkerForCurrentFile() {
+  if (!wavesurfer || !wsRegions) return;
+
+  const filenameEl = document.getElementById("filename");
+  if (!filenameEl) return;
+
+  const currentKey = filenameEl.innerText.trim();
+
+  const saved = localStorage.getItem("ba_burst_signature");
+  if (!saved) return;
+
+  const result = JSON.parse(saved);
+
+  const found = result.samples.find(function (s) {
+    return s.key === currentKey;
+  });
+
+  if (!found) return;
+
+  removeOldBurstRegions();
+
+  wsRegions.addRegion({
+    id: "burstWindow",
+    start: found.burst.startTime,
+    end: found.burst.endTime,
+    color: "rgba(250, 204, 21, 0.45)",
+    drag: false,
+    resize: false
+  });
+
+  wsRegions.addRegion({
+    id: "burstPeak",
+    start: Math.max(0, found.burst.peakTime - 0.006),
+    end: found.burst.peakTime + 0.006,
+    color: "rgba(239, 68, 68, 0.65)",
+    drag: false,
+    resize: false
+  });
+
+  showBurstText(found, result);
+}
+
+function removeOldBurstRegions() {
+  if (!wsRegions) return;
+
+  wsRegions.getRegions().forEach(function (region) {
+    if (region.id === "burstWindow" || region.id === "burstPeak") {
+      region.remove();
+    }
+  });
+}
+
+function showBurstText(found, result) {
+  let box = document.getElementById("burst-marker-box");
+
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "burst-marker-box";
+
+    box.style.background = "#713f12";
+    box.style.color = "white";
+    box.style.padding = "8px";
+    box.style.margin = "8px 0";
+    box.style.borderRadius = "8px";
+    box.style.fontSize = "13px";
+    box.style.textAlign = "center";
+    box.style.border = "1px solid #facc15";
+
+    const waveformContainer = document.getElementById("waveform-container");
+
+    if (waveformContainer && waveformContainer.parentNode) {
+      waveformContainer.parentNode.insertBefore(
+        box,
+        waveformContainer
+      );
+    }
+  }
+
+  box.style.display = "block";
+
+  box.innerText =
+    "💥 نافذة الانفجار: " +
+    found.burst.startTime.toFixed(3) +
+    " → " +
+    found.burst.endTime.toFixed(3) +
+    " | الذروة: " +
+    found.burst.peakTime.toFixed(3) +
+    " | الثقة: " +
+    result.confidence.toFixed(4);
+}
+
+// =====================================
+// أدوات رياضية
+// =====================================
 
 function average(values) {
   if (!values.length) return 0;
