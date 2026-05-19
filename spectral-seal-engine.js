@@ -1,9 +1,9 @@
 // ================================
 // spectral-seal-engine.js
-// محرك الختم الطيفي — الباء الساكنة V1
+// محرك الختم الطيفي — الباء الساكنة V2
 // ================================
 
-console.log("🌈 spectral-seal-engine.js جاهز");
+console.log("🌈 spectral-seal-engine.js جاهز — V2");
 
 // ======================================
 // تشغيل محرك الختم الطيفي
@@ -13,10 +13,16 @@ async function runSpectralSealEngine() {
 
   try {
 
+    showLoading("جاري بناء الختم الطيفي للباء...");
+
+    await waitForUI();
+
     const burstSaved =
       localStorage.getItem("ba_burst_signature");
 
     if (!burstSaved) {
+
+      hideLoading();
 
       alert(
         "شغّل أولًا: 💥 استخراج انفجار الباء"
@@ -25,12 +31,14 @@ async function runSpectralSealEngine() {
       return;
     }
 
-    const burstResult = JSON.parse(burstSaved);
+    const burstResult =
+      JSON.parse(burstSaved);
 
-    const result = await buildSpectralSeal(
-      BA_COMMON_PAYLOAD_KEYS,
-      burstResult
-    );
+    const result =
+      await buildSpectralSeal(
+        BA_COMMON_PAYLOAD_KEYS,
+        burstResult
+      );
 
     console.log(
       "🌈 نتيجة الختم الطيفي:",
@@ -44,6 +52,8 @@ async function runSpectralSealEngine() {
 
     renderSpectralSealReport(result);
 
+    hideLoading();
+
     alert(
       "تم بناء الختم الطيفي للباء\n" +
       "مركز الطيف: " +
@@ -54,6 +64,8 @@ async function runSpectralSealEngine() {
     );
 
   } catch (err) {
+
+    hideLoading();
 
     console.error(
       "❌ فشل بناء الختم الطيفي",
@@ -66,6 +78,7 @@ async function runSpectralSealEngine() {
     );
   }
 }
+
 
 // ======================================
 // بناء الختم الطيفي
@@ -80,7 +93,10 @@ async function buildSpectralSeal(
 
   for (const key of keys) {
 
-    const blob = await getAudioPromise(key);
+    await waitForUI();
+
+    const blob =
+      await getAudioPromise(key);
 
     if (!blob) {
 
@@ -103,17 +119,19 @@ async function buildSpectralSeal(
       continue;
     }
 
-    const segment = sliceAudioSegment(
-      decoded.samples,
-      decoded.sampleRate,
-      burstInfo.burst.startTime,
-      burstInfo.burst.endTime
-    );
+    const segment =
+      sliceAudioSegment(
+        decoded.samples,
+        decoded.sampleRate,
+        burstInfo.burst.startTime,
+        burstInfo.burst.endTime
+      );
 
-    const spectrum = extractSpectrum(
-      segment,
-      decoded.sampleRate
-    );
+    const spectrum =
+      extractSpectrum(
+        segment,
+        decoded.sampleRate
+      );
 
     const centroid =
       spectralCentroid(spectrum);
@@ -144,25 +162,30 @@ async function buildSpectralSeal(
     });
   }
 
-  const averageCentroid = average(
+  if (!samples.length) {
 
-    samples.map(function (s) {
+    throw new Error(
+      "لم يتم استخراج أي عينة طيفية"
+    );
+  }
 
-      return s.centroid;
+  const averageCentroid =
+    average(
+      samples.map(function (s) {
 
-    })
+        return s.centroid;
 
-  );
+      })
+    );
 
-  const averageSpread = average(
+  const averageSpread =
+    average(
+      samples.map(function (s) {
 
-    samples.map(function (s) {
+        return s.spread;
 
-      return s.spread;
-
-    })
-
-  );
+      })
+    );
 
   const confidence =
     calcSpectralSealConfidence(samples);
@@ -170,7 +193,7 @@ async function buildSpectralSeal(
   return {
 
     method:
-      "Spectral Seal Engine V1",
+      "Spectral Seal Engine V2",
 
     phoneme: "بْ",
 
@@ -205,6 +228,7 @@ async function buildSpectralSeal(
   };
 }
 
+
 // ======================================
 // اقتطاع مقطع الانفجار
 // ======================================
@@ -230,6 +254,7 @@ function sliceAudioSegment(
 
   return samples.slice(start, end);
 }
+
 
 // ======================================
 // استخراج الطيف
@@ -286,6 +311,7 @@ function extractSpectrum(
   return spectrum;
 }
 
+
 // ======================================
 // مركز الطيف
 // ======================================
@@ -310,6 +336,7 @@ function spectralCentroid(
     ? weighted / total
     : 0;
 }
+
 
 // ======================================
 // انتشار الطيف
@@ -339,6 +366,7 @@ function spectralSpread(
     ? Math.sqrt(weighted / total)
     : 0;
 }
+
 
 // ======================================
 // القمم الطيفية
@@ -384,6 +412,7 @@ function findSpectralPeaks(
     });
 }
 
+
 // ======================================
 // الثقة الطيفية
 // ======================================
@@ -428,6 +457,7 @@ function calcSpectralSealConfidence(
   ) / 2;
 }
 
+
 // ======================================
 // اللون الطيفي
 // ======================================
@@ -455,6 +485,7 @@ function describeSpectralColor(
   return "حاد عالٍ";
 }
 
+
 // ======================================
 // رسم التقرير
 // ======================================
@@ -470,7 +501,8 @@ function renderSpectralSealReport(
 
   if (!box) {
 
-    box = document.createElement("div");
+    box =
+      document.createElement("div");
 
     box.id =
       "spectral-seal-report-box";
@@ -493,10 +525,39 @@ function renderSpectralSealReport(
     box.style.fontSize =
       "13px";
 
-    document.body.appendChild(box);
+    const target =
+      document.getElementById("common-payload-report") ||
+      document.getElementById("unitList") ||
+      document.getElementById("recordView") ||
+      document.body;
+
+    if (target === document.body) {
+
+      document.body.appendChild(box);
+
+    } else if (target.id === "unitList") {
+
+      target.parentNode.insertBefore(
+        box,
+        target
+      );
+
+    } else {
+
+      target.parentNode.insertBefore(
+        box,
+        target
+      );
+
+    }
   }
 
   box.style.display = "block";
+
+  box.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
 
   box.innerHTML = `
 
@@ -504,6 +565,7 @@ function renderSpectralSealReport(
       font-weight:bold;
       color:#38bdf8;
       margin-bottom:8px;
+      font-size:15px;
     ">
       🌈 تقرير الختم الطيفي للباء
     </div>
@@ -587,6 +649,100 @@ function renderSpectralSealReport(
   `;
 }
 
+
+// ======================================
+// شاشة انتظار
+// ======================================
+
+function showLoading(text) {
+
+  let box =
+    document.getElementById("global-loading");
+
+  if (!box) {
+
+    box =
+      document.createElement("div");
+
+    box.id =
+      "global-loading";
+
+    box.style.position =
+      "fixed";
+
+    box.style.top =
+      "0";
+
+    box.style.left =
+      "0";
+
+    box.style.right =
+      "0";
+
+    box.style.bottom =
+      "0";
+
+    box.style.background =
+      "rgba(0,0,0,0.75)";
+
+    box.style.zIndex =
+      "99999";
+
+    box.style.display =
+      "flex";
+
+    box.style.alignItems =
+      "center";
+
+    box.style.justifyContent =
+      "center";
+
+    box.style.color =
+      "white";
+
+    box.style.fontSize =
+      "20px";
+
+    box.style.textAlign =
+      "center";
+
+    box.style.padding =
+      "20px";
+
+    document.body.appendChild(box);
+  }
+
+  box.innerHTML =
+    "⏳ " + text;
+
+  box.style.display =
+    "flex";
+}
+
+
+function hideLoading() {
+
+  const box =
+    document.getElementById("global-loading");
+
+  if (box) {
+
+    box.style.display =
+      "none";
+  }
+}
+
+
+function waitForUI() {
+
+  return new Promise(function (resolve) {
+
+    setTimeout(resolve, 40);
+
+  });
+}
+
+
 // ======================================
 // نافذة هان
 // ======================================
@@ -608,6 +764,7 @@ function hann(
   );
 }
 
+
 // ======================================
 // أقرب قوة 2
 // ======================================
@@ -622,6 +779,7 @@ function nextPowerOfTwo(n) {
 
   return p;
 }
+
 
 // ======================================
 // تقريب
