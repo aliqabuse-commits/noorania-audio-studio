@@ -2,204 +2,98 @@
 <html lang="ar" dir="rtl">
 
 <head>
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>غرفة العمليات الصوتية V3 - مختبر الفصل الصوتي</title>
 
   <meta name="theme-color" content="#111827">
-
   <link rel="stylesheet" href="style.css">
 
   <script src="https://unpkg.com/wavesurfer.js@7"></script>
   <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
   <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/spectrogram.min.js"></script>
-
 </head>
 
 <body>
 
   <div id="check-version"
-       style="background:#7c2d12;
-              color:white;
-              text-align:center;
-              padding:14px;
-              font-size:20px;
-              font-weight:bold;
-              border-bottom:5px solid #facc15;
-              line-height:1.1;">
-
-    🧠 V905 — No Service Worker
-
+       style="background:#7c2d12;color:white;text-align:center;padding:14px;font-size:20px;font-weight:bold;border-bottom:5px solid #facc15;line-height:1.1;">
+    🧠 V906 — Common Payload Visual Result
   </div>
 
   <header class="app-header">
-
     <h1>🔬 غرفة العمليات الصوتية</h1>
-
-    <p>
-      النورانية العالمية — مختبر الفصل والتحليل الصوتي
-    </p>
-
+    <p>النورانية العالمية — مختبر الفصل والتحليل الصوتي</p>
   </header>
 
   <main>
 
     <section id="homeView" class="panel">
-
       <h2>القوائم الرئيسية</h2>
-
       <div id="categoryList"></div>
-
     </section>
 
-    <section id="recordView"
-             class="panel"
-             style="display:none;">
+    <section id="recordView" class="panel" style="display:none;">
 
       <div class="unit-card">
 
         <div id="unit">بَ</div>
 
-        <p id="filename">
-          ba_fatha.wav
-        </p>
+        <p id="filename">ba_fatha.wav</p>
 
         <div id="analysis-shell"
-             style="background:#000;
-                    border-radius:14px;
-                    margin:12px 0;
-                    padding:10px;
-                    border:1px solid #374151;">
+             style="background:#000;border-radius:14px;margin:12px 0;padding:10px;border:1px solid #374151;">
 
           <div id="waveform-container"
-               style="background:#050505;
-                      border-radius:10px;
-                      border:1px solid #111827;
-                      overflow:auto;
-                      min-height:140px;">
-
-            <div id="waveform"
-                 style="min-height:140px;"></div>
-
+               style="background:#050505;border-radius:10px;border:1px solid #111827;overflow:auto;min-height:140px;">
+            <div id="waveform" style="min-height:140px;"></div>
           </div>
 
           <div id="spectrogram-container"
-               style="background:#050505;
-                      border-radius:10px;
-                      border:1px solid #111827;
-                      margin-top:8px;
-                      overflow:auto;
-                      min-height:220px;">
-
-            <div id="spectrogram"
-                 style="min-height:220px;"></div>
-
+               style="background:#050505;border-radius:10px;border:1px solid #111827;margin-top:8px;overflow:auto;min-height:220px;">
+            <div id="spectrogram" style="min-height:220px;"></div>
           </div>
 
         </div>
 
         <div id="genome-display"
-             style="display:flex;
-                    justify-content:space-between;
-                    align-items:stretch;
-                    gap:4px;
-                    margin:8px 0;
-                    direction:ltr;
-                    unicode-bidi:isolate;
-                    overflow:hidden;">
+             style="display:flex;justify-content:space-between;align-items:stretch;gap:4px;margin:8px 0;direction:ltr;unicode-bidi:isolate;overflow:hidden;">
 
           <div class="coord-box"
-               style="flex:1;
-                      min-width:0;
-                      background:#1f2937;
-                      border-radius:8px;
-                      padding:5px 2px;
-                      text-align:center;
-                      border-top:3px solid #94a3b8;">
-
-            <div style="color:#94a3b8;font-size:8px;font-weight:bold;">
-              PRE
-            </div>
-
-            <div id="val-preCarrier"
-                 style="color:white;font-size:7px;white-space:nowrap;">
-              0.000 ⟶ 0.000
-            </div>
-
+               style="flex:1;min-width:0;background:#1f2937;border-radius:8px;padding:5px 2px;text-align:center;border-top:3px solid #94a3b8;">
+            <div style="color:#94a3b8;font-size:8px;font-weight:bold;">PRE</div>
+            <div id="val-preCarrier" style="color:white;font-size:7px;white-space:nowrap;">0.000 ⟶ 0.000</div>
           </div>
 
           <div class="coord-box"
-               style="flex:1;
-                      min-width:0;
-                      background:#1f2937;
-                      border-radius:8px;
-                      padding:5px 2px;
-                      text-align:center;
-                      border-top:3px solid #facc15;">
-
-            <div style="color:#facc15;font-size:8px;font-weight:bold;">
-              CARRIER
-            </div>
-
-            <div id="val-carrier"
-                 style="color:white;font-size:7px;white-space:nowrap;">
-              0.000 ⟶ 0.000
-            </div>
-
+               style="flex:1;min-width:0;background:#1f2937;border-radius:8px;padding:5px 2px;text-align:center;border-top:3px solid #facc15;">
+            <div style="color:#facc15;font-size:8px;font-weight:bold;">CARRIER</div>
+            <div id="val-carrier" style="color:white;font-size:7px;white-space:nowrap;">0.000 ⟶ 0.000</div>
           </div>
 
           <div class="coord-box"
-               style="flex:1;
-                      min-width:0;
-                      background:#1f2937;
-                      border-radius:8px;
-                      padding:5px 2px;
-                      text-align:center;
-                      border-top:3px solid #00f2ff;">
-
-            <div style="color:#00f2ff;font-size:8px;font-weight:bold;">
-              PAYLOAD
-            </div>
-
-            <div id="val-payload"
-                 style="color:white;font-size:7px;white-space:nowrap;">
-              0.000 ⟶ 0.000
-            </div>
-
+               style="flex:1;min-width:0;background:#1f2937;border-radius:8px;padding:5px 2px;text-align:center;border-top:3px solid #00f2ff;">
+            <div style="color:#00f2ff;font-size:8px;font-weight:bold;">PAYLOAD</div>
+            <div id="val-payload" style="color:white;font-size:7px;white-space:nowrap;">0.000 ⟶ 0.000</div>
           </div>
 
           <div class="coord-box"
-               style="flex:1;
-                      min-width:0;
-                      background:#1f2937;
-                      border-radius:8px;
-                      padding:5px 2px;
-                      text-align:center;
-                      border-top:3px solid #f87171;">
-
-            <div style="color:#f87171;font-size:8px;font-weight:bold;">
-              TAIL
-            </div>
-
-            <div id="val-tail"
-                 style="color:white;font-size:7px;white-space:nowrap;">
-              0.000 ⟶ 0.000
-            </div>
-
+               style="flex:1;min-width:0;background:#1f2937;border-radius:8px;padding:5px 2px;text-align:center;border-top:3px solid #f87171;">
+            <div style="color:#f87171;font-size:8px;font-weight:bold;">TAIL</div>
+            <div id="val-tail" style="color:white;font-size:7px;white-space:nowrap;">0.000 ⟶ 0.000</div>
           </div>
 
         </div>
 
+        <!-- نتيجة كاشف المحمول المشترك -->
+        <div id="common-payload-box"
+             style="display:none;background:#064e3b;color:white;padding:8px;margin:8px 0;border-radius:8px;font-size:13px;text-align:center;border:1px solid #22c55e;">
+          🧠 لم يتم عرض نتيجة المحمول المشترك بعد
+        </div>
+
         <div id="coords-display"
-             style="display:grid;
-                    grid-template-columns:1fr 1fr 1fr;
-                    gap:5px;
-                    font-size:10px;
-                    color:#9ca3af;
-                    margin:6px 0;
-                    line-height:1.1;">
+             style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;font-size:10px;color:#9ca3af;margin:6px 0;line-height:1.1;">
 
           <div class="coord-box">
             بداية:
@@ -218,18 +112,13 @@
 
         </div>
 
-        <p id="counter"
-           style="margin:4px 0 0;">
-          1 / 6
-        </p>
+        <p id="counter" style="margin:4px 0 0;">1 / 6</p>
 
       </div>
 
-      <div class="controls"
-           style="gap:6px;">
+      <div class="controls" style="gap:6px;">
 
-        <button id="recordBtn"
-                onclick="toggleRecording()">
+        <button id="recordBtn" onclick="toggleRecording()">
           🎙 تسجيل
         </button>
 
@@ -245,8 +134,7 @@
           🧠 اكتشاف باء مشتركة
         </button>
 
-        <button class="approve"
-                onclick="approveAndNext()">
+        <button class="approve" onclick="approveAndNext()">
           اعتماد وحفظ
         </button>
 
@@ -275,7 +163,6 @@
       <hr>
 
       <h3>قائمة الوحدات</h3>
-
       <div id="unitList"></div>
 
     </section>
@@ -284,11 +171,11 @@
 
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
-  <script src="recording-manifest.js?v=905"></script>
-  <script src="storage.js?v=905"></script>
-  <script src="audio-lab.js?v=905"></script>
-  <script src="common-payload-finder.js?v=905"></script>
-  <script src="app.js?v=905"></script>
+  <script src="recording-manifest.js?v=906"></script>
+  <script src="storage.js?v=906"></script>
+  <script src="audio-lab.js?v=906"></script>
+  <script src="common-payload-finder.js?v=906"></script>
+  <script src="app.js?v=906"></script>
 
 </body>
 </html>
