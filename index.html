@@ -10,7 +10,6 @@
 
   <meta name="theme-color" content="#111827">
 
-  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
 
   <script src="https://unpkg.com/wavesurfer.js@7"></script>
@@ -31,7 +30,7 @@
               border-bottom:5px solid #facc15;
               line-height:1.1;">
 
-    🧠 V904 — Common Payload Finder Active
+    🧠 V905 — No Service Worker
 
   </div>
 
@@ -285,29 +284,11 @@
 
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
-  <script src="recording-manifest.js?v=904"></script>
-  <script src="storage.js?v=904"></script>
-  <script src="audio-lab.js?v=904"></script>
-  <script src="common-payload-finder.js?v=904"></script>
-  <script src="app.js?v=904"></script>
-
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function (registrations) {
-        registrations.forEach(function (registration) {
-          registration.unregister();
-        });
-      });
-    }
-
-    if ("caches" in window) {
-      caches.keys().then(function (names) {
-        names.forEach(function (name) {
-          caches.delete(name);
-        });
-      });
-    }
-  </script>
+  <script src="recording-manifest.js?v=905"></script>
+  <script src="storage.js?v=905"></script>
+  <script src="audio-lab.js?v=905"></script>
+  <script src="common-payload-finder.js?v=905"></script>
+  <script src="app.js?v=905"></script>
 
 </body>
 </html>
