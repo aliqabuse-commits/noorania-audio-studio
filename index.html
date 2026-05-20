@@ -19,7 +19,7 @@
 
   <div id="check-version"
        style="background:#7c2d12;color:white;text-align:center;padding:14px;font-size:20px;font-weight:bold;border-bottom:5px solid #facc15;line-height:1.1;">
-    🧠 V907 — Common Payload Visual Report
+    🧠 V908 — Perceptual Memory Training
   </div>
 
   <header class="app-header">
@@ -29,17 +29,71 @@
 
   <main>
 
+    <!-- ============================= -->
+    <!-- الواجهة الرئيسية -->
+    <!-- ============================= -->
+
     <section id="homeView" class="panel">
       <h2>القوائم الرئيسية</h2>
+
+      <button onclick="openPerceptualTrainingView()"
+              style="display:block;margin:10px auto;width:90%;">
+        🧠 ذاكرة التدريب الإدراكي
+      </button>
+
       <div id="categoryList"></div>
     </section>
+
+    <!-- ============================= -->
+    <!-- نافذة ذاكرة التدريب الإدراكي -->
+    <!-- ============================= -->
+
+    <section id="perceptualTrainingView"
+             class="panel"
+             style="display:none;">
+
+      <h2>🧠 ذاكرة التدريب الإدراكي</h2>
+
+      <p>
+        تدريب النظام على إدراك الحروف وربط الصوت باللون والهوية.
+      </p>
+
+      <div style="background:#08111f;color:white;border:1px solid #00F2FF;border-radius:12px;padding:12px;margin:12px 0;">
+
+        <h3 style="margin-top:0;color:#00F2FF;">
+          🎨 حقيبة الباء الإدراكية
+        </h3>
+
+        <p>
+          اللون الإدراكي:
+          <b style="color:#00F2FF;">Noorani Turquoise — #00F2FF</b>
+        </p>
+
+        <button onclick="testBaColorBinding()">
+          🎨 اختبار ربط الباء باللون
+        </button>
+
+        <button onclick="trainPhonemeMemory('ba')">
+          🧠 بناء ذاكرة لون الباء
+        </button>
+
+      </div>
+
+      <button onclick="closePerceptualTrainingView()">
+        🏠 العودة للرئيسية
+      </button>
+
+    </section>
+
+    <!-- ============================= -->
+    <!-- نافذة التسجيل والتحليل -->
+    <!-- ============================= -->
 
     <section id="recordView" class="panel" style="display:none;">
 
       <div class="unit-card">
 
         <div id="unit">بَ</div>
-
         <p id="filename">ba_fatha.wav</p>
 
         <div id="analysis-shell"
@@ -60,26 +114,22 @@
         <div id="genome-display"
              style="display:flex;justify-content:space-between;align-items:stretch;gap:4px;margin:8px 0;direction:ltr;unicode-bidi:isolate;overflow:hidden;">
 
-          <div class="coord-box"
-               style="flex:1;min-width:0;background:#1f2937;border-radius:8px;padding:5px 2px;text-align:center;border-top:3px solid #94a3b8;">
+          <div class="coord-box" style="flex:1;min-width:0;background:#1f2937;border-radius:8px;padding:5px 2px;text-align:center;border-top:3px solid #94a3b8;">
             <div style="color:#94a3b8;font-size:8px;font-weight:bold;">PRE</div>
             <div id="val-preCarrier" style="color:white;font-size:7px;white-space:nowrap;">0.000 ⟶ 0.000</div>
           </div>
 
-          <div class="coord-box"
-               style="flex:1;min-width:0;background:#1f2937;border-radius:8px;padding:5px 2px;text-align:center;border-top:3px solid #facc15;">
+          <div class="coord-box" style="flex:1;min-width:0;background:#1f2937;border-radius:8px;padding:5px 2px;text-align:center;border-top:3px solid #facc15;">
             <div style="color:#facc15;font-size:8px;font-weight:bold;">CARRIER</div>
             <div id="val-carrier" style="color:white;font-size:7px;white-space:nowrap;">0.000 ⟶ 0.000</div>
           </div>
 
-          <div class="coord-box"
-               style="flex:1;min-width:0;background:#1f2937;border-radius:8px;padding:5px 2px;text-align:center;border-top:3px solid #00f2ff;">
+          <div class="coord-box" style="flex:1;min-width:0;background:#1f2937;border-radius:8px;padding:5px 2px;text-align:center;border-top:3px solid #00f2ff;">
             <div style="color:#00f2ff;font-size:8px;font-weight:bold;">PAYLOAD</div>
             <div id="val-payload" style="color:white;font-size:7px;white-space:nowrap;">0.000 ⟶ 0.000</div>
           </div>
 
-          <div class="coord-box"
-               style="flex:1;min-width:0;background:#1f2937;border-radius:8px;padding:5px 2px;text-align:center;border-top:3px solid #f87171;">
+          <div class="coord-box" style="flex:1;min-width:0;background:#1f2937;border-radius:8px;padding:5px 2px;text-align:center;border-top:3px solid #f87171;">
             <div style="color:#f87171;font-size:8px;font-weight:bold;">TAIL</div>
             <div id="val-tail" style="color:white;font-size:7px;white-space:nowrap;">0.000 ⟶ 0.000</div>
           </div>
@@ -112,85 +162,32 @@
 
       <div class="controls" style="gap:6px;">
 
-        <button id="recordBtn" onclick="toggleRecording()">
-          🎙 تسجيل
-        </button>
+        <button id="recordBtn" onclick="toggleRecording()">🎙 تسجيل</button>
+        <button onclick="playRaw()">▶ استماع التسجيل</button>
+        <button onclick="playPayloadOnly()">▶ تشغيل المحمول فقط</button>
 
-        <button onclick="playRaw()">
-          ▶ استماع التسجيل
-        </button>
+        <button onclick="runBaCommonPayloadTest()">🧠 اكتشاف باء مشتركة</button>
+        <button onclick="runPhonemeIdentityEngine()">🧬 بناء هوية الباء</button>
+        <button onclick="runBurstSignatureEngine()">💥 استخراج انفجار الباء</button>
+        <button onclick="runSpectralSealEngine()">🌈 بناء الختم الطيفي للباء</button>
+        <button onclick="runBaaIdentityMatchEngine()">🎯 مطابقة هوية الباء</button>
+        <button onclick="runCorePurifierEngine()">🧬 تنقية النواة المشتركة</button>
+        <button onclick="runPayloadExtractorEngine()">🚀 استخراج المحمول الحقيقي</button>
+        <button onclick="runBurstOnsetEngine()">🔥 كشف بداية الانفجار</button>
+        <button onclick="runPayloadLockEngine()">🎯 تثبيت المحمول الحقيقي</button>
+        <button onclick="runPayloadPurifierEngine()">🧼 تنظيف المحمول</button>
+        <button onclick="runBaFinalIdentityEngine()">🧾 تثبيت الهوية النهائية للباء</button>
+        <button onclick="playPurifiedPayload()">▶️ تشغيل المحمول المنظف</button>
 
-        <button onclick="playPayloadOnly()">
-          ▶ تشغيل المحمول فقط
-        </button>
-
-        <button onclick="runBaCommonPayloadTest()">
-  🧠 اكتشاف باء مشتركة
-</button>
-
-<button onclick="runPhonemeIdentityEngine()">
-  🧬 بناء هوية الباء
-</button>
-          <button onclick="runBurstSignatureEngine()">
-  💥 استخراج انفجار الباء
-</button>
-         <button onclick="runSpectralSealEngine()">
-  🌈 بناء الختم الطيفي للباء
-</button>
-         <button onclick="runBaaIdentityMatchEngine()">
-  🎯 مطابقة هوية الباء
-</button>
-         <button onclick="runCorePurifierEngine()">
-  🧬 تنقية النواة المشتركة
-         </button>
-          <button onclick="runPayloadExtractorEngine()">
-  🚀 استخراج المحمول الحقيقي
-</button>
-          <button onclick="runBurstOnsetEngine()">
-  🔥 كشف بداية الانفجار
-</button>
-          <button onclick="runPayloadLockEngine()">
-  🎯 تثبيت المحمول الحقيقي
-</button>
-          <button onclick="runPayloadPurifierEngine()">
-  🧼 تنظيف المحمول
-</button>
-          <button onclick="runBaFinalIdentityEngine()">
-  🧾 تثبيت الهوية النهائية للباء
-</button>
-          <button onclick="playPurifiedPayload()">
-  ▶️ تشغيل المحمول المنظف
-</button>
-          <button onclick="trainPhonemeMemory('ba')">
-  🎨 بناء ذاكرة لون الباء
-</button>
-         <button onclick="testBaColorBinding()">
-  🎨 اختبار ربط الباء باللون
-</button> 
-        <button class="approve" onclick="approveAndNext()">
-          اعتماد وحفظ
-        </button>
-
-        <button onclick="prevUnit()">
-          ⬅ السابق
-        </button>
-
-        <button onclick="nextUnit()">
-          اللاحق ➡
-        </button>
+        <button class="approve" onclick="approveAndNext()">اعتماد وحفظ</button>
+        <button onclick="prevUnit()">⬅ السابق</button>
+        <button onclick="nextUnit()">اللاحق ➡</button>
 
       </div>
 
       <div class="secondary-controls">
-
-        <button onclick="goHome()">
-          🏠 الرئيسية
-        </button>
-
-        <button onclick="exportApproved()">
-          📦 تصدير
-        </button>
-
+        <button onclick="goHome()">🏠 الرئيسية</button>
+        <button onclick="exportApproved()">📦 تصدير</button>
       </div>
 
       <div id="common-payload-report"
@@ -217,12 +214,18 @@
 
   </main>
 
+  <!-- ============================= -->
+  <!-- المكتبات والملفات -->
+  <!-- ============================= -->
+
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script src="recording-manifest.js"></script>
-<script src="storage.js"></script>
-<script src="audio-lab.js"></script>
-<script src="common-payload-finder.js"></script>
-<script src="phoneme-identity-engine.js"></script>
+
+  <script src="recording-manifest.js"></script>
+  <script src="storage.js"></script>
+  <script src="audio-lab.js"></script>
+
+  <script src="common-payload-finder.js"></script>
+  <script src="phoneme-identity-engine.js"></script>
   <script src="burst-signature-engine.js"></script>
   <script src="spectral-seal-engine.js"></script>
   <script src="baa-identity-match-engine.js"></script>
@@ -232,31 +235,51 @@
   <script src="payload-lock-engine.js"></script>
   <script src="payload-purifier-engine.js"></script>
   <script src="ba-final-identity-engine.js"></script>
+
   <script src="phoneme-colors.js"></script>
-<script src="phoneme-color-memory.js"></script>
-<script src="phoneme-memory-trainer.js"></script>
+  <script src="phoneme-color-memory.js"></script>
   <script src="phoneme-training-pack.js"></script>
-<script src="app.js"></script>
-<script>
-function testBaColorBinding() {
-  if (typeof bindPhonemeToColor !== "function") {
-    alert("دالة bindPhonemeToColor غير موجودة");
-    return;
-  }
+  <script src="phoneme-memory-trainer.js"></script>
 
-  const result = bindPhonemeToColor("ba");
+  <script src="app.js"></script>
 
-  if (!result) {
-    alert("فشل ربط الباء باللون");
-    return;
-  }
+  <!-- ============================= -->
+  <!-- دوال واجهة التدريب الإدراكي -->
+  <!-- ============================= -->
 
-  alert(
-    "الحرف: " + result.letter + "\n" +
-    "اللون: " + result.colorName + "\n" +
-    "HEX: " + result.hex
-  );
-}
-</script>
+  <script>
+    function openPerceptualTrainingView() {
+      document.getElementById("homeView").style.display = "none";
+      document.getElementById("recordView").style.display = "none";
+      document.getElementById("perceptualTrainingView").style.display = "block";
+    }
+
+    function closePerceptualTrainingView() {
+      document.getElementById("perceptualTrainingView").style.display = "none";
+      document.getElementById("recordView").style.display = "none";
+      document.getElementById("homeView").style.display = "block";
+    }
+
+    function testBaColorBinding() {
+      if (typeof bindPhonemeToColor !== "function") {
+        alert("دالة bindPhonemeToColor غير موجودة");
+        return;
+      }
+
+      const result = bindPhonemeToColor("ba");
+
+      if (!result) {
+        alert("فشل ربط الباء باللون");
+        return;
+      }
+
+      alert(
+        "الحرف: " + result.letter + "\n" +
+        "اللون: " + result.colorName + "\n" +
+        "HEX: " + result.hex
+      );
+    }
+  </script>
+
 </body>
 </html>
