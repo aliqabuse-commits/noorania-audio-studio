@@ -887,3 +887,126 @@ function destroyWaveform() {
 console.log(
   "🧠 audio-lab.js جاهز — إعادة التحليل + حفظ بيانات التحليل تعمل"
 );
+// ======================================
+// تشغيل المحمول المنظف
+// ======================================
+
+async function playPurifiedPayload() {
+
+  try {
+
+    const saved =
+      localStorage.getItem(
+        "ba_purified_payload_result"
+      );
+
+    if (!saved) {
+
+      alert(
+        "شغّل أولًا: 🧼 تنظيف المحمول"
+      );
+
+      return;
+    }
+
+    const result =
+      JSON.parse(saved);
+
+    const filenameEl =
+      document.getElementById("filename");
+
+    const currentKey =
+      filenameEl
+        ? filenameEl.innerText.trim()
+        : null;
+
+    if (!currentKey) {
+
+      alert("لا يوجد ملف ظاهر");
+
+      return;
+    }
+
+    const blob =
+      await new Promise(function (resolve) {
+
+        getAudio(currentKey, resolve);
+
+      });
+
+    if (!blob) {
+
+      alert("الصوت غير موجود");
+
+      return;
+    }
+
+    const decoded =
+      await decodeBlobToMono(blob);
+
+    const sampleRate =
+      decoded.sampleRate;
+
+    const samples =
+      decoded.samples;
+
+    const start =
+      Math.floor(
+        result.start * sampleRate
+      );
+
+    const end =
+      Math.floor(
+        result.end * sampleRate
+      );
+
+    const sliced =
+      samples.slice(start, end);
+
+    const ctx =
+      new (
+        window.AudioContext ||
+        window.webkitAudioContext
+      )();
+
+    const buffer =
+      ctx.createBuffer(
+        1,
+        sliced.length,
+        sampleRate
+      );
+
+    buffer.copyToChannel(
+      sliced,
+      0
+    );
+
+    const source =
+      ctx.createBufferSource();
+
+    source.buffer =
+      buffer;
+
+    source.connect(
+      ctx.destination
+    );
+
+    source.start();
+
+    console.log(
+      "▶️ تشغيل المحمول المنظف"
+    );
+
+  } catch (err) {
+
+    console.error(
+      "❌ فشل تشغيل المحمول المنظف",
+      err
+    );
+
+    alert(
+      "فشل تشغيل المحمول المنظف:\n" +
+      err.message
+    );
+  }
+      }
