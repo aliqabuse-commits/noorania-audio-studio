@@ -202,7 +202,6 @@ function createSmartGenomeRegions() {
   const lastSoundTime = idxToTime(lastSound);
 
   let preStart = 0;
-
   let preEnd = clamp(firstSoundTime - 0.006, 0, duration);
   let carrierStart = preEnd;
 
@@ -550,7 +549,7 @@ function playPayloadOnly() {
 }
 
 // =====================================
-// 1️⃣3️⃣ تشغيل المحمول المنظف
+// 1️⃣3️⃣ تشغيل سمعي ذكي للمحمول المنظف
 // =====================================
 
 async function playPurifiedPayload() {
@@ -592,12 +591,28 @@ async function playPurifiedPayload() {
 
     const sampleRate = decoded.sampleRate;
     const samples = decoded.samples;
+    const totalDuration = samples.length / sampleRate;
 
-    const start = Math.max(0, Math.floor(result.start * sampleRate));
-    const end = Math.min(samples.length, Math.floor(result.end * sampleRate));
+    // لا نغيّر مدة المحمول المخزّنة، ولا نفرض عليها زمنًا جديدًا.
+    // هذا الهامش للتسميع فقط حتى تسمع الأذن النواة داخل سياق صغير.
+    const listenPaddingBefore = 0.010;
+    const listenPaddingAfter = 0.025;
+
+    const listenStartTime = Math.max(
+      0,
+      Number(result.start) - listenPaddingBefore
+    );
+
+    const listenEndTime = Math.min(
+      totalDuration,
+      Number(result.end) + listenPaddingAfter
+    );
+
+    const start = Math.floor(listenStartTime * sampleRate);
+    const end = Math.floor(listenEndTime * sampleRate);
 
     if (end <= start) {
-      alert("نطاق المحمول المنظف غير صالح");
+      alert("نطاق التشغيل غير صالح");
       return;
     }
 
@@ -608,24 +623,51 @@ async function playPurifiedPayload() {
 
     const ctx = new AudioContextClass();
 
+    const repeatCount = 5;
+    const silenceSeconds = 0.18;
+    const gain = 1.8;
+
+    const silenceSamples = Math.floor(silenceSeconds * sampleRate);
+
+    const totalLength =
+      sliced.length * repeatCount +
+      silenceSamples * (repeatCount - 1);
+
     const buffer = ctx.createBuffer(
       1,
-      sliced.length,
+      totalLength,
       sampleRate
     );
 
-    buffer.copyToChannel(sliced, 0);
+    const channel = buffer.getChannelData(0);
+
+    let offset = 0;
+
+    for (let r = 0; r < repeatCount; r++) {
+      for (let i = 0; i < sliced.length; i++) {
+        const amplified = sliced[i] * gain;
+
+        channel[offset + i] = Math.max(
+          -1,
+          Math.min(1, amplified)
+        );
+      }
+
+      offset += sliced.length + silenceSamples;
+    }
 
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     source.connect(ctx.destination);
     source.start();
 
-    console.log(
-      "▶️ تشغيل المحمول المنظف",
-      result.start,
-      result.end
-    );
+    console.log("▶️ تشغيل سمعي ذكي للمحمول المنظف", {
+      originalStart: result.start,
+      originalEnd: result.end,
+      listenStart: listenStartTime,
+      listenEnd: listenEndTime,
+      repeated: repeatCount
+    });
 
   } catch (err) {
     console.error("❌ فشل تشغيل المحمول المنظف", err);
@@ -782,5 +824,5 @@ function destroyWaveform() {
 }
 
 console.log(
-  "🧠 audio-lab.js جاهز — تشغيل المحمول المنظف مضاف"
+  "🧠 audio-lab.js جاهز — تشغيل سمعي ذكي للمحمول المنظف"
 );
