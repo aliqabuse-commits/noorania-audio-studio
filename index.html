@@ -125,8 +125,10 @@
         </button>
 
         <button onclick="runBaCommonPayloadTest()">
-          🧠 اكتشاف باء مشتركة
-          <button onclick="runPhonemeIdentityEngine()">
+  🧠 اكتشاف باء مشتركة
+</button>
+
+<button onclick="runPhonemeIdentityEngine()">
   🧬 بناء هوية الباء
 </button>
           <button onclick="runBurstSignatureEngine()">
@@ -234,6 +236,26 @@
 <script src="phoneme-color-memory.js"></script>
 <script src="phoneme-memory-trainer.js"></script>
 <script src="app.js"></script>
+<script>
+function testBaColorBinding() {
+  if (typeof bindPhonemeToColor !== "function") {
+    alert("دالة bindPhonemeToColor غير موجودة");
+    return;
+  }
 
+  const result = bindPhonemeToColor("ba");
+
+  if (!result) {
+    alert("فشل ربط الباء باللون");
+    return;
+  }
+
+  alert(
+    "الحرف: " + result.letter + "\n" +
+    "اللون: " + result.colorName + "\n" +
+    "HEX: " + result.hex
+  );
+}
+</script>
 </body>
 </html>
