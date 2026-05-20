@@ -43,5 +43,22 @@ function getPhonemeColor(key) {
 function getAllPhonemeColors() {
   return PHONEME_COLORS;
 }
+function bindPhonemeToColor(phonemeKey) {
+  const data = PHONEME_COLORS[phonemeKey];
 
+  if (!data) {
+    console.warn("❌ لا يوجد لون مرتبط بهذا الحرف:", phonemeKey);
+    return null;
+  }
+
+  return {
+    key: phonemeKey,
+    letter: data.letter,
+    name: data.name,
+    colorName: data.colorName,
+    hex: data.hex,
+    rgb: data.rgb,
+    perceptualIdentity: data.letter + " ↔ " + data.colorName
+  };
+}
 console.log("🎨 المرجعية اللونية الإدراكية للحروف مسجلة");
