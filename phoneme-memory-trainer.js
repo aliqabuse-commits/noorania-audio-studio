@@ -159,7 +159,7 @@ function buildPerceptualIdentity(memory, samples) {
   return {
     method: "Phoneme Color Memory Trainer V1.1",
 
-    phonemeKey: memory.phoneme === "ب" ? "ba" : memory.phoneme,
+    phonemeKey: memory.key || memory.phonemeKey || memory.label || memory.phoneme,
     phoneme: memory.phoneme,
     label: memory.label,
 
