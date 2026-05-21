@@ -43,59 +43,64 @@
 
       <div id="categoryList"></div>
     </section>
+<!-- ============================= -->
+<!-- نافذة ذاكرة التدريب الإدراكي -->
+<!-- ============================= -->
 
-    <!-- ============================= -->
-    <!-- نافذة ذاكرة التدريب الإدراكي -->
-    <!-- ============================= -->
+<section id="perceptualTrainingView"
+         class="panel"
+         style="display:none;">
 
-    <section id="perceptualTrainingView"
-             class="panel"
-             style="display:none;">
+  <h2>🧠 ذاكرة التدريب الإدراكي</h2>
 
-      <h2>🧠 ذاكرة التدريب الإدراكي</h2>
+  <p>
+    تدريب النظام على إدراك الحروف وربط الصوت باللون والهوية.
+  </p>
 
-      <p>
-        تدريب النظام على إدراك الحروف وربط الصوت باللون والهوية.
-      </p>
+  <div style="background:#08111f;color:white;border:1px solid #00F2FF;border-radius:12px;padding:12px;margin:12px 0;">
 
-      <div style="background:#08111f;color:white;border:1px solid #00F2FF;border-radius:12px;padding:12px;margin:12px 0;">
+    <h3 style="margin-top:0;color:#00F2FF;">
+      🎨 حقيبة الباء الإدراكية
+    </h3>
 
-        <h3 style="margin-top:0;color:#00F2FF;">
-          🎨 حقيبة الباء الإدراكية
-        </h3>
+    <p>
+      اللون الإدراكي:
+      <b style="color:#00F2FF;">
+        Noorani Turquoise — #00F2FF
+      </b>
+    </p>
 
-        <p>
-          اللون الإدراكي:
-          <b style="color:#00F2FF;">Noorani Turquoise — #00F2FF</b>
-        </p>
-<button onclick="startPerceptualTraining('ba')">
-  🎙 تدريب الباء إدراكيًا
-</button>
+    <button onclick="startPerceptualTraining('ba')">
+      🎙 تدريب الباء إدراكيًا
+    </button>
 
-<div id="training-rec-status"
-     style="
-       margin-top:10px;
-       background:#111827;
-       color:#00F2FF;
-       padding:10px;
-       border-radius:10px;
-       font-size:14px;
-       display:none;
-     ">
-</div>
+    <div id="training-rec-status"
+         style="
+           margin-top:10px;
+           background:#111827;
+           color:#00F2FF;
+           padding:10px;
+           border-radius:10px;
+           font-size:14px;
+           display:none;
+         ">
+    </div>
 
-<button onclick="testBaColorBinding()">
-  🎨 اختبار ربط الباء باللون
-</button>
-        <button onclick="testBaColorBinding()">
-          🎨 اختبار ربط الباء باللون
-        </button>
+    <button onclick="testBaColorBinding()">
+      🎨 اختبار ربط الباء باللون
+    </button>
 
-        <button onclick="trainPhonemeMemory('ba')">
-          🧠 بناء ذاكرة لون الباء
-        </button>
+    <button onclick="trainPhonemeMemory('ba')">
+      🧠 بناء ذاكرة لون الباء
+    </button>
 
-      </div>
+    <button onclick="startPhonemeMatchTest('ba')">
+      🎯 اختبار مطابقة الباء
+    </button>
+
+  </div>
+
+</section>
 
       <button onclick="closePerceptualTrainingView()">
         🏠 العودة للرئيسية
