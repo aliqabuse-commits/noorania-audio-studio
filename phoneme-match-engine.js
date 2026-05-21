@@ -1,6 +1,6 @@
 // ================================
 // phoneme-match-engine.js
-// محرك المطابقة الإدراكية للحروف — V1
+// محرك المطابقة الإدراكية للحروف — V1.1
 // ================================
 
 console.log("🎯 phoneme-match-engine.js جاهز");
@@ -41,7 +41,12 @@ async function startPhonemeMatchTest(phonemeKey) {
     phonemeMatchRecorder.ondataavailable = function (event) {
       if (event.data && event.data.size > 0) {
         phonemeMatchChunks.push(event.data);
+        console.log("🎙 match chunk:", event.data.size, "bytes");
       }
+    };
+
+    phonemeMatchRecorder.onstart = function () {
+      console.log("🔴 بدأ تسجيل اختبار المطابقة");
     };
 
     phonemeMatchRecorder.onstop = async function () {
@@ -57,18 +62,56 @@ async function startPhonemeMatchTest(phonemeKey) {
 
         stopPhonemeMatchStream();
 
-        if (!blob || blob.size === 0) {
-          throw new Error("لم يتم التقاط أي بيانات صوتية");
+        console.log("📦 حجم تسجيل المطابقة:", blob.size, "bytes");
+
+        if (!blob || blob.size < 1000) {
+          alert(
+            "❌ التسجيل غير صالح.\n" +
+            "حجم البيانات صغير جدًا:\n" +
+            blob.size + " bytes"
+          );
+          return;
         }
 
         const decoded =
           await decodeBlobToMonoForMemory(blob);
+
+        const duration =
+          decoded.samples.length / decoded.sampleRate;
+
+        const rms =
+          calcMemoryRms(decoded.samples);
+
+        console.log("📊 فحص تسجيل المطابقة:", {
+          duration,
+          sampleRate: decoded.sampleRate,
+          samples: decoded.samples.length,
+          rms
+        });
+
+        if (duration < 0.20) {
+          alert(
+            "❌ التسجيل قصير جدًا.\n" +
+            "المدة: " + duration.toFixed(3) + " ثانية"
+          );
+          return;
+        }
+
+        if (rms < 0.003) {
+          alert(
+            "❌ التسجيل يبدو صامتًا أو ضعيفًا جدًا.\n" +
+            "RMS: " + rms.toFixed(6)
+          );
+          return;
+        }
 
         const features =
           extractPerceptualFeatures(
             decoded.samples,
             decoded.sampleRate
           );
+
+        console.log("🧬 سمات صوت الاختبار:", features);
 
         const score =
           calculatePhonemeSimilarity(
@@ -79,7 +122,12 @@ async function startPhonemeMatchTest(phonemeKey) {
         renderMatchResult(
           identity,
           features,
-          score
+          score,
+          {
+            blobSize: blob.size,
+            duration,
+            rms
+          }
         );
 
       } catch (err) {
@@ -216,7 +264,7 @@ function compareFeature(value, target, tolerance) {
 // عرض النتيجة
 // ======================================
 
-function renderMatchResult(identity, features, score) {
+function renderMatchResult(identity, features, score, meta) {
   const percent =
     Math.round(score.finalScore * 100);
 
@@ -233,7 +281,11 @@ function renderMatchResult(identity, features, score) {
     "الحرف المرجعي: " + identity.label + "\n" +
     "اللون: " + identity.color.name + "\n\n" +
     "نسبة المطابقة: " + percent + "%\n\n" +
-    verdict
+    verdict + "\n\n" +
+    "فحص التسجيل:\n" +
+    "الحجم: " + meta.blobSize + " bytes\n" +
+    "المدة: " + meta.duration.toFixed(3) + " ثانية\n" +
+    "RMS: " + meta.rms.toFixed(6)
   );
 
   console.log("🎯 نتيجة المطابقة", {
@@ -241,8 +293,9 @@ function renderMatchResult(identity, features, score) {
     features,
     score,
     percent,
-    verdict
+    verdict,
+    meta
   });
 }
 
-console.log("🎯 محرك المطابقة الإدراكية جاهز");
+console.log("🎯 محرك المطابقة الإدراكية جاهز V1.1");
