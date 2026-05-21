@@ -239,10 +239,11 @@ async function startTrainingStepRecording(step) {
           );
 
           alert(
-            "اكتملت حقيبة التدريب الإدراكي لحرف " +
-            currentTrainingPack.name +
-            "\n\nالآن اضغط:\n🧠 بناء ذاكرة لون الباء"
-          );
+  "اكتملت حقيبة التدريب الإدراكي لحرف " +
+  currentTrainingPack.name +
+  "\n\nالآن اضغط:\n🧠 بناء ذاكرة لون " +
+  currentTrainingPack.name
+);
         }
 
       } catch (err) {
