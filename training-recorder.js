@@ -1,6 +1,6 @@
 // ================================
 // training-recorder.js
-// مسجل التدريب الإدراكي للحروف — V1
+// مسجل التدريب الإدراكي للحروف — V1.1
 // ================================
 
 console.log("🎙 training-recorder.js جاهز");
@@ -12,6 +12,23 @@ let perceptualTrainingChunks = [];
 let currentTrainingKey = null;
 let currentTrainingIndex = 0;
 let currentTrainingPack = null;
+
+
+// ======================================
+// تحديث حالة التسجيل الحي
+// ======================================
+
+function updateTrainingStatus(text, color) {
+  const box =
+    document.getElementById("training-rec-status");
+
+  if (!box) return;
+
+  box.style.display = "block";
+  box.style.color = color || "#00F2FF";
+  box.innerHTML = text;
+}
+
 
 // ======================================
 // بدء تدريب حرف إدراكيًا
@@ -30,13 +47,25 @@ async function startPerceptualTraining(phonemeKey) {
     currentTrainingPack = pack;
     currentTrainingIndex = 0;
 
+    updateTrainingStatus(
+      "🧠 تم فتح حقيبة تدريب: " + pack.name,
+      "#00F2FF"
+    );
+
     showTrainingStep();
 
   } catch (err) {
     console.error("❌ فشل بدء التدريب الإدراكي", err);
+
+    updateTrainingStatus(
+      "❌ فشل بدء التدريب الإدراكي: " + err.message,
+      "#ff4d4f"
+    );
+
     alert("فشل بدء التدريب الإدراكي:\n" + err.message);
   }
 }
+
 
 // ======================================
 // عرض خطوة التدريب الحالية
@@ -48,12 +77,36 @@ function showTrainingStep() {
     return;
   }
 
-  const step = currentTrainingPack.positions[currentTrainingIndex];
+  const step =
+    currentTrainingPack.positions[currentTrainingIndex];
 
   if (!step) {
-    alert("تم إكمال تسجيلات التدريب الإدراكي لحرف " + currentTrainingPack.name);
+    updateTrainingStatus(
+      "✅ تم إكمال تسجيلات التدريب الإدراكي لحرف " +
+      currentTrainingPack.name,
+      "#22c55e"
+    );
+
+    alert(
+      "تم إكمال تسجيلات التدريب الإدراكي لحرف " +
+      currentTrainingPack.name
+    );
+
     return;
   }
+
+  updateTrainingStatus(
+    "📌 الخطوة " +
+    (currentTrainingIndex + 1) +
+    " من " +
+    currentTrainingPack.positions.length +
+    "<br>قل الآن: <b>" +
+    step.text +
+    "</b><br>سيُحفظ باسم: <b>" +
+    step.file +
+    "</b>",
+    "#00F2FF"
+  );
 
   const message =
     "تدريب حرف: " + currentTrainingPack.name + "\n\n" +
@@ -65,11 +118,16 @@ function showTrainingStep() {
   const ok = confirm(message);
 
   if (!ok) {
+    updateTrainingStatus(
+      "⏸ تم إيقاف التدريب عند: " + step.text,
+      "#facc15"
+    );
     return;
   }
 
   startTrainingStepRecording(step);
 }
+
 
 // ======================================
 // تسجيل خطوة تدريب واحدة
@@ -78,6 +136,11 @@ function showTrainingStep() {
 async function startTrainingStepRecording(step) {
   try {
     perceptualTrainingChunks = [];
+
+    updateTrainingStatus(
+      "🎤 طلب إذن الميكروفون...",
+      "#facc15"
+    );
 
     perceptualTrainingStream =
       await navigator.mediaDevices.getUserMedia({
@@ -90,34 +153,111 @@ async function startTrainingStepRecording(step) {
     perceptualTrainingRecorder.ondataavailable = function (event) {
       if (event.data && event.data.size > 0) {
         perceptualTrainingChunks.push(event.data);
+
+        updateTrainingStatus(
+          "🎙 تم التقاط بيانات صوتية: " +
+          event.data.size +
+          " bytes",
+          "#00F2FF"
+        );
       }
     };
 
-    perceptualTrainingRecorder.onstop = async function () {
-      const blob = new Blob(perceptualTrainingChunks, {
-        type: "audio/wav"
-      });
-
-      await saveTrainingAudio(step.file, blob);
-
-      stopTrainingStream();
-
-      alert(
-        "تم حفظ تدريب:\n" +
-        step.text + "\n\n" +
-        "الملف:\n" +
-        step.file
+    perceptualTrainingRecorder.onstart = function () {
+      updateTrainingStatus(
+        "🔴 REC جاري التسجيل...<br>قل: <b>" +
+        step.text +
+        "</b>",
+        "#ff4d4f"
       );
+    };
 
-      currentTrainingIndex++;
+    perceptualTrainingRecorder.onstop = async function () {
+      try {
+        const blob = new Blob(
+          perceptualTrainingChunks,
+          {
+            type:
+              perceptualTrainingRecorder.mimeType ||
+              "audio/webm"
+          }
+        );
 
-      if (currentTrainingIndex < currentTrainingPack.positions.length) {
-        showTrainingStep();
-      } else {
+        updateTrainingStatus(
+          "⏳ جاري حفظ التسجيل...<br>" +
+          step.file +
+          "<br>الحجم: " +
+          blob.size +
+          " bytes",
+          "#facc15"
+        );
+
+        if (!blob || blob.size === 0) {
+          throw new Error(
+            "لم يتم التقاط أي بيانات صوتية"
+          );
+        }
+
+        await saveTrainingAudio(step.file, blob);
+
+        stopTrainingStream();
+
+        updateTrainingStatus(
+          "✅ تم حفظ التدريب بنجاح:<br><b>" +
+          step.text +
+          "</b><br>" +
+          step.file +
+          "<br>الحجم: " +
+          blob.size +
+          " bytes",
+          "#22c55e"
+        );
+
         alert(
-          "اكتملت حقيبة التدريب الإدراكي لحرف " +
-          currentTrainingPack.name +
-          "\n\nالآن اضغط:\n🧠 بناء ذاكرة لون الباء"
+          "تم حفظ تدريب:\n" +
+          step.text + "\n\n" +
+          "الملف:\n" +
+          step.file + "\n\n" +
+          "الحجم: " +
+          blob.size +
+          " bytes"
+        );
+
+        currentTrainingIndex++;
+
+        if (
+          currentTrainingIndex <
+          currentTrainingPack.positions.length
+        ) {
+          showTrainingStep();
+        } else {
+          updateTrainingStatus(
+            "✅ اكتملت حقيبة التدريب الإدراكي لحرف " +
+            currentTrainingPack.name +
+            "<br>الآن اضغط: 🧠 بناء ذاكرة لون الباء",
+            "#22c55e"
+          );
+
+          alert(
+            "اكتملت حقيبة التدريب الإدراكي لحرف " +
+            currentTrainingPack.name +
+            "\n\nالآن اضغط:\n🧠 بناء ذاكرة لون الباء"
+          );
+        }
+
+      } catch (err) {
+        stopTrainingStream();
+
+        console.error("❌ فشل حفظ التسجيل", err);
+
+        updateTrainingStatus(
+          "❌ فشل حفظ التسجيل: " + err.message,
+          "#ff4d4f"
+        );
+
+        alert(
+          "فشل حفظ التسجيل:\n" +
+          err.message
         );
       }
     };
@@ -136,10 +276,18 @@ async function startTrainingStepRecording(step) {
 
   } catch (err) {
     stopTrainingStream();
+
     console.error("❌ فشل تسجيل التدريب", err);
+
+    updateTrainingStatus(
+      "❌ فشل تسجيل التدريب: " + err.message,
+      "#ff4d4f"
+    );
+
     alert("فشل تسجيل التدريب:\n" + err.message);
   }
 }
+
 
 // ======================================
 // إيقاف تسجيل الخطوة
@@ -153,6 +301,7 @@ function stopTrainingStepRecording() {
     perceptualTrainingRecorder.stop();
   }
 }
+
 
 // ======================================
 // حفظ صوت التدريب
@@ -195,18 +344,21 @@ async function saveTrainingAudio(fileName, blob) {
   });
 }
 
+
 // ======================================
 // إيقاف الميكروفون
 // ======================================
 
 function stopTrainingStream() {
   if (perceptualTrainingStream) {
-    perceptualTrainingStream.getTracks().forEach(function (track) {
-      track.stop();
-    });
+    perceptualTrainingStream
+      .getTracks()
+      .forEach(function (track) {
+        track.stop();
+      });
 
     perceptualTrainingStream = null;
   }
 }
 
-console.log("🎙 مسجل التدريب الإدراكي جاهز");
+console.log("🎙 مسجل التدريب الإدراكي جاهز V1.1");
