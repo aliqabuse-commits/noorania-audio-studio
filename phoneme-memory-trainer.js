@@ -226,8 +226,13 @@ function buildPerceptualIdentity(memory, samples) {
 
 function extractPerceptualFeatures(samples, sampleRate) {
   const active = detectMemoryActiveRange(samples);
-  const activeSamples = samples.slice(active.start, active.end);
+  let activeSamples = samples.slice(active.start, active.end);
 
+const maxSamplesForSpectrum = Math.floor(sampleRate * 0.25);
+
+if (activeSamples.length > maxSamplesForSpectrum) {
+  activeSamples = activeSamples.slice(0, maxSamplesForSpectrum);
+}
   const energy = calcMemoryRms(activeSamples);
   const zcr = calcMemoryZcr(activeSamples);
   const spectrum = memorySpectrum(activeSamples, sampleRate);
