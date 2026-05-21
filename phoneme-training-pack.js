@@ -148,5 +148,4 @@ function getPhonemeTrainingPack(key) {
 function getAllPhonemeTrainingPacks() {
   return PHONEME_TRAINING_PACK;
 }
-
-console.log("🎒 حقيبة تدريب الباء الإدراكية مسجلة");
+console.log("🎒 حقائب التدريب الإدراكي للحروف مسجلة");
