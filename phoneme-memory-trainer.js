@@ -51,27 +51,42 @@ async function trainPhonemeMemory(phonemeKey) {
     const samples = [];
 
     for (const unit of units) {
-      const blob = await getAudioPromiseForMemory(unit.file);
 
-      if (!blob) {
-        throw new Error("الصوت غير موجود: " + unit.file);
-      }
+  console.log("🔍 قراءة ملف التدريب:", unit.file);
 
-      const decoded = await decodeBlobToMonoForMemory(blob);
+  const blob =
+    await getAudioPromiseForMemory(unit.file);
 
-      const features = extractPerceptualFeatures(
-        decoded.samples,
-        decoded.sampleRate
-      );
+  console.log("📦 نتيجة الملف:", unit.file, blob);
 
-      samples.push({
-        text: unit.text,
-        file: unit.file,
-        role: unit.role,
-        duration: decoded.samples.length / decoded.sampleRate,
-        features
-      });
-    }
+  if (!blob) {
+    throw new Error("الصوت غير موجود: " + unit.file);
+  }
+
+  const decoded =
+    await decodeBlobToMonoForMemory(blob);
+
+  console.log(
+    "✅ تم فك الصوت:",
+    unit.file,
+    decoded.sampleRate,
+    decoded.samples.length
+  );
+
+  const features =
+    extractPerceptualFeatures(
+      decoded.samples,
+      decoded.sampleRate
+    );
+
+  samples.push({
+    text: unit.text,
+    file: unit.file,
+    role: unit.role,
+    duration: decoded.samples.length / decoded.sampleRate,
+    features
+  });
+}
 
     const identity = buildPerceptualIdentity(memory, samples);
 
