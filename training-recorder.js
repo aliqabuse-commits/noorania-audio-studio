@@ -225,26 +225,33 @@ async function startTrainingStepRecording(step) {
 
         currentTrainingIndex++;
 
-        if (
-          currentTrainingIndex <
-          currentTrainingPack.positions.length
-        ) {
-          showTrainingStep();
-        } else {
-          updateTrainingStatus(
-            "✅ اكتملت حقيبة التدريب الإدراكي لحرف " +
-            currentTrainingPack.name +
-            "<br>الآن اضغط: 🧠 بناء ذاكرة لون الباء",
-            "#22c55e"
-          );
+        const msg =
+  document.getElementById("training-success-message");
 
-          alert(
+if (msg) {
+
+  msg.innerHTML =
+    "✅ اكتملت حقيبة التدريب الإدراكي لحرف " +
+    currentTrainingPack.name +
+    "<br><br>" +
+    "الآن اضغط: 🧠 بناء ذاكرة لون " +
+    currentTrainingPack.name;
+
+  msg.style.display = "block";
+}
+
+updateTrainingStatus(
+  "✅ اكتملت حقيبة التدريب الإدراكي لحرف " +
+  currentTrainingPack.name,
+  "#22c55e"
+);
+
+alert(
   "اكتملت حقيبة التدريب الإدراكي لحرف " +
   currentTrainingPack.name +
   "\n\nالآن اضغط:\n🧠 بناء ذاكرة لون " +
   currentTrainingPack.name
 );
-        }
 
       } catch (err) {
         stopTrainingStream();
