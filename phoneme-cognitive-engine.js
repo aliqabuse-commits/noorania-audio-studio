@@ -703,5 +703,73 @@ function renderTimelineChart(identity) {
 
   return canvas;
 }
+function renderMultiLayerTimelineChart(identity) {
+  const canvas = document.createElement("canvas");
 
+  canvas.width = 700;
+  canvas.height = 320;
+  canvas.style.width = "100%";
+  canvas.style.background = "#06101d";
+  canvas.style.borderRadius = "12px";
+  canvas.style.marginTop = "18px";
+
+  const ctx = canvas.getContext("2d");
+
+  const unit = identity.units[0];
+
+  if (!unit || !unit.timeline || !unit.timeline.length) {
+    return canvas;
+  }
+
+  const timeline = unit.timeline;
+
+  drawLayer(ctx, timeline, "energy", canvas.width, canvas.height, 0.15);
+  drawLayer(ctx, timeline, "centroid", canvas.width, canvas.height, 0.35);
+  drawLayer(ctx, timeline, "spread", canvas.width, canvas.height, 0.58);
+  drawLayer(ctx, timeline, "zcr", canvas.width, canvas.height, 0.80);
+
+  ctx.fillStyle = "white";
+  ctx.font = "14px Arial";
+  ctx.fillText("energy", 12, canvas.height * 0.15 - 10);
+  ctx.fillText("centroid", 12, canvas.height * 0.35 - 10);
+  ctx.fillText("spread", 12, canvas.height * 0.58 - 10);
+  ctx.fillText("zcr", 12, canvas.height * 0.80 - 10);
+
+  return canvas;
+}
+
+
+function drawLayer(ctx, timeline, key, width, height, centerRatio) {
+  const values = timeline.map(function (f) {
+    return Number(f[key] || 0);
+  });
+
+  const max = Math.max.apply(null, values);
+
+  if (!max) return;
+
+  const centerY = height * centerRatio;
+  const layerHeight = height * 0.16;
+
+  ctx.beginPath();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#00F2FF";
+
+  values.forEach(function (value, i) {
+    const x =
+      (i / Math.max(1, values.length - 1)) * width;
+
+    const y =
+      centerY -
+      (value / max) * layerHeight;
+
+    if (i === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+
+  ctx.stroke();
+}
 console.log("🧠 المحرك الإدراكي المركزي جاهز V1");
