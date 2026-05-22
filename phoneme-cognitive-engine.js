@@ -838,6 +838,32 @@ function drawPhasesOverlay(ctx, timeline, phases, width, height) {
     height,
     "rgba(255,255,0,0.06)"
   );
+  ctx.fillStyle = "white";
+ctx.font = "13px Arial";
+
+ctx.fillText(
+  "onset",
+  onsetX + 6,
+  18
+);
+
+ctx.fillText(
+  "burst",
+  burstX + 6,
+  36
+);
+
+ctx.fillText(
+  "core",
+  coreStartX + 6,
+  54
+);
+
+ctx.fillText(
+  "tail",
+  coreEndX + 6,
+  72
+);
 }
 
 
