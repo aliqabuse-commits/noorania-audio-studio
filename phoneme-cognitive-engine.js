@@ -705,7 +705,13 @@ function renderTimelineChart(identity) {
   });
 
   ctx.stroke();
-
+drawPhasesOverlay(
+  ctx,
+  timeline,
+  unit.phases,
+  canvas.width,
+  canvas.height
+);
   return canvas;
 }
 function renderMultiLayerTimelineChart(identity) {
@@ -776,5 +782,74 @@ function drawLayer(ctx, timeline, key, width, height, centerRatio) {
   });
 
   ctx.stroke();
+}
+function drawPhasesOverlay(ctx, timeline, phases, width, height) {
+
+  const total =
+    Math.max(1, timeline.length - 1);
+
+  function xOf(index) {
+    return (index / total) * width;
+  }
+
+  const onsetX =
+    xOf(phases.onsetIndex || 0);
+
+  const burstX =
+    xOf(phases.burstIndex || 0);
+
+  const coreStartX =
+    xOf(phases.coreStartIndex || 0);
+
+  const coreEndX =
+    xOf(phases.coreEndIndex || 0);
+
+  const tailX =
+    xOf(phases.tailIndex || total);
+
+  drawPhaseZone(
+    ctx,
+    onsetX,
+    burstX,
+    height,
+    "rgba(0,255,255,0.08)"
+  );
+
+  drawPhaseZone(
+    ctx,
+    burstX,
+    coreStartX,
+    height,
+    "rgba(255,80,80,0.10)"
+  );
+
+  drawPhaseZone(
+    ctx,
+    coreStartX,
+    coreEndX,
+    height,
+    "rgba(0,255,120,0.08)"
+  );
+
+  drawPhaseZone(
+    ctx,
+    coreEndX,
+    tailX,
+    height,
+    "rgba(255,255,0,0.06)"
+  );
+}
+
+
+function drawPhaseZone(ctx, x1, x2, height, color) {
+
+  ctx.fillStyle = color;
+
+  ctx.fillRect(
+    x1,
+    0,
+    Math.max(1, x2 - x1),
+    height
+  );
 }
 console.log("🧠 المحرك الإدراكي المركزي جاهز V1");
