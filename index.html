@@ -29,10 +29,6 @@
 
   <main>
 
-    <!-- ============================= -->
-    <!-- الواجهة الرئيسية -->
-    <!-- ============================= -->
-
     <section id="homeView" class="panel">
       <h2>القوائم الرئيسية</h2>
 
@@ -43,94 +39,103 @@
 
       <div id="categoryList"></div>
     </section>
-<!-- ============================= -->
-<!-- نافذة ذاكرة التدريب الإدراكي -->
-<!-- ============================= -->
 
-<section id="perceptualTrainingView"
-         class="panel"
-         style="display:none;">
+    <section id="perceptualTrainingView" class="panel" style="display:none;">
 
-  <h2>🧠 ذاكرة التدريب الإدراكي</h2>
+      <h2>🧠 ذاكرة التدريب الإدراكي</h2>
 
-  <p>
-    تدريب النظام على إدراك الحروف وربط الصوت باللون والهوية.
-  </p>
+      <p>
+        تدريب النظام على إدراك الحروف وربط الصوت باللون والهوية.
+      </p>
 
-  <div style="background:#08111f;color:white;border:1px solid #00F2FF;border-radius:12px;padding:12px;margin:12px 0;">
+      <div style="background:#08111f;color:white;border:1px solid #00F2FF;border-radius:12px;padding:12px;margin:12px 0;">
 
-    <h3 style="margin-top:0;color:#00F2FF;">
-      🎨 حقيبة الباء الإدراكية
-    </h3>
+        <h3 style="margin-top:0;color:#00F2FF;">
+          🎨 حقيبة الباء الإدراكية
+        </h3>
 
-    <p>
-      اللون الإدراكي:
-      <b style="color:#00F2FF;">
-        Noorani Turquoise — #00F2FF
-      </b>
-    </p>
+        <p>
+          اللون الإدراكي:
+          <b style="color:#00F2FF;">Noorani Turquoise — #00F2FF</b>
+        </p>
 
-    <button onclick="startPerceptualTraining('ba')">
-      🎙 تدريب الباء إدراكيًا
-    </button>
+        <button onclick="startPerceptualTraining('ba')">
+          🎙 تدريب الباء إدراكيًا
+        </button>
 
-    <div id="training-rec-status"
-         style="
-           margin-top:10px;
-           background:#111827;
-           color:#00F2FF;
-           padding:10px;
-           border-radius:10px;
-           font-size:14px;
-           display:none;
-         ">
-    </div>
+        <button onclick="testPhonemeColorBinding('ba')">
+          🎨 اختبار ربط الباء باللون
+        </button>
 
-    <button onclick="testBaColorBinding()">
-      🎨 اختبار ربط الباء باللون
-    </button>
+        <button onclick="trainPhonemeMemory('ba')">
+          🧠 بناء ذاكرة لون الباء
+        </button>
 
-    <button onclick="trainPhonemeMemory('ba')">
-      🧠 بناء ذاكرة لون الباء
-    </button>
+        <button onclick="startPhonemeMatchTest('ba')">
+          🎯 اختبار مطابقة الباء
+        </button>
 
-    <button onclick="startPhonemeMatchTest('ba')">
-      🎯 اختبار مطابقة الباء
-    </button>
-<h3 style="margin-top:20px;color:#0D47A1;">
-  🌌 حقيبة القاف الإدراكية
-</h3>
+        <hr style="border-color:#1f2937;margin:20px 0;">
 
-<p>
-  اللون الإدراكي:
-  <b style="color:#0D47A1;">
-    Midnight Blue — #0D47A1
-  </b>
-</p>
+        <h3 style="margin-top:0;color:#0D47A1;">
+          🌌 حقيبة القاف الإدراكية
+        </h3>
 
-<button onclick="startPerceptualTraining('qa')">
-  🎙 تدريب القاف إدراكيًا
-</button>
+        <p>
+          اللون الإدراكي:
+          <b style="color:#0D47A1;">Midnight Blue — #0D47A1</b>
+        </p>
 
-<button onclick="trainPhonemeMemory('qa')">
-  🧠 بناء ذاكرة لون القاف
-</button>
+        <button onclick="startPerceptualTraining('qa')">
+          🎙 تدريب القاف إدراكيًا
+        </button>
 
-<button onclick="startPhonemeMatchTest('qa')">
-  🎯 اختبار مطابقة القاف
-</button>
-      <button onclick="closePerceptualTrainingView()">
-        🏠 العودة للرئيسية
-      </button>
+        <button onclick="testPhonemeColorBinding('qa')">
+          🎨 اختبار ربط القاف باللون
+        </button>
 
-    
-  </div>
+        <button onclick="trainPhonemeMemory('qa')">
+          🧠 بناء ذاكرة لون القاف
+        </button>
 
-</section>
+        <button onclick="startPhonemeMatchTest('qa')">
+          🎯 اختبار مطابقة القاف
+        </button>
 
-    <!-- ============================= -->
-    <!-- نافذة التسجيل والتحليل -->
-    <!-- ============================= -->
+        <div id="training-rec-status"
+             style="
+               margin-top:12px;
+               background:#111827;
+               color:#00F2FF;
+               padding:10px;
+               border-radius:10px;
+               font-size:14px;
+               display:none;
+               text-align:center;
+               line-height:1.7;
+             ">
+        </div>
+
+        <div id="training-success-message"
+             style="
+               display:none;
+               background:#111827;
+               color:#22c55e;
+               padding:10px;
+               border-radius:10px;
+               margin:12px 0;
+               line-height:1.8;
+               text-align:center;
+             ">
+        </div>
+
+        <button onclick="closePerceptualTrainingView()">
+          🏠 العودة للرئيسية
+        </button>
+
+      </div>
+
+    </section>
 
     <section id="recordView" class="panel" style="display:none;">
 
@@ -204,7 +209,6 @@
       </div>
 
       <div class="controls" style="gap:6px;">
-
         <button id="recordBtn" onclick="toggleRecording()">🎙 تسجيل</button>
         <button onclick="playRaw()">▶ استماع التسجيل</button>
         <button onclick="playPayloadOnly()">▶ تشغيل المحمول فقط</button>
@@ -225,7 +229,6 @@
         <button class="approve" onclick="approveAndNext()">اعتماد وحفظ</button>
         <button onclick="prevUnit()">⬅ السابق</button>
         <button onclick="nextUnit()">اللاحق ➡</button>
-
       </div>
 
       <div class="secondary-controls">
@@ -236,9 +239,7 @@
       <div id="common-payload-report"
            style="display:none;background:#111827;color:white;border:1px solid #374151;border-radius:12px;padding:12px;margin:12px 0;text-align:right;">
 
-        <h3 style="margin-top:0;">
-          🧠 تقرير كاشف المحمول المشترك
-        </h3>
+        <h3 style="margin-top:0;">🧠 تقرير كاشف المحمول المشترك</h3>
 
         <div id="common-report-summary"
              style="font-size:13px;color:#cbd5e1;margin-bottom:10px;line-height:1.7;">
@@ -256,10 +257,6 @@
     </section>
 
   </main>
-
-  <!-- ============================= -->
-  <!-- المكتبات والملفات -->
-  <!-- ============================= -->
 
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
@@ -284,12 +281,8 @@
   <script src="phoneme-training-pack.js"></script>
   <script src="training-recorder.js"></script>
   <script src="phoneme-memory-trainer.js"></script>
-<script src="phoneme-match-engine.js"></script>
+  <script src="phoneme-match-engine.js"></script>
   <script src="app.js"></script>
-
-  <!-- ============================= -->
-  <!-- دوال واجهة التدريب الإدراكي -->
-  <!-- ============================= -->
 
   <script>
     function openPerceptualTrainingView() {
@@ -304,16 +297,16 @@
       document.getElementById("homeView").style.display = "block";
     }
 
-    function testBaColorBinding() {
+    function testPhonemeColorBinding(phonemeKey) {
       if (typeof bindPhonemeToColor !== "function") {
         alert("دالة bindPhonemeToColor غير موجودة");
         return;
       }
 
-      const result = bindPhonemeToColor("ba");
+      const result = bindPhonemeToColor(phonemeKey);
 
       if (!result) {
-        alert("فشل ربط الباء باللون");
+        alert("فشل ربط الحرف باللون: " + phonemeKey);
         return;
       }
 
