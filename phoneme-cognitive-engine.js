@@ -7,25 +7,30 @@
 console.log("🧠 phoneme-cognitive-engine.js جاهز");
 
 async function getStoredAudio(fileName) {
+async function getStoredAudio(fileName) {
+  console.log("🔎 COGNITIVE LOAD:", fileName);
 
-  if (typeof loadAudio === "function") {
-    return await loadAudio(fileName);
+  if (typeof getAudioPromiseForMemory === "function") {
+    const blob = await getAudioPromiseForMemory(fileName, 3000);
+    console.log("✅ from getAudioPromiseForMemory:", fileName, blob);
+    if (blob) return blob;
   }
 
-  if (typeof getAudio === "function") {
-    return await getAudio(fileName);
+  const dataUrl =
+    localStorage.getItem("audio_" + fileName) ||
+    localStorage.getItem(fileName);
+
+  console.log(
+    "📦 from localStorage:",
+    fileName,
+    dataUrl ? dataUrl.substring(0, 40) : null
+  );
+
+  if (dataUrl && dataUrl.startsWith("data:")) {
+    return cognitiveDataUrlToBlob(dataUrl);
   }
 
-  const raw =
-    localStorage.getItem("audio_" + fileName);
-
-  if (!raw) {
-    throw new Error(
-      "الصوت غير موجود: " + fileName
-    );
-  }
-
-  return raw;
+  throw new Error("الصوت غير موجود: " + fileName);
 }
 // ======================================
 // بناء الهوية الإدراكية المركزية لحرف
