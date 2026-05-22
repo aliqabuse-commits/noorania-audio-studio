@@ -6,7 +6,27 @@
 
 console.log("🧠 phoneme-cognitive-engine.js جاهز");
 
+async function getStoredAudio(fileName) {
 
+  if (typeof loadAudio === "function") {
+    return await loadAudio(fileName);
+  }
+
+  if (typeof getAudio === "function") {
+    return await getAudio(fileName);
+  }
+
+  const raw =
+    localStorage.getItem("audio_" + fileName);
+
+  if (!raw) {
+    throw new Error(
+      "الصوت غير موجود: " + fileName
+    );
+  }
+
+  return raw;
+}
 // ======================================
 // بناء الهوية الإدراكية المركزية لحرف
 // ======================================
@@ -44,8 +64,7 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
 
     for (const unit of units) {
       const blob =
-        await getCognitiveAudioBlob(unit.file);
-
+  await getStoredAudio(unit.file);
       if (!blob) {
         throw new Error("الصوت غير موجود: " + unit.file);
       }
