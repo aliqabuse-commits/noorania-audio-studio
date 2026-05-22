@@ -1,301 +1,302 @@
 // ================================
 // phoneme-match-engine.js
-// محرك المطابقة الإدراكية للحروف — V1.1
+// محرك المطابقة الإدراكية للحروف — V2
 // ================================
 
 console.log("🎯 phoneme-match-engine.js جاهز");
 
-let phonemeMatchRecorder = null;
-let phonemeMatchStream = null;
-let phonemeMatchChunks = [];
 
 // ======================================
-// بدء اختبار المطابقة
+// بدء اختبار مطابقة حرف
 // ======================================
 
-async function startPhonemeMatchTest(phonemeKey) {
+async function startPhonemeMatchTest(targetKey) {
+
   try {
-    const identityRaw =
-      localStorage.getItem(phonemeKey + "_perceptual_identity");
 
-    if (!identityRaw) {
+    const targetMemory =
+      loadPerceptualIdentity(targetKey);
+
+    if (!targetMemory) {
       alert(
-        "لا توجد ذاكرة إدراكية لهذا الحرف.\n" +
-        "ابنِ الذاكرة أولًا."
+        "لا توجد ذاكرة إدراكية للحرف: " +
+        targetKey
       );
       return;
     }
 
-    const identity = JSON.parse(identityRaw);
-
-    phonemeMatchChunks = [];
-
-    phonemeMatchStream =
-      await navigator.mediaDevices.getUserMedia({
-        audio: true
-      });
-
-    phonemeMatchRecorder =
-      new MediaRecorder(phonemeMatchStream);
-
-    phonemeMatchRecorder.ondataavailable = function (event) {
-      if (event.data && event.data.size > 0) {
-        phonemeMatchChunks.push(event.data);
-        console.log("🎙 match chunk:", event.data.size, "bytes");
-      }
-    };
-
-    phonemeMatchRecorder.onstart = function () {
-      console.log("🔴 بدأ تسجيل اختبار المطابقة");
-    };
-
-    phonemeMatchRecorder.onstop = async function () {
-      try {
-        const blob = new Blob(
-          phonemeMatchChunks,
-          {
-            type:
-              phonemeMatchRecorder.mimeType ||
-              "audio/webm"
-          }
-        );
-
-        stopPhonemeMatchStream();
-
-        console.log("📦 حجم تسجيل المطابقة:", blob.size, "bytes");
-
-        if (!blob || blob.size < 1000) {
-          alert(
-            "❌ التسجيل غير صالح.\n" +
-            "حجم البيانات صغير جدًا:\n" +
-            blob.size + " bytes"
-          );
-          return;
-        }
-
-        const decoded =
-          await decodeBlobToMonoForMemory(blob);
-
-        const duration =
-          decoded.samples.length / decoded.sampleRate;
-
-        const rms =
-          calcMemoryRms(decoded.samples);
-
-        console.log("📊 فحص تسجيل المطابقة:", {
-          duration,
-          sampleRate: decoded.sampleRate,
-          samples: decoded.samples.length,
-          rms
-        });
-
-        if (duration < 0.20) {
-          alert(
-            "❌ التسجيل قصير جدًا.\n" +
-            "المدة: " + duration.toFixed(3) + " ثانية"
-          );
-          return;
-        }
-
-        if (rms < 0.003) {
-          alert(
-            "❌ التسجيل يبدو صامتًا أو ضعيفًا جدًا.\n" +
-            "RMS: " + rms.toFixed(6)
-          );
-          return;
-        }
-
-        const features =
-          extractPerceptualFeatures(
-            decoded.samples,
-            decoded.sampleRate
-          );
-
-        console.log("🧬 سمات صوت الاختبار:", features);
-
-        const score =
-          calculatePhonemeSimilarity(
-            identity,
-            features
-          );
-
-        renderMatchResult(
-          identity,
-          features,
-          score,
-          {
-            blobSize: blob.size,
-            duration,
-            rms
-          }
-        );
-
-      } catch (err) {
-        stopPhonemeMatchStream();
-
-        console.error("❌ فشل اختبار المطابقة", err);
-
-        alert(
-          "فشل اختبار المطابقة:\n" +
-          err.message
-        );
-      }
-    };
-
-    phonemeMatchRecorder.start();
-
     alert(
-      "🎙 ابدأ الآن بنطق الحرف:\n\n" +
-      identity.label +
-      "\n\nسيتم الإيقاف تلقائيًا بعد ثانيتين."
+      "سيبدأ الآن اختبار مطابقة الحرف.\n\n" +
+      "سجّل صوت الحرف المطلوب."
     );
 
-    setTimeout(function () {
-      stopPhonemeMatchRecording();
-    }, 2000);
+    const blob =
+      await recordMatchSample();
+
+    if (!blob) {
+      alert("فشل تسجيل العينة");
+      return;
+    }
+
+    const decoded =
+      await decodeBlobToMonoForMemory(blob);
+
+    const features =
+      extractPerceptualFeatures(
+        decoded.samples,
+        decoded.sampleRate
+      );
+
+    console.log(
+      "🧠 FEATURES:",
+      features
+    );
+
+    // ======================================
+    // مقارنة مع جميع الهويات
+    // ======================================
+
+    const results = [];
+
+    const identities = [
+      "ba",
+      "qa"
+    ];
+
+    for (const key of identities) {
+
+      const identity =
+        loadPerceptualIdentity(key);
+
+      if (!identity) continue;
+
+      const score =
+        compareWithIdentity(
+          features,
+          identity
+        );
+
+      results.push({
+        key,
+        phoneme: identity.phoneme,
+        score
+      });
+    }
+
+    if (!results.length) {
+      alert("لا توجد هويات للمقارنة");
+      return;
+    }
+
+    // ======================================
+    // ترتيب النتائج
+    // ======================================
+
+    results.sort(function (a, b) {
+      return a.score - b.score;
+    });
+
+    const winner = results[0];
+
+    // ======================================
+    // بناء التقرير
+    // ======================================
+
+    let report =
+      "🎯 نتيجة المطابقة الإدراكية\n\n";
+
+    results.forEach(function (r, index) {
+
+      report +=
+        (index + 1) +
+        ") " +
+        r.phoneme +
+        " → distance = " +
+        r.score.toFixed(4) +
+        "\n";
+    });
+
+    report +=
+      "\n✅ الأقرب هو:\n" +
+      winner.phoneme;
+
+    alert(report);
+
+    console.log(
+      "🎯 MATCH RESULTS:",
+      results
+    );
 
   } catch (err) {
-    stopPhonemeMatchStream();
 
-    console.error("❌ فشل بدء اختبار المطابقة", err);
+    console.error(
+      "❌ فشل اختبار المطابقة",
+      err
+    );
 
     alert(
-      "فشل بدء الاختبار:\n" +
+      "فشل اختبار المطابقة:\n" +
       err.message
     );
   }
 }
 
+
 // ======================================
-// إيقاف التسجيل
+// تحميل الهوية الإدراكية
 // ======================================
 
-function stopPhonemeMatchRecording() {
-  if (
-    phonemeMatchRecorder &&
-    phonemeMatchRecorder.state !== "inactive"
-  ) {
-    phonemeMatchRecorder.stop();
+function loadPerceptualIdentity(key) {
+
+  try {
+
+    const raw =
+      localStorage.getItem(
+        key + "_perceptual_identity"
+      );
+
+    if (!raw) return null;
+
+    return JSON.parse(raw);
+
+  } catch (err) {
+
+    console.error(
+      "❌ فشل تحميل الهوية:",
+      key,
+      err
+    );
+
+    return null;
   }
 }
 
-function stopPhonemeMatchStream() {
-  if (phonemeMatchStream) {
-    phonemeMatchStream
-      .getTracks()
-      .forEach(function (track) {
-        track.stop();
-      });
-
-    phonemeMatchStream = null;
-  }
-}
 
 // ======================================
-// حساب التشابه الإدراكي
+// تسجيل عينة اختبار
 // ======================================
 
-function calculatePhonemeSimilarity(identity, features) {
-  const signature = identity.perceptualSignature;
+async function recordMatchSample() {
 
-  const centroidScore = compareFeature(
-    features.centroid,
-    signature.centroid.mean,
-    400
-  );
+  return new Promise(async function (resolve) {
 
-  const spreadScore = compareFeature(
-    features.spread,
-    signature.spread.mean,
-    600
-  );
+    try {
 
-  const energyScore = compareFeature(
-    features.energy,
-    signature.energy.mean,
-    0.08
-  );
+      const stream =
+        await navigator.mediaDevices.getUserMedia({
+          audio: true
+        });
 
-  const zcrScore = compareFeature(
-    features.zcr,
-    signature.zcr.mean,
-    0.08
-  );
+      const chunks = [];
 
-  const burstScore = compareFeature(
-    features.burstiness,
-    signature.burstiness.mean,
-    1.5
-  );
+      const recorder =
+        new MediaRecorder(stream);
 
-  const finalScore =
-    centroidScore * 0.25 +
-    spreadScore * 0.20 +
-    energyScore * 0.15 +
-    zcrScore * 0.15 +
-    burstScore * 0.25;
+      recorder.ondataavailable =
+        function (event) {
 
-  return {
-    finalScore,
-    details: {
-      centroidScore,
-      spreadScore,
-      energyScore,
-      zcrScore,
-      burstScore
+          if (
+            event.data &&
+            event.data.size > 0
+          ) {
+            chunks.push(event.data);
+          }
+        };
+
+      recorder.onstop = function () {
+
+        stream.getTracks().forEach(
+          function (track) {
+            track.stop();
+          }
+        );
+
+        const blob =
+          new Blob(chunks, {
+            type:
+              recorder.mimeType ||
+              "audio/webm"
+          });
+
+        resolve(blob);
+      };
+
+      recorder.start();
+
+      alert(
+        "🎙 بدأ التسجيل الآن.\n\n" +
+        "سيتم الإيقاف بعد ثانيتين."
+      );
+
+      setTimeout(function () {
+        recorder.stop();
+      }, 2000);
+
+    } catch (err) {
+
+      console.error(
+        "❌ فشل التسجيل",
+        err
+      );
+
+      resolve(null);
     }
-  };
-}
-
-// ======================================
-// مقارنة سمة واحدة
-// ======================================
-
-function compareFeature(value, target, tolerance) {
-  const diff = Math.abs(value - target);
-
-  return Math.max(
-    0,
-    1 - diff / tolerance
-  );
-}
-
-// ======================================
-// عرض النتيجة
-// ======================================
-
-function renderMatchResult(identity, features, score, meta) {
-  const percent =
-    Math.round(score.finalScore * 100);
-
-  let verdict = "❌ المطابقة ضعيفة";
-
-  if (percent >= 80) {
-    verdict = "✅ تطابق قوي جدًا";
-  } else if (percent >= 60) {
-    verdict = "🟡 تطابق متوسط";
-  }
-
-  alert(
-    "🎯 نتيجة المطابقة\n\n" +
-    "الحرف المرجعي: " + identity.label + "\n" +
-    "اللون: " + identity.color.name + "\n\n" +
-    "نسبة المطابقة: " + percent + "%\n\n" +
-    verdict + "\n\n" +
-    "فحص التسجيل:\n" +
-    "الحجم: " + meta.blobSize + " bytes\n" +
-    "المدة: " + meta.duration.toFixed(3) + " ثانية\n" +
-    "RMS: " + meta.rms.toFixed(6)
-  );
-
-  console.log("🎯 نتيجة المطابقة", {
-    identity,
-    features,
-    score,
-    percent,
-    verdict,
-    meta
   });
 }
 
-console.log("🎯 محرك المطابقة الإدراكية جاهز V1.1");
+
+// ======================================
+// مقارنة عينة بهوية
+// ======================================
+
+function compareWithIdentity(
+  features,
+  identity
+) {
+
+  const sig =
+    identity.perceptualSignature;
+
+  let total = 0;
+
+  total += calcDistance(
+    features.centroid,
+    sig.centroid.mean
+  );
+
+  total += calcDistance(
+    features.spread,
+    sig.spread.mean
+  );
+
+  total += calcDistance(
+    features.energy,
+    sig.energy.mean
+  );
+
+  total += calcDistance(
+    features.zcr,
+    sig.zcr.mean
+  );
+
+  total += calcDistance(
+    features.burstiness,
+    sig.burstiness.mean
+  );
+
+  return total;
+}
+
+
+// ======================================
+// حساب المسافة
+// ======================================
+
+function calcDistance(a, b) {
+
+  return Math.abs(a - b);
+}
+
+console.log(
+  "🎯 محرك المطابقة الإدراكية جاهز V2"
+);
