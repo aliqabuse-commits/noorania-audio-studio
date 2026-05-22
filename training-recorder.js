@@ -79,7 +79,13 @@ function showTrainingStep() {
 
   const step =
     currentTrainingPack.positions[currentTrainingIndex];
-
+console.log(
+  "🧪 TRAINING STEP:",
+  currentTrainingIndex,
+  "/",
+  currentTrainingPack.positions.length,
+  step
+);
   if (!step) {
     updateTrainingStatus(
       "✅ تم إكمال تسجيلات التدريب الإدراكي لحرف " +
