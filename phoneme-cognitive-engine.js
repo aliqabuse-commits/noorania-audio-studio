@@ -476,7 +476,7 @@ box.appendChild(chart);
 const multiChart =
   renderMultiLayerTimelineChart(identity);
 
-box.appendChild(multiChart););
+box.appendChild(multiChart);
   box.scrollIntoView({
     behavior: "smooth",
     block: "center"
