@@ -468,7 +468,10 @@ function renderCognitiveReport(identity) {
       هذا التقرير لا يصف رقمًا واحدًا للحرف، بل يصف مسارًا زمنيًا وسلوكيًا مركبًا.
     </div>
   `;
+const chart =
+  renderTimelineChart(identity);
 
+box.appendChild(chart);
   box.scrollIntoView({
     behavior: "smooth",
     block: "center"
@@ -643,6 +646,62 @@ function nextPowerOfTwoCognitive(n) {
 function roundCognitive(num) {
   return Number(Number(num || 0).toFixed(4));
 }
+function renderTimelineChart(identity) {
 
+  const canvas =
+    document.createElement("canvas");
+
+  canvas.width = 700;
+  canvas.height = 260;
+
+  canvas.style.width = "100%";
+  canvas.style.background = "#06101d";
+  canvas.style.borderRadius = "12px";
+  canvas.style.marginTop = "18px";
+
+  const ctx =
+    canvas.getContext("2d");
+
+  const unit =
+    identity.units[0];
+
+  if (!unit || !unit.timeline.length) {
+    return canvas;
+  }
+
+  const timeline =
+    unit.timeline;
+
+  const maxCentroid =
+    Math.max(...timeline.map(f => f.centroid));
+
+  ctx.strokeStyle = "#00F2FF";
+  ctx.lineWidth = 2;
+
+  ctx.beginPath();
+
+  timeline.forEach((frame, i) => {
+
+    const x =
+      (i / (timeline.length - 1)) *
+      canvas.width;
+
+    const y =
+      canvas.height -
+      (frame.centroid / maxCentroid) *
+      canvas.height;
+
+    if (i === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+
+  });
+
+  ctx.stroke();
+
+  return canvas;
+}
 
 console.log("🧠 المحرك الإدراكي المركزي جاهز V1");
