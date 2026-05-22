@@ -229,37 +229,40 @@ async function startTrainingStepRecording(step) {
           " bytes"
         );
 
-        currentTrainingIndex++;
+        if (
+  currentTrainingIndex <
+  currentTrainingPack.positions.length
+) {
+  showTrainingStep();
+} else {
+  const msg =
+    document.getElementById("training-success-message");
 
-        const msg =
-  document.getElementById("training-success-message");
+  if (msg) {
+    msg.innerHTML =
+      "✅ اكتملت حقيبة التدريب الإدراكي لحرف " +
+      currentTrainingPack.name +
+      "<br><br>" +
+      "الآن اضغط: 🧠 بناء ذاكرة لون " +
+      currentTrainingPack.name;
 
-if (msg) {
+    msg.style.display = "block";
+  }
 
-  msg.innerHTML =
+  updateTrainingStatus(
     "✅ اكتملت حقيبة التدريب الإدراكي لحرف " +
+    currentTrainingPack.name,
+    "#22c55e"
+  );
+
+  alert(
+    "اكتملت حقيبة التدريب الإدراكي لحرف " +
     currentTrainingPack.name +
-    "<br><br>" +
-    "الآن اضغط: 🧠 بناء ذاكرة لون " +
-    currentTrainingPack.name;
-
-  msg.style.display = "block";
-}
-
-updateTrainingStatus(
-  "✅ اكتملت حقيبة التدريب الإدراكي لحرف " +
-  currentTrainingPack.name,
-  "#22c55e"
-);
-
-alert(
-  "اكتملت حقيبة التدريب الإدراكي لحرف " +
-  currentTrainingPack.name +
-  "\n\nالآن اضغط:\n🧠 بناء ذاكرة لون " +
-  currentTrainingPack.name
-);
-
-      } catch (err) {
+    "\n\nالآن اضغط:\n🧠 بناء ذاكرة لون " +
+    currentTrainingPack.name
+  );
+} 
+      catch (err) {
         stopTrainingStream();
 
         console.error("❌ فشل حفظ التسجيل", err);
