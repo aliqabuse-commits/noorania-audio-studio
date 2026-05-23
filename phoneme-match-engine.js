@@ -90,8 +90,15 @@ async function startPhonemeMatchTest(targetKey) {
       second,
       margin
     );
+    const actualKey = askActualSpokenKey();
+
+if (!actualKey) {
+  alert("لم يتم حفظ النتيجة لأن الحرف المنطوق لم يُحدد.");
+  return;
+}
 saveCognitiveMatchResult(
   targetKey,
+  actualKey,
   winner,
   results,
   decision,
@@ -358,17 +365,26 @@ function classifySeparationDecision(winner, second, margin) {
   };
 }
 
-function saveCognitiveMatchResult(targetKey, winner, results, decision, margin) {
+function saveCognitiveMatchResult(
+  buttonKey,
+  actualKey,
+  winner,
+  results,
+  decision,
+  margin
+) {
   const logKey = "cognitive_match_results_log";
 
   const oldLog =
     JSON.parse(localStorage.getItem(logKey) || "[]");
 
   oldLog.push({
-    expectedKey: targetKey,
+    buttonKey: buttonKey,
+    actualKey: actualKey,
     detectedKey: winner.key,
     detectedLabel: winner.label,
     detectedPhoneme: winner.phoneme,
+    isCorrect: actualKey === winner.key,
     margin: Number(margin.toFixed(4)),
     decision: decision.label,
     results: results.map(function (r) {
@@ -387,9 +403,15 @@ function saveCognitiveMatchResult(targetKey, winner, results, decision, margin) 
     JSON.stringify(oldLog, null, 2)
   );
 
-  console.log("📊 تم حفظ نتيجة اختبار الفصل:", oldLog[oldLog.length - 1]);
-  renderMatchResultsLog();
-    }
+  console.log(
+    "📊 تم حفظ نتيجة اختبار الفصل:",
+    oldLog[oldLog.length - 1]
+  );
+
+  if (typeof renderMatchResultsLog === "function") {
+    renderMatchResultsLog();
+  }
+}
 function renderMatchResultsLog() {
 
   const raw =
@@ -399,7 +421,24 @@ function renderMatchResultsLog() {
 
   const results =
     JSON.parse(raw || "[]");
+const correctResults =
+  results.filter(function (r) {
+    return r.actualKey === r.detectedKey;
+  });
 
+const accuracy =
+  results.length
+    ? ((correctResults.length / results.length) * 100).toFixed(2)
+    : "0.00";
+
+const avgCorrectMargin =
+  correctResults.length
+    ? (
+        correctResults.reduce(function (sum, r) {
+          return sum + Number(r.margin || 0);
+        }, 0) / correctResults.length
+      ).toFixed(4)
+    : "0.0000";
   let box =
     document.getElementById(
       "match-results-log-box"
@@ -462,8 +501,7 @@ function renderMatchResultsLog() {
   results.forEach(function (r, index) {
 
     const ok =
-      r.expectedKey === r.detectedKey;
-
+      r.actualKey === r.detectedKey
     if (ok) success++;
 const finalResult =
   ok ? "✅ صحيح" : "❌ خطأ";
@@ -483,7 +521,7 @@ const finalResult =
         </div>
 
         <div>
-          المتوقع:
+          زر الاختبار المنطوق فعليًا المكتشف:
           <b>${r.expectedKey}</b>
         </div>
 
@@ -514,22 +552,29 @@ const finalResult =
       .toFixed(2);
 
   html += `
-    <hr style="border-color:#334155;">
+  <hr style="border-color:#334155;">
 
-    <div style="
-      font-size:18px;
-      color:#22c55e;
-      font-weight:bold;
-    ">
-      نسبة النجاح الحالية:
+  <div style="margin-top:18px;">
+    نسبة النجاح الحالية:
+    <b style="color:#22c55e;">
       ${accuracy}%
-    </div>
+    </b>
+  </div>
 
-    <div>
-      عدد الاختبارات:
+  <div style="margin-top:8px;">
+    متوسط هامش الفصل الصحيح:
+    <b style="color:#38bdf8;">
+      ${avgCorrectMargin}
+    </b>
+  </div>
+
+  <div style="margin-top:8px;">
+    عدد الاختبارات:
+    <b>
       ${results.length}
-    </div>
-  `;
+    </b>
+  </div>
+`;
 
   box.innerHTML = html;
 
@@ -537,5 +582,24 @@ const finalResult =
     behavior: "smooth",
     block: "center"
   });
+}
+function askActualSpokenKey() {
+  const answer = prompt(
+    "ما الحرف الذي نطقته فعليًا؟\n\n" +
+    "اكتب:\n" +
+    "ba = باء\n" +
+    "qa = قاف"
+  );
+
+  if (!answer) return null;
+
+  const key = answer.trim().toLowerCase();
+
+  if (key === "ba" || key === "qa") {
+    return key;
+  }
+
+  alert("قيمة غير صحيحة. اكتب فقط: ba أو qa");
+  return null;
 }
 console.log("🎯 محرك الفصل بالجِينوم المركزي جاهز V3");
