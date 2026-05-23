@@ -90,7 +90,13 @@ async function startPhonemeMatchTest(targetKey) {
       second,
       margin
     );
-
+saveCognitiveMatchResult(
+  targetKey,
+  winner,
+  results,
+  decision,
+  margin
+);
     let report =
       "🎯 نتيجة اختبار الفصل بالجِينوم المركزي\n\n";
 
@@ -352,5 +358,35 @@ function classifySeparationDecision(winner, second, margin) {
   };
 }
 
+function saveCognitiveMatchResult(targetKey, winner, results, decision, margin) {
+  const logKey = "cognitive_match_results_log";
 
+  const oldLog =
+    JSON.parse(localStorage.getItem(logKey) || "[]");
+
+  oldLog.push({
+    expectedKey: targetKey,
+    detectedKey: winner.key,
+    detectedLabel: winner.label,
+    detectedPhoneme: winner.phoneme,
+    margin: Number(margin.toFixed(4)),
+    decision: decision.label,
+    results: results.map(function (r) {
+      return {
+        key: r.key,
+        label: r.label,
+        phoneme: r.phoneme,
+        distance: Number(r.distance.toFixed(4))
+      };
+    }),
+    createdAt: new Date().toISOString()
+  });
+
+  localStorage.setItem(
+    logKey,
+    JSON.stringify(oldLog, null, 2)
+  );
+
+  console.log("📊 تم حفظ نتيجة اختبار الفصل:", oldLog[oldLog.length - 1]);
+    }
 console.log("🎯 محرك الفصل بالجِينوم المركزي جاهز V3");
