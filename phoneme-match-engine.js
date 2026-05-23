@@ -1,141 +1,142 @@
 // ================================
 // phoneme-match-engine.js
-// محرك المطابقة الإدراكية للحروف — V2
+// محرك الفصل بالجِينوم المركزي — V3
 // ================================
 
-console.log("🎯 phoneme-match-engine.js جاهز");
+console.log("🎯 phoneme-match-engine.js جاهز V3");
 
 
 // ======================================
-// بدء اختبار مطابقة حرف
+// بدء اختبار مطابقة حرف عبر الجينوم المركزي
 // ======================================
 
 async function startPhonemeMatchTest(targetKey) {
-
   try {
-
-    const targetMemory =
-      loadPerceptualIdentity(targetKey);
-
-    if (!targetMemory) {
-      alert(
-        "لا توجد ذاكرة إدراكية للحرف: " +
-        targetKey
-      );
-      return;
-    }
-
-    alert(
-      "سيبدأ الآن اختبار مطابقة الحرف.\n\n" +
-      "سجّل صوت الحرف المطلوب."
-    );
-
-    const blob =
-      await recordMatchSample();
-
-    if (!blob) {
-      alert("فشل تسجيل العينة");
-      return;
-    }
-
-    const decoded =
-      await decodeBlobToMonoForMemory(blob);
-
-    const features =
-      extractPerceptualFeatures(
-        decoded.samples,
-        decoded.sampleRate
-      );
-
-    console.log(
-      "🧠 FEATURES:",
-      features
-    );
-
-    // ======================================
-    // مقارنة مع جميع الهويات
-    // ======================================
-
-    const results = [];
-
     const identities = [
       "ba",
       "qa"
     ];
 
+    const availableIdentities = [];
+
     for (const key of identities) {
+      const identity = loadCognitiveIdentity(key);
 
-      const identity =
-        loadPerceptualIdentity(key);
-
-      if (!identity) continue;
-
-      const score =
-        compareWithIdentity(
-          features,
-          identity
-        );
-
-      results.push({
-        key,
-        phoneme: identity.phoneme,
-        score
-      });
+      if (identity) {
+        availableIdentities.push(identity);
+      }
     }
 
-    if (!results.length) {
-      alert("لا توجد هويات للمقارنة");
+    if (!availableIdentities.length) {
+      alert(
+        "لا توجد جينومات مركزية محفوظة.\n\n" +
+        "ابنِ أولًا الجينوم المركزي للباء والقاف."
+      );
       return;
     }
 
-    // ======================================
-    // ترتيب النتائج
-    // ======================================
+    alert(
+      "سيبدأ اختبار الفصل بالجِينوم المركزي.\n\n" +
+      "سجّل الآن صوت الحرف."
+    );
+
+    const blob = await recordMatchSample();
+
+    if (!blob) {
+      alert("فشل تسجيل عينة الاختبار");
+      return;
+    }
+
+    const decoded = await decodeCognitiveBlob(blob);
+
+    const timeline = buildCognitiveTimeline(
+      decoded.samples,
+      decoded.sampleRate
+    );
+
+    const phases = detectCognitivePhases(timeline);
+
+    const summary = summarizeCognitiveTimeline(
+      timeline,
+      phases
+    );
+
+    const results = availableIdentities.map(function (identity) {
+      return {
+        key: identity.phonemeKey,
+        phoneme: identity.phoneme,
+        label: identity.label,
+        color: identity.color,
+        distance: compareSummaryWithCognitiveGenome(
+          summary,
+          identity.genome
+        )
+      };
+    });
 
     results.sort(function (a, b) {
-      return a.score - b.score;
+      return a.distance - b.distance;
     });
 
     const winner = results[0];
+    const second = results[1] || null;
 
-    // ======================================
-    // بناء التقرير
-    // ======================================
+    const margin = second
+      ? second.distance - winner.distance
+      : 0;
+
+    const decision = classifySeparationDecision(
+      winner,
+      second,
+      margin
+    );
 
     let report =
-      "🎯 نتيجة المطابقة الإدراكية\n\n";
+      "🎯 نتيجة اختبار الفصل بالجِينوم المركزي\n\n";
+
+    report +=
+      "العينة أقرب إلى: " +
+      winner.label +
+      " (" +
+      winner.phoneme +
+      ")\n\n";
 
     results.forEach(function (r, index) {
-
       report +=
         (index + 1) +
         ") " +
+        r.label +
+        " (" +
         r.phoneme +
+        ")" +
         " → distance = " +
-        r.score.toFixed(4) +
+        r.distance.toFixed(4) +
         "\n";
     });
 
     report +=
-      "\n✅ الأقرب هو:\n" +
-      winner.phoneme;
+      "\nهامش الفصل: " +
+      margin.toFixed(4) +
+      "\n";
+
+    report +=
+      "قرار الفصل: " +
+      decision.label +
+      "\n\n";
+
+    report +=
+      decision.note;
 
     alert(report);
 
-    console.log(
-      "🎯 MATCH RESULTS:",
-      results
-    );
+    console.log("🎯 COGNITIVE MATCH SAMPLE SUMMARY:", summary);
+    console.log("🎯 COGNITIVE MATCH RESULTS:", results);
 
   } catch (err) {
-
-    console.error(
-      "❌ فشل اختبار المطابقة",
-      err
-    );
+    console.error("❌ فشل اختبار الفصل بالجِينوم المركزي", err);
 
     alert(
-      "فشل اختبار المطابقة:\n" +
+      "فشل اختبار الفصل بالجِينوم المركزي:\n" +
       err.message
     );
   }
@@ -143,30 +144,21 @@ async function startPhonemeMatchTest(targetKey) {
 
 
 // ======================================
-// تحميل الهوية الإدراكية
+// تحميل الجينوم المركزي
 // ======================================
 
-function loadPerceptualIdentity(key) {
-
+function loadCognitiveIdentity(key) {
   try {
-
-    const raw =
-      localStorage.getItem(
-        key + "_perceptual_identity"
-      );
+    const raw = localStorage.getItem(
+      key + "_cognitive_identity"
+    );
 
     if (!raw) return null;
 
     return JSON.parse(raw);
 
   } catch (err) {
-
-    console.error(
-      "❌ فشل تحميل الهوية:",
-      key,
-      err
-    );
-
+    console.error("❌ فشل تحميل الجينوم:", key, err);
     return null;
   }
 }
@@ -177,11 +169,8 @@ function loadPerceptualIdentity(key) {
 // ======================================
 
 async function recordMatchSample() {
-
   return new Promise(async function (resolve) {
-
     try {
-
       const stream =
         await navigator.mediaDevices.getUserMedia({
           audio: true
@@ -192,24 +181,16 @@ async function recordMatchSample() {
       const recorder =
         new MediaRecorder(stream);
 
-      recorder.ondataavailable =
-        function (event) {
-
-          if (
-            event.data &&
-            event.data.size > 0
-          ) {
-            chunks.push(event.data);
-          }
-        };
+      recorder.ondataavailable = function (event) {
+        if (event.data && event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
 
       recorder.onstop = function () {
-
-        stream.getTracks().forEach(
-          function (track) {
-            track.stop();
-          }
-        );
+        stream.getTracks().forEach(function (track) {
+          track.stop();
+        });
 
         const blob =
           new Blob(chunks, {
@@ -225,20 +206,17 @@ async function recordMatchSample() {
 
       alert(
         "🎙 بدأ التسجيل الآن.\n\n" +
-        "سيتم الإيقاف بعد ثانيتين."
+        "سيتم الإيقاف تلقائيًا بعد ثانيتين."
       );
 
       setTimeout(function () {
-        recorder.stop();
+        if (recorder.state !== "inactive") {
+          recorder.stop();
+        }
       }, 2000);
 
     } catch (err) {
-
-      console.error(
-        "❌ فشل التسجيل",
-        err
-      );
-
+      console.error("❌ فشل التسجيل", err);
       resolve(null);
     }
   });
@@ -246,42 +224,73 @@ async function recordMatchSample() {
 
 
 // ======================================
-// مقارنة عينة بهوية
+// مقارنة ملخص العينة مع جينوم حرف
 // ======================================
 
-function compareWithIdentity(
-  features,
-  identity
-) {
-
-  const sig =
-    identity.perceptualSignature;
-
+function compareSummaryWithCognitiveGenome(summary, genome) {
   let total = 0;
 
-  total += calcDistance(
-    features.centroid,
-    sig.centroid.mean
+  total += weightedNormalizedDistance(
+    summary.meanEnergy,
+    genome.energy.mean,
+    genome.energy.variance,
+    1.0
   );
 
-  total += calcDistance(
-    features.spread,
-    sig.spread.mean
+  total += weightedNormalizedDistance(
+    summary.meanCentroid,
+    genome.centroid.mean,
+    genome.centroid.variance,
+    1.5
   );
 
-  total += calcDistance(
-    features.energy,
-    sig.energy.mean
+  total += weightedNormalizedDistance(
+    summary.meanSpread,
+    genome.spread.mean,
+    genome.spread.variance,
+    1.2
   );
 
-  total += calcDistance(
-    features.zcr,
-    sig.zcr.mean
+  total += weightedNormalizedDistance(
+    summary.meanZcr,
+    genome.zcr.mean,
+    genome.zcr.variance,
+    0.8
   );
 
-  total += calcDistance(
-    features.burstiness,
-    sig.burstiness.mean
+  total += weightedNormalizedDistance(
+    summary.burstEnergy,
+    genome.burstEnergy.mean,
+    genome.burstEnergy.variance,
+    1.3
+  );
+
+  total += weightedNormalizedDistance(
+    summary.burstCentroid,
+    genome.burstCentroid.mean,
+    genome.burstCentroid.variance,
+    1.4
+  );
+
+  total += weightedNormalizedDistance(
+    summary.burstSpread,
+    genome.burstSpread.mean,
+    genome.burstSpread.variance,
+    1.1
+  );
+
+  total += weightedNormalizedDistance(
+    summary.energyMovement,
+    genome.energyMovement.mean,
+    genome.energyMovement.variance,
+    1.1
+  );
+
+  total += weightedNormalizedDistance(
+    summary.spectralMovement,
+    genome.spectralMovement.mean,
+    genome.spectralMovement.variance,
+    1.5
   );
 
   return total;
@@ -289,14 +298,59 @@ function compareWithIdentity(
 
 
 // ======================================
-// حساب المسافة
+// مسافة موزونة ومطبّعة
 // ======================================
 
-function calcDistance(a, b) {
+function weightedNormalizedDistance(value, mean, variance, weight) {
+  value = Number(value || 0);
+  mean = Number(mean || 0);
+  variance = Number(variance || 0);
+  weight = Number(weight || 1);
 
-  return Math.abs(a - b);
+  const tolerance =
+    Math.sqrt(variance) || Math.abs(mean) * 0.15 || 1;
+
+  return (
+    Math.abs(value - mean) /
+    tolerance
+  ) * weight;
 }
 
-console.log(
-  "🎯 محرك المطابقة الإدراكية جاهز V2"
-);
+
+// ======================================
+// قرار الفصل
+// ======================================
+
+function classifySeparationDecision(winner, second, margin) {
+  if (!second) {
+    return {
+      label: "غير كافٍ للمقارنة",
+      note: "يوجد جينوم واحد فقط، لذلك لا نستطيع قياس الفصل الحقيقي."
+    };
+  }
+
+  const ratio =
+    second.distance / Math.max(winner.distance, 0.0001);
+
+  if (margin > 3 || ratio > 1.6) {
+    return {
+      label: "فصل قوي ✅",
+      note: "العينة بعيدة بوضوح عن الحرف الثاني، وهذا مؤشر جيد على أن الجينوم يساعد في الفصل."
+    };
+  }
+
+  if (margin > 1 || ratio > 1.25) {
+    return {
+      label: "فصل متوسط ⚠️",
+      note: "العينة أقرب إلى الحرف الفائز، لكن المسافة ليست كبيرة بما يكفي للاطمئنان الكامل."
+    };
+  }
+
+  return {
+    label: "فصل ملتبس ❌",
+    note: "الجينومان قريبان من العينة. نحتاج تحسين التسجيل أو تقوية الجينوم أو إضافة طبقات مقارنة زمنية أقوى."
+  };
+}
+
+
+console.log("🎯 محرك الفصل بالجِينوم المركزي جاهز V3");
