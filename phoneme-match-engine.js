@@ -465,7 +465,8 @@ function renderMatchResultsLog() {
       r.expectedKey === r.detectedKey;
 
     if (ok) success++;
-
+const finalResult =
+  ok ? "✅ صحيح" : "❌ خطأ";
     html += `
       <div style="
         background:#111827;
@@ -490,7 +491,10 @@ function renderMatchResultsLog() {
           المكتشف:
           <b>${r.detectedLabel}</b>
         </div>
-
+<div>
+  النتيجة:
+  <b>${finalResult}</b>
+</div>
         <div>
           هامش الفصل:
           <b>${r.margin}</b>
