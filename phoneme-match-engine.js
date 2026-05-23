@@ -520,10 +520,6 @@ const finalResult =
           #${index + 1}
         </div>
 
-        <div>
-          زر الاختبار المنطوق فعليًا المكتشف:
-          <b>${r.expectedKey}</b>
-        </div>
 
         <div>
           المكتشف:
@@ -535,6 +531,103 @@ const finalResult =
 </div>
         <div>
           هامش الفصل:
+function renderMatchResultsLog() {
+  const raw =
+    localStorage.getItem("cognitive_match_results_log");
+
+  const results =
+    JSON.parse(raw || "[]");
+
+  const correctResults =
+    results.filter(function (r) {
+      return r.actualKey === r.detectedKey;
+    });
+
+  const accuracy =
+    results.length
+      ? ((correctResults.length / results.length) * 100).toFixed(2)
+      : "0.00";
+
+  const avgCorrectMargin =
+    correctResults.length
+      ? (
+          correctResults.reduce(function (sum, r) {
+            return sum + Number(r.margin || 0);
+          }, 0) / correctResults.length
+        ).toFixed(4)
+      : "0.0000";
+
+  let box =
+    document.getElementById("match-results-log-box");
+
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "match-results-log-box";
+    box.style.background = "#08111f";
+    box.style.color = "white";
+    box.style.border = "1px solid #334155";
+    box.style.borderRadius = "14px";
+    box.style.padding = "14px";
+    box.style.margin = "14px 0";
+
+    const target =
+      document.getElementById("perceptualTrainingView") ||
+      document.body;
+
+    target.appendChild(box);
+  }
+
+  let html = `
+    <h3 style="margin-top:0;">
+      📊 سجل اختبارات الفصل
+    </h3>
+  `;
+
+  if (!results.length) {
+    html += `<div>لا توجد نتائج محفوظة بعد.</div>`;
+    box.innerHTML = html;
+    return;
+  }
+
+  results.forEach(function (r, index) {
+    const ok =
+      r.actualKey === r.detectedKey;
+
+    const finalResult =
+      ok ? "✅ صحيح" : "❌ خطأ";
+
+    html += `
+      <div style="
+        background:#111827;
+        padding:10px;
+        border-radius:10px;
+        margin:8px 0;
+        border-left:5px solid ${ok ? "#22c55e" : "#ef4444"};
+      ">
+        <div>#${index + 1}</div>
+
+        <div>
+          زر الاختبار:
+          <b>${r.buttonKey}</b>
+        </div>
+
+        <div>
+          المنطوق فعليًا:
+          <b>${r.actualKey}</b>
+        </div>
+
+        <div>
+          المكتشف:
+          <b>${r.detectedLabel}</b>
+        </div>
+
+        <div>
+          النتيجة:
+          <b>${finalResult}</b>
+        </div>
+
+        <div>
+          هامش الفصل:
           <b>${r.margin}</b>
         </div>
 
@@ -542,39 +635,28 @@ const finalResult =
           القرار:
           <b>${r.decision}</b>
         </div>
-
       </div>
     `;
   });
 
-  const accuracy =
-    ((success / results.length) * 100)
-      .toFixed(2);
-
   html += `
-  <hr style="border-color:#334155;">
+    <hr style="border-color:#334155;">
 
-  <div style="margin-top:18px;">
-    نسبة النجاح الحالية:
-    <b style="color:#22c55e;">
-      ${accuracy}%
-    </b>
-  </div>
+    <div style="margin-top:18px;">
+      نسبة النجاح الحالية:
+      <b style="color:#22c55e;">${accuracy}%</b>
+    </div>
 
-  <div style="margin-top:8px;">
-    متوسط هامش الفصل الصحيح:
-    <b style="color:#38bdf8;">
-      ${avgCorrectMargin}
-    </b>
-  </div>
+    <div style="margin-top:8px;">
+      متوسط هامش الفصل الصحيح:
+      <b style="color:#38bdf8;">${avgCorrectMargin}</b>
+    </div>
 
-  <div style="margin-top:8px;">
-    عدد الاختبارات:
-    <b>
-      ${results.length}
-    </b>
-  </div>
-`;
+    <div style="margin-top:8px;">
+      عدد الاختبارات:
+      <b>${results.length}</b>
+    </div>
+  `;
 
   box.innerHTML = html;
 
