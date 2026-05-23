@@ -1,9 +1,9 @@
 // ================================
 // phoneme-match-engine.js
-// محرك الفصل بالجِينوم المركزي — V3
+// محرك الفصل بالجِينوم المركزي — V3.1
 // ================================
 
-console.log("🎯 phoneme-match-engine.js جاهز V3");
+console.log("🎯 phoneme-match-engine.js جاهز V3.1");
 
 
 // ======================================
@@ -12,11 +12,7 @@ console.log("🎯 phoneme-match-engine.js جاهز V3");
 
 async function startPhonemeMatchTest(targetKey) {
   try {
-    const identities = [
-      "ba",
-      "qa"
-    ];
-
+    const identities = ["ba", "qa"];
     const availableIdentities = [];
 
     for (const key of identities) {
@@ -90,22 +86,35 @@ async function startPhonemeMatchTest(targetKey) {
       second,
       margin
     );
+
     const actualKey = askActualSpokenKey();
 
-if (!actualKey) {
-  alert("لم يتم حفظ النتيجة لأن الحرف المنطوق لم يُحدد.");
-  return;
-}
-saveCognitiveMatchResult(
-  targetKey,
-  actualKey,
-  winner,
-  results,
-  decision,
-  margin
-);
+    if (!actualKey) {
+      alert("لم يتم حفظ النتيجة لأن الحرف المنطوق لم يُحدد.");
+      return;
+    }
+
+    saveCognitiveMatchResult(
+      targetKey,
+      actualKey,
+      winner,
+      results,
+      decision,
+      margin
+    );
+
     let report =
       "🎯 نتيجة اختبار الفصل بالجِينوم المركزي\n\n";
+
+    report +=
+      "زر الاختبار: " +
+      targetKey +
+      "\n";
+
+    report +=
+      "المنطوق فعليًا: " +
+      actualKey +
+      "\n";
 
     report +=
       "العينة أقرب إلى: " +
@@ -162,9 +171,8 @@ saveCognitiveMatchResult(
 
 function loadCognitiveIdentity(key) {
   try {
-    const raw = localStorage.getItem(
-      key + "_cognitive_identity"
-    );
+    const raw =
+      localStorage.getItem(key + "_cognitive_identity");
 
     if (!raw) return null;
 
@@ -365,6 +373,37 @@ function classifySeparationDecision(winner, second, margin) {
   };
 }
 
+
+// ======================================
+// سؤال المختبر عن الحرف المنطوق فعليًا
+// ======================================
+
+function askActualSpokenKey() {
+  const answer = prompt(
+    "ما الحرف الذي نطقته فعليًا؟\n\n" +
+    "اكتب:\n" +
+    "ba = باء\n" +
+    "qa = قاف"
+  );
+
+  if (!answer) return null;
+
+  const key =
+    answer.trim().toLowerCase();
+
+  if (key === "ba" || key === "qa") {
+    return key;
+  }
+
+  alert("قيمة غير صحيحة. اكتب فقط: ba أو qa");
+  return null;
+}
+
+
+// ======================================
+// حفظ نتيجة اختبار الفصل
+// ======================================
+
 function saveCognitiveMatchResult(
   buttonKey,
   actualKey,
@@ -373,7 +412,8 @@ function saveCognitiveMatchResult(
   decision,
   margin
 ) {
-  const logKey = "cognitive_match_results_log";
+  const logKey =
+    "cognitive_match_results_log";
 
   const oldLog =
     JSON.parse(localStorage.getItem(logKey) || "[]");
@@ -408,129 +448,14 @@ function saveCognitiveMatchResult(
     oldLog[oldLog.length - 1]
   );
 
-  if (typeof renderMatchResultsLog === "function") {
-    renderMatchResultsLog();
-  }
+  renderMatchResultsLog();
 }
-function renderMatchResultsLog() {
-
-  const raw =
-    localStorage.getItem(
-      "cognitive_match_results_log"
-    );
-
-  const results =
-    JSON.parse(raw || "[]");
-const correctResults =
-  results.filter(function (r) {
-    return r.actualKey === r.detectedKey;
-  });
-
-const accuracy =
-  results.length
-    ? ((correctResults.length / results.length) * 100).toFixed(2)
-    : "0.00";
-
-const avgCorrectMargin =
-  correctResults.length
-    ? (
-        correctResults.reduce(function (sum, r) {
-          return sum + Number(r.margin || 0);
-        }, 0) / correctResults.length
-      ).toFixed(4)
-    : "0.0000";
-  let box =
-    document.getElementById(
-      "match-results-log-box"
-    );
-
-  if (!box) {
-
-    box =
-      document.createElement("div");
-
-    box.id =
-      "match-results-log-box";
-
-    box.style.background =
-      "#08111f";
-
-    box.style.color =
-      "white";
-
-    box.style.border =
-      "1px solid #334155";
-
-    box.style.borderRadius =
-      "14px";
-
-    box.style.padding =
-      "14px";
-
-    box.style.margin =
-      "14px 0";
-
-    const target =
-      document.getElementById(
-        "perceptualTrainingView"
-      ) || document.body;
-
-    target.appendChild(box);
-  }
-
-  let html = `
-    <h3 style="margin-top:0;">
-      📊 سجل اختبارات الفصل
-    </h3>
-  `;
-
-  if (!results.length) {
-
-    html += `
-      <div>
-        لا توجد نتائج محفوظة بعد.
-      </div>
-    `;
-
-    box.innerHTML = html;
-    return;
-  }
-
-  let success = 0;
-
-  results.forEach(function (r, index) {
-
-    const ok =
-      r.actualKey === r.detectedKey
-    if (ok) success++;
-const finalResult =
-  ok ? "✅ صحيح" : "❌ خطأ";
-    html += `
-      <div style="
-        background:#111827;
-        padding:10px;
-        border-radius:10px;
-        margin:8px 0;
-        border-left:5px solid ${
-          ok ? "#22c55e" : "#ef4444"
-        };
-      ">
-
-        <div>
-          #${index + 1}
-        </div>
 
 
-        <div>
-          المكتشف:
-          <b>${r.detectedLabel}</b>
-        </div>
-<div>
-  النتيجة:
-  <b>${finalResult}</b>
-</div>
-        <div>
-          هامش الفصل:
+// ======================================
+// عرض سجل نتائج الفصل
+// ======================================
+
 function renderMatchResultsLog() {
   const raw =
     localStorage.getItem("cognitive_match_results_log");
@@ -561,14 +486,29 @@ function renderMatchResultsLog() {
     document.getElementById("match-results-log-box");
 
   if (!box) {
-    box = document.createElement("div");
-    box.id = "match-results-log-box";
-    box.style.background = "#08111f";
-    box.style.color = "white";
-    box.style.border = "1px solid #334155";
-    box.style.borderRadius = "14px";
-    box.style.padding = "14px";
-    box.style.margin = "14px 0";
+    box =
+      document.createElement("div");
+
+    box.id =
+      "match-results-log-box";
+
+    box.style.background =
+      "#08111f";
+
+    box.style.color =
+      "white";
+
+    box.style.border =
+      "1px solid #334155";
+
+    box.style.borderRadius =
+      "14px";
+
+    box.style.padding =
+      "14px";
+
+    box.style.margin =
+      "14px 0";
 
     const target =
       document.getElementById("perceptualTrainingView") ||
@@ -584,7 +524,12 @@ function renderMatchResultsLog() {
   `;
 
   if (!results.length) {
-    html += `<div>لا توجد نتائج محفوظة بعد.</div>`;
+    html += `
+      <div>
+        لا توجد نتائج محفوظة بعد.
+      </div>
+    `;
+
     box.innerHTML = html;
     return;
   }
@@ -604,7 +549,9 @@ function renderMatchResultsLog() {
         margin:8px 0;
         border-left:5px solid ${ok ? "#22c55e" : "#ef4444"};
       ">
-        <div>#${index + 1}</div>
+        <div>
+          #${index + 1}
+        </div>
 
         <div>
           زر الاختبار:
@@ -665,23 +612,6 @@ function renderMatchResultsLog() {
     block: "center"
   });
 }
-function askActualSpokenKey() {
-  const answer = prompt(
-    "ما الحرف الذي نطقته فعليًا؟\n\n" +
-    "اكتب:\n" +
-    "ba = باء\n" +
-    "qa = قاف"
-  );
 
-  if (!answer) return null;
 
-  const key = answer.trim().toLowerCase();
-
-  if (key === "ba" || key === "qa") {
-    return key;
-  }
-
-  alert("قيمة غير صحيحة. اكتب فقط: ba أو qa");
-  return null;
-}
-console.log("🎯 محرك الفصل بالجِينوم المركزي جاهز V3");
+console.log("🎯 محرك الفصل بالجِينوم المركزي جاهز V3.1");
