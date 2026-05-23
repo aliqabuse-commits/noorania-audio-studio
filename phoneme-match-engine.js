@@ -388,5 +388,150 @@ function saveCognitiveMatchResult(targetKey, winner, results, decision, margin) 
   );
 
   console.log("📊 تم حفظ نتيجة اختبار الفصل:", oldLog[oldLog.length - 1]);
+  renderMatchResultsLog();
     }
+function renderMatchResultsLog() {
+
+  const raw =
+    localStorage.getItem(
+      "cognitive_match_results_log"
+    );
+
+  const results =
+    JSON.parse(raw || "[]");
+
+  let box =
+    document.getElementById(
+      "match-results-log-box"
+    );
+
+  if (!box) {
+
+    box =
+      document.createElement("div");
+
+    box.id =
+      "match-results-log-box";
+
+    box.style.background =
+      "#08111f";
+
+    box.style.color =
+      "white";
+
+    box.style.border =
+      "1px solid #334155";
+
+    box.style.borderRadius =
+      "14px";
+
+    box.style.padding =
+      "14px";
+
+    box.style.margin =
+      "14px 0";
+
+    const target =
+      document.getElementById(
+        "perceptualTrainingView"
+      ) || document.body;
+
+    target.appendChild(box);
+  }
+
+  let html = `
+    <h3 style="margin-top:0;">
+      📊 سجل اختبارات الفصل
+    </h3>
+  `;
+
+  if (!results.length) {
+
+    html += `
+      <div>
+        لا توجد نتائج محفوظة بعد.
+      </div>
+    `;
+
+    box.innerHTML = html;
+    return;
+  }
+
+  let success = 0;
+
+  results.forEach(function (r, index) {
+
+    const ok =
+      r.expectedKey === r.detectedKey;
+
+    if (ok) success++;
+
+    html += `
+      <div style="
+        background:#111827;
+        padding:10px;
+        border-radius:10px;
+        margin:8px 0;
+        border-left:5px solid ${
+          ok ? "#22c55e" : "#ef4444"
+        };
+      ">
+
+        <div>
+          #${index + 1}
+        </div>
+
+        <div>
+          المتوقع:
+          <b>${r.expectedKey}</b>
+        </div>
+
+        <div>
+          المكتشف:
+          <b>${r.detectedLabel}</b>
+        </div>
+
+        <div>
+          هامش الفصل:
+          <b>${r.margin}</b>
+        </div>
+
+        <div>
+          القرار:
+          <b>${r.decision}</b>
+        </div>
+
+      </div>
+    `;
+  });
+
+  const accuracy =
+    ((success / results.length) * 100)
+      .toFixed(2);
+
+  html += `
+    <hr style="border-color:#334155;">
+
+    <div style="
+      font-size:18px;
+      color:#22c55e;
+      font-weight:bold;
+    ">
+      نسبة النجاح الحالية:
+      ${accuracy}%
+    </div>
+
+    <div>
+      عدد الاختبارات:
+      ${results.length}
+    </div>
+  `;
+
+  box.innerHTML = html;
+
+  box.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+}
 console.log("🎯 محرك الفصل بالجِينوم المركزي جاهز V3");
