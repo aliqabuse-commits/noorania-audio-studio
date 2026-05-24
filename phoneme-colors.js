@@ -1,9 +1,10 @@
 // ================================
 // phoneme-colors.js
-// المرجعية اللونية الإدراكية للحروف — V2
+// المرجعية اللونية الإدراكية للحروف — V3
+// ملتزم بمرجع المسميات السيادي
 // ================================
 
-console.log("🎨 phoneme-colors.js جاهز V2");
+console.log("🎨 phoneme-colors.js جاهز V3");
 
 const PHONEME_COLORS = {
   alif: { letter: "ا", name: "ألف", colorName: "Pure White", hex: "#FFFFFF", rgb: [255, 255, 255] },
@@ -22,7 +23,7 @@ const PHONEME_COLORS = {
   ra: { letter: "ر", name: "راء", colorName: "Crimson", hex: "#C62828", rgb: [198, 40, 40] },
   zay: { letter: "ز", name: "زاي", colorName: "Magenta", hex: "#D81B60", rgb: [216, 27, 96] },
 
-  sin: { letter: "س", name: "سين", colorName: "Sky Blue", hex: "#42A5F5", rgb: [66, 165, 245] },
+  seen: { letter: "س", name: "سين", colorName: "Sky Blue", hex: "#42A5F5", rgb: [66, 165, 245] },
   sheen: { letter: "ش", name: "شين", colorName: "Electric Cyan", hex: "#00E5FF", rgb: [0, 229, 255] },
 
   sad: { letter: "ص", name: "صاد", colorName: "Royal Blue", hex: "#1E3A8A", rgb: [30, 58, 138] },
@@ -35,7 +36,7 @@ const PHONEME_COLORS = {
   ghain: { letter: "غ", name: "غين", colorName: "Dark Purple", hex: "#6A1B9A", rgb: [106, 27, 154] },
 
   fa: { letter: "ف", name: "فاء", colorName: "Violet", hex: "#8E24AA", rgb: [142, 36, 170] },
-  qa: { letter: "ق", name: "قاف", colorName: "Midnight Blue", hex: "#0D47A1", rgb: [13, 71, 161] },
+  qaf: { letter: "ق", name: "قاف", colorName: "Midnight Blue", hex: "#0D47A1", rgb: [13, 71, 161] },
   kaf: { letter: "ك", name: "كاف", colorName: "Steel Gray", hex: "#607D8B", rgb: [96, 125, 139] },
 
   lam: { letter: "ل", name: "لام", colorName: "Silver", hex: "#B0BEC5", rgb: [176, 190, 197] },
@@ -49,15 +50,17 @@ const PHONEME_COLORS = {
 
 
 // ================================
-// أسماء بديلة للمفاتيح
+// أسماء بديلة قديمة للتنظيف فقط
 // ================================
 
 const PHONEME_COLOR_ALIASES = {
-  qaf: "qa",
-  seen: "sin",
+  qa: "qaf",
+  sin: "seen",
   saad: "sad",
   ta_mufakhkham: "taa",
   tta: "taa",
+  saa: "sad",
+  sa: "seen",
   haa: "ha2"
 };
 
@@ -106,4 +109,4 @@ function bindPhonemeToColor(phonemeKey) {
 }
 
 
-console.log("🎨 المرجعية اللونية الإدراكية للحروف مسجلة V2");
+console.log("🎨 المرجعية اللونية الإدراكية للحروف مسجلة V3");
