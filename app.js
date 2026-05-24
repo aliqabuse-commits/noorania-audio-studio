@@ -1,14 +1,9 @@
 // ================================
 // app.js
-// غرفة العمليات الصوتية — قائد التشغيل
+// غرفة العمليات الصوتية — قائد التشغيل V2
 // ================================
 
-console.log("🧭 app.js جاهز — قائد غرفة العمليات الصوتية يعمل");
-
-
-// =====================================
-// 1️⃣ القوائم الرئيسية
-// =====================================
+console.log("🧭 app.js جاهز V2 — قائد غرفة العمليات الصوتية يعمل");
 
 const categories = [
   { title: "حقيبة الباء الساكنة" },
@@ -21,11 +16,6 @@ const categories = [
   { title: "الأصوات النورانية" }
 ];
 
-
-// =====================================
-// 2️⃣ حالة الواجهة الحالية
-// =====================================
-
 let currentCategory = "";
 let currentUnits = [];
 let index = 0;
@@ -34,47 +24,56 @@ function getUnitKey(unit) {
   return unit.file;
 }
 
-
-// =====================================
-// 3️⃣ اعتماد الوحدة وحفظ الجينوم
-// =====================================
-
 async function approveAndNext() {
-
   if (!currentUnits.length) return;
 
   const unit = currentUnits[index];
   const key = getUnitKey(unit);
 
-  const currentBlob = getCurrentAudioBlob();
+  const currentBlob =
+    typeof getCurrentAudioBlob === "function"
+      ? getCurrentAudioBlob()
+      : null;
 
-  if (!currentBlob && !hasWaveform()) {
+  if (!currentBlob && typeof hasWaveform === "function" && !hasWaveform()) {
     alert("سجّل الوحدة أولاً");
     return;
   }
 
-  if (!hasGenomeRegions()) {
+  if (typeof hasGenomeRegions === "function" && !hasGenomeRegions()) {
     alert("لم يتم تعريف مناطق الجينوم الأربع");
     return;
   }
 
-  if (currentBlob) {
+  if (currentBlob && typeof saveAudio === "function") {
     saveAudio(key, currentBlob);
   }
 
-  const genome = buildGenome(key);
+  const genome =
+    typeof buildGenome === "function"
+      ? buildGenome(key)
+      : null;
 
   if (!genome) {
     alert("تعذر بناء ملف الجينوم");
     return;
   }
 
-  saveGenome(key, genome);
+  if (typeof saveGenome === "function") {
+    saveGenome(key, genome);
+  }
 
-  unitStatus[key] = "approved";
-  saveUnitStatus();
+  if (typeof unitStatus !== "undefined") {
+    unitStatus[key] = "approved";
+  }
 
-  clearCurrentAudioBlob();
+  if (typeof saveUnitStatus === "function") {
+    saveUnitStatus();
+  }
+
+  if (typeof clearCurrentAudioBlob === "function") {
+    clearCurrentAudioBlob();
+  }
 
   index++;
 
@@ -83,43 +82,44 @@ async function approveAndNext() {
   }
 
   updateUI();
-
 }
 
-
-// =====================================
-// 4️⃣ إلغاء اعتماد الوحدة
-// =====================================
-
 function rejectUnit() {
-
   if (!currentUnits.length) return;
 
   const unit = currentUnits[index];
   const key = getUnitKey(unit);
 
-  delete unitStatus[key];
-  saveUnitStatus();
+  if (typeof unitStatus !== "undefined") {
+    delete unitStatus[key];
+  }
 
-  deleteAudio(key);
-  deleteGenome(key);
+  if (typeof saveUnitStatus === "function") {
+    saveUnitStatus();
+  }
+
+  if (typeof deleteAudio === "function") {
+    deleteAudio(key);
+  }
+
+  if (typeof deleteGenome === "function") {
+    deleteGenome(key);
+  }
 
   localStorage.removeItem(key + ".profile.json");
 
-  clearCurrentAudioBlob();
-  destroyWaveform();
+  if (typeof clearCurrentAudioBlob === "function") {
+    clearCurrentAudioBlob();
+  }
+
+  if (typeof destroyWaveform === "function") {
+    destroyWaveform();
+  }
 
   updateUI();
-
 }
 
-
-// =====================================
-// 5️⃣ تحديث الواجهة
-// =====================================
-
 function updateUI() {
-
   const unit = currentUnits[index];
 
   if (!unit) return;
@@ -129,35 +129,26 @@ function updateUI() {
   document.getElementById("counter").innerText =
     (index + 1) + " / " + currentUnits.length;
 
-  getAudio(unit.file, function (blob) {
-
-    if (blob) {
-      initWaveform(blob);
-    } else {
-      destroyWaveform();
-    }
-
-  });
+  if (typeof getAudio === "function") {
+    getAudio(unit.file, function (blob) {
+      if (blob && typeof initWaveform === "function") {
+        initWaveform(blob);
+      } else if (typeof destroyWaveform === "function") {
+        destroyWaveform();
+      }
+    });
+  }
 
   renderUnitList();
-
 }
-
-
-// =====================================
-// 6️⃣ الصفحة الرئيسية والتنقل
-// =====================================
 
 function goHome() {
-
   document.getElementById("recordView").style.display = "none";
+  document.getElementById("perceptualTrainingView").style.display = "none";
   document.getElementById("homeView").style.display = "block";
-
 }
 
-
 function renderHome() {
-
   const list = document.getElementById("categoryList");
 
   if (!list) return;
@@ -165,7 +156,6 @@ function renderHome() {
   list.innerHTML = "";
 
   categories.forEach(function (cat) {
-
     const btn = document.createElement("button");
 
     btn.innerText = cat.title;
@@ -174,53 +164,49 @@ function renderHome() {
     btn.style.width = "90%";
 
     btn.onclick = function () {
-
       currentCategory = cat.title;
-      currentUnits = allUnits[cat.title] || [];
+
+      currentUnits =
+        typeof allUnits !== "undefined"
+          ? allUnits[cat.title] || []
+          : [];
+
       index = 0;
 
+      if (!currentUnits.length) {
+        alert(
+          "لا توجد وحدات مسجلة لهذه القائمة بعد:\n" +
+          cat.title
+        );
+        return;
+      }
+
       document.getElementById("homeView").style.display = "none";
+      document.getElementById("perceptualTrainingView").style.display = "none";
       document.getElementById("recordView").style.display = "block";
 
       updateUI();
-
     };
 
     list.appendChild(btn);
-
   });
-
 }
 
-
 function nextUnit() {
-
   if (!currentUnits.length) return;
 
   index = (index + 1) % currentUnits.length;
-
   updateUI();
-
 }
 
-
 function prevUnit() {
-
   if (!currentUnits.length) return;
 
   index = (index - 1 + currentUnits.length) % currentUnits.length;
-
   updateUI();
-
 }
 
-
-// =====================================
-// 7️⃣ قائمة الوحدات
-// =====================================
-
 function renderUnitList() {
-
   const list = document.getElementById("unitList");
 
   if (!list) return;
@@ -228,13 +214,15 @@ function renderUnitList() {
   list.innerHTML = "";
 
   currentUnits.forEach(function (unit, i) {
-
     const btn = document.createElement("button");
-
     const key = getUnitKey(unit);
 
+    const approved =
+      typeof unitStatus !== "undefined" &&
+      unitStatus[key] === "approved";
+
     btn.innerText =
-      (unitStatus[key] === "approved" ? "✅ " : "⏳ ") + unit.text;
+      (approved ? "✅ " : "⏳ ") + unit.text;
 
     btn.style.display = "block";
     btn.style.margin = "5px auto";
@@ -250,22 +238,24 @@ function renderUnitList() {
     };
 
     list.appendChild(btn);
-
   });
-
 }
 
-
-// =====================================
-// 8️⃣ التصدير السيادي ZIP
-// =====================================
-
 async function exportApproved() {
-
   if (!currentUnits.length) return;
 
+  if (typeof JSZip === "undefined") {
+    alert("مكتبة JSZip غير محملة");
+    return;
+  }
+
   const approvedUnits = currentUnits.filter(function (unit) {
-    return unitStatus[getUnitKey(unit)] === "approved";
+    const key = getUnitKey(unit);
+
+    return (
+      typeof unitStatus !== "undefined" &&
+      unitStatus[key] === "approved"
+    );
   });
 
   if (!approvedUnits.length) {
@@ -274,21 +264,24 @@ async function exportApproved() {
   }
 
   const zip = new JSZip();
-
   const manifest = [];
 
   for (let unit of approvedUnits) {
-
     const key = getUnitKey(unit);
 
-    const storedAudio = await new Promise(function (resolve) {
-      getAudio(key, resolve);
-    });
+    const storedAudio =
+      typeof getAudio === "function"
+        ? await new Promise(function (resolve) {
+            getAudio(key, resolve);
+          })
+        : null;
 
-    const genome = getGenome(key);
+    const genome =
+      typeof getGenome === "function"
+        ? getGenome(key)
+        : null;
 
     if (storedAudio) {
-
       zip.file("audio/" + key, storedAudio);
 
       if (genome) {
@@ -305,9 +298,7 @@ async function exportApproved() {
         genome: genome ? "genomes/" + key + ".genome.json" : null,
         status: "approved"
       });
-
     }
-
   }
 
   zip.file(
@@ -322,19 +313,16 @@ async function exportApproved() {
   const a = document.createElement("a");
 
   a.href = URL.createObjectURL(content);
-  a.download = "noorania_" + currentCategory + "_genome_lab.zip";
+  a.download =
+    "noorania_" +
+    currentCategory +
+    "_genome_lab.zip";
 
   a.click();
-
 }
 
-
-// =====================================
-// 9️⃣ بدء التطبيق
-// =====================================
-
 window.onload = function () {
-
   renderHome();
-
 };
+
+console.log("🧭 قائد غرفة العمليات الصوتية جاهز V2");
