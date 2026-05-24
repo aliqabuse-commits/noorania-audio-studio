@@ -1,14 +1,10 @@
 // ================================
 // phoneme-match-engine.js
-// محرك الفصل بالجِينوم المركزي — V3.2
+// محرك الفصل بالجِينوم المركزي — V3.3
+// ملتزم بمرجع المسميات السيادي
 // ================================
 
-console.log("🎯 phoneme-match-engine.js جاهز V3.2");
-
-
-// ======================================
-// استخراج مفاتيح الحروف المتاحة
-// ======================================
+console.log("🎯 phoneme-match-engine.js جاهز V3.3");
 
 function getAvailablePhonemeKeysForMatch() {
   if (
@@ -18,13 +14,8 @@ function getAvailablePhonemeKeysForMatch() {
     return Object.keys(PHONEME_LETTER_DEFINITIONS);
   }
 
-  return ["ba", "qa"];
+  return ["ba", "qaf"];
 }
-
-
-// ======================================
-// بدء اختبار مطابقة حرف عبر الجينوم المركزي
-// ======================================
 
 async function startPhonemeMatchTest(targetKey) {
   try {
@@ -179,11 +170,6 @@ async function startPhonemeMatchTest(targetKey) {
   }
 }
 
-
-// ======================================
-// تحميل الجينوم المركزي
-// ======================================
-
 function loadCognitiveIdentity(key) {
   try {
     const raw = localStorage.getItem(key + "_cognitive_identity");
@@ -198,11 +184,6 @@ function loadCognitiveIdentity(key) {
   }
 }
 
-
-// ======================================
-// تسجيل عينة اختبار
-// ======================================
-
 async function recordMatchSample() {
   return new Promise(async function (resolve) {
     try {
@@ -211,7 +192,6 @@ async function recordMatchSample() {
       });
 
       const chunks = [];
-
       const recorder = new MediaRecorder(stream);
 
       recorder.ondataavailable = function (event) {
@@ -252,11 +232,6 @@ async function recordMatchSample() {
   });
 }
 
-
-// ======================================
-// مقارنة ملخص العينة مع جينوم حرف
-// ======================================
-
 function compareSummaryWithCognitiveGenome(summary, genome) {
   if (!summary || !genome) {
     return Infinity;
@@ -264,76 +239,18 @@ function compareSummaryWithCognitiveGenome(summary, genome) {
 
   let total = 0;
 
-  total += weightedNormalizedDistance(
-    summary.meanEnergy,
-    genome.energy.mean,
-    genome.energy.variance,
-    1.0
-  );
-
-  total += weightedNormalizedDistance(
-    summary.meanCentroid,
-    genome.centroid.mean,
-    genome.centroid.variance,
-    1.5
-  );
-
-  total += weightedNormalizedDistance(
-    summary.meanSpread,
-    genome.spread.mean,
-    genome.spread.variance,
-    1.2
-  );
-
-  total += weightedNormalizedDistance(
-    summary.meanZcr,
-    genome.zcr.mean,
-    genome.zcr.variance,
-    0.8
-  );
-
-  total += weightedNormalizedDistance(
-    summary.burstEnergy,
-    genome.burstEnergy.mean,
-    genome.burstEnergy.variance,
-    1.3
-  );
-
-  total += weightedNormalizedDistance(
-    summary.burstCentroid,
-    genome.burstCentroid.mean,
-    genome.burstCentroid.variance,
-    1.4
-  );
-
-  total += weightedNormalizedDistance(
-    summary.burstSpread,
-    genome.burstSpread.mean,
-    genome.burstSpread.variance,
-    1.1
-  );
-
-  total += weightedNormalizedDistance(
-    summary.energyMovement,
-    genome.energyMovement.mean,
-    genome.energyMovement.variance,
-    1.1
-  );
-
-  total += weightedNormalizedDistance(
-    summary.spectralMovement,
-    genome.spectralMovement.mean,
-    genome.spectralMovement.variance,
-    1.5
-  );
+  total += weightedNormalizedDistance(summary.meanEnergy, genome.energy.mean, genome.energy.variance, 1.0);
+  total += weightedNormalizedDistance(summary.meanCentroid, genome.centroid.mean, genome.centroid.variance, 1.5);
+  total += weightedNormalizedDistance(summary.meanSpread, genome.spread.mean, genome.spread.variance, 1.2);
+  total += weightedNormalizedDistance(summary.meanZcr, genome.zcr.mean, genome.zcr.variance, 0.8);
+  total += weightedNormalizedDistance(summary.burstEnergy, genome.burstEnergy.mean, genome.burstEnergy.variance, 1.3);
+  total += weightedNormalizedDistance(summary.burstCentroid, genome.burstCentroid.mean, genome.burstCentroid.variance, 1.4);
+  total += weightedNormalizedDistance(summary.burstSpread, genome.burstSpread.mean, genome.burstSpread.variance, 1.1);
+  total += weightedNormalizedDistance(summary.energyMovement, genome.energyMovement.mean, genome.energyMovement.variance, 1.1);
+  total += weightedNormalizedDistance(summary.spectralMovement, genome.spectralMovement.mean, genome.spectralMovement.variance, 1.5);
 
   return total;
 }
-
-
-// ======================================
-// مسافة موزونة ومطبّعة
-// ======================================
 
 function weightedNormalizedDistance(value, mean, variance, weight) {
   value = Number(value || 0);
@@ -350,11 +267,6 @@ function weightedNormalizedDistance(value, mean, variance, weight) {
     Math.abs(value - mean) / tolerance
   ) * weight;
 }
-
-
-// ======================================
-// قرار الفصل
-// ======================================
 
 function classifySeparationDecision(winner, second, margin) {
   if (!second) {
@@ -386,11 +298,6 @@ function classifySeparationDecision(winner, second, margin) {
     note: "الجينومات قريبة من العينة. نحتاج تحسين التسجيل أو تقوية الجينوم أو إضافة طبقات مقارنة زمنية أقوى."
   };
 }
-
-
-// ======================================
-// سؤال المختبر عن الحرف المنطوق فعليًا
-// ======================================
 
 function askActualSpokenKey() {
   const keys = getAvailablePhonemeKeysForMatch();
@@ -429,11 +336,6 @@ function askActualSpokenKey() {
 
   return null;
 }
-
-
-// ======================================
-// حفظ نتيجة اختبار الفصل
-// ======================================
 
 function saveCognitiveMatchResult(
   buttonKey,
@@ -481,11 +383,6 @@ function saveCognitiveMatchResult(
 
   renderMatchResultsLog();
 }
-
-
-// ======================================
-// عرض سجل نتائج الفصل
-// ======================================
 
 function renderMatchResultsLog() {
   const raw = localStorage.getItem("cognitive_match_results_log");
@@ -559,39 +456,13 @@ function renderMatchResultsLog() {
         margin:8px 0;
         border-left:5px solid ${ok ? "#22c55e" : "#ef4444"};
       ">
-        <div>
-          #${index + 1}
-        </div>
-
-        <div>
-          زر الاختبار:
-          <b>${r.buttonKey}</b>
-        </div>
-
-        <div>
-          المنطوق فعليًا:
-          <b>${r.actualKey}</b>
-        </div>
-
-        <div>
-          المكتشف:
-          <b>${r.detectedLabel}</b>
-        </div>
-
-        <div>
-          النتيجة:
-          <b>${finalResult}</b>
-        </div>
-
-        <div>
-          هامش الفصل:
-          <b>${r.margin}</b>
-        </div>
-
-        <div>
-          القرار:
-          <b>${r.decision}</b>
-        </div>
+        <div>#${index + 1}</div>
+        <div>زر الاختبار: <b>${r.buttonKey}</b></div>
+        <div>المنطوق فعليًا: <b>${r.actualKey}</b></div>
+        <div>المكتشف: <b>${r.detectedLabel}</b></div>
+        <div>النتيجة: <b>${finalResult}</b></div>
+        <div>هامش الفصل: <b>${r.margin}</b></div>
+        <div>القرار: <b>${r.decision}</b></div>
       </div>
     `;
   });
@@ -621,5 +492,4 @@ function renderMatchResultsLog() {
   });
 }
 
-
-console.log("🎯 محرك الفصل بالجِينوم المركزي جاهز V3.2");
+console.log("🎯 محرك الفصل بالجِينوم المركزي جاهز V3.3");
