@@ -1,9 +1,10 @@
 // ================================
 // phoneme-training-pack.js
-// مولّد حقائب التدريب الإدراكي للحروف — V3
+// مولّد حقائب التدريب الإدراكي للحروف — V4
+// ملتزم بمرجع المسميات السيادي
 // ================================
 
-console.log("🎒 phoneme-training-pack.js جاهز V3");
+console.log("🎒 phoneme-training-pack.js جاهز V4");
 
 const PHONEME_LETTER_DEFINITIONS = {
   ba: {
@@ -25,12 +26,12 @@ const PHONEME_LETTER_DEFINITIONS = {
     ]
   },
 
-  qa: {
-    key: "qa",
+  qaf: {
+    key: "qaf",
     letter: "ق",
     name: "قاف",
-    colorKey: "qa",
-    fileBase: "qa",
+    colorKey: "qaf",
+    fileBase: "qaf",
     traits: {
       place: "لهوي عميق",
       tafkheem: true,
@@ -80,12 +81,12 @@ const PHONEME_LETTER_DEFINITIONS = {
     ]
   },
 
-  sin: {
-    key: "sin",
+  seen: {
+    key: "seen",
     letter: "س",
     name: "سين",
-    colorKey: "sin",
-    fileBase: "sin",
+    colorKey: "seen",
+    fileBase: "seen",
     traits: {
       place: "أسلي صفيري",
       tafkheem: false,
@@ -248,4 +249,4 @@ function getAllPhonemeTrainingPacks() {
 }
 
 
-console.log("🎒 حقائب التدريب الإدراكي للحروف مسجلة V3");
+console.log("🎒 حقائب التدريب الإدراكي للحروف مسجلة V4");
