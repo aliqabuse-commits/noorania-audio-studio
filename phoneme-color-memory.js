@@ -1,14 +1,10 @@
 // ================================
 // phoneme-color-memory.js
-// ذاكرة الألوان الإدراكية للحروف — V3
+// ذاكرة الألوان الإدراكية للحروف — V4
+// ملتزم بمرجع المسميات السيادي
 // ================================
 
-console.log("🎨 phoneme-color-memory.js جاهز V3");
-
-
-// ======================================
-// إنشاء ذاكرة لون حرف من حقيبة التدريب
-// ======================================
+console.log("🎨 phoneme-color-memory.js جاهز V4");
 
 function createPhonemeColorMemory(config) {
   const pack =
@@ -72,10 +68,6 @@ function createPhonemeColorMemory(config) {
 }
 
 
-// ======================================
-// توليد الذاكرة من تعريفات الحقائب
-// ======================================
-
 function buildPhonemeColorMemoryConfigs() {
   if (
     typeof PHONEME_LETTER_DEFINITIONS !== "undefined" &&
@@ -123,10 +115,10 @@ function buildPhonemeColorMemoryConfigs() {
       }
     },
     {
-      key: "qa",
+      key: "qaf",
       letter: "ق",
       name: "قاف",
-      colorKey: "qa",
+      colorKey: "qaf",
       colorHex: "#0D47A1",
       colorName: "Midnight Blue",
       traits: {
@@ -165,10 +157,10 @@ function buildPhonemeColorMemoryConfigs() {
       }
     },
     {
-      key: "sin",
+      key: "seen",
       letter: "س",
       name: "سين",
-      colorKey: "sin",
+      colorKey: "seen",
       colorHex: "#42A5F5",
       colorName: "Sky Blue",
       traits: {
@@ -196,10 +188,6 @@ function buildPhonemeColorMemoryConfigs() {
 }
 
 
-// ======================================
-// بناء ذاكرة الألوان تلقائيًا
-// ======================================
-
 const PHONEME_COLOR_CONFIGS =
   buildPhonemeColorMemoryConfigs();
 
@@ -211,10 +199,6 @@ PHONEME_COLOR_CONFIGS.forEach(function (config) {
 });
 
 
-// ======================================
-// دوال الوصول
-// ======================================
-
 function getPhonemeMemory(key) {
   return PHONEME_COLOR_MEMORY[key] || null;
 }
@@ -225,4 +209,4 @@ function getAllPhonemeMemories() {
 }
 
 
-console.log("🎨 ذاكرة الألوان الإدراكية للحروف جاهزة V3");
+console.log("🎨 ذاكرة الألوان الإدراكية للحروف جاهزة V4");
