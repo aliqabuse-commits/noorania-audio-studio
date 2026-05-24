@@ -1,9 +1,25 @@
 // ================================
 // phoneme-match-engine.js
-// محرك الفصل بالجِينوم المركزي — V3.1
+// محرك الفصل بالجِينوم المركزي — V3.2
 // ================================
 
-console.log("🎯 phoneme-match-engine.js جاهز V3.1");
+console.log("🎯 phoneme-match-engine.js جاهز V3.2");
+
+
+// ======================================
+// استخراج مفاتيح الحروف المتاحة
+// ======================================
+
+function getAvailablePhonemeKeysForMatch() {
+  if (
+    typeof PHONEME_LETTER_DEFINITIONS !== "undefined" &&
+    PHONEME_LETTER_DEFINITIONS
+  ) {
+    return Object.keys(PHONEME_LETTER_DEFINITIONS);
+  }
+
+  return ["ba", "qa"];
+}
 
 
 // ======================================
@@ -12,7 +28,7 @@ console.log("🎯 phoneme-match-engine.js جاهز V3.1");
 
 async function startPhonemeMatchTest(targetKey) {
   try {
-    const identities = ["ba", "qa"];
+    const identities = getAvailablePhonemeKeysForMatch();
     const availableIdentities = [];
 
     for (const key of identities) {
@@ -26,7 +42,7 @@ async function startPhonemeMatchTest(targetKey) {
     if (!availableIdentities.length) {
       alert(
         "لا توجد جينومات مركزية محفوظة.\n\n" +
-        "ابنِ أولًا الجينوم المركزي للباء والقاف."
+        "ابنِ أولًا الجينومات المركزية للحروف."
       );
       return;
     }
@@ -146,8 +162,7 @@ async function startPhonemeMatchTest(targetKey) {
       decision.label +
       "\n\n";
 
-    report +=
-      decision.note;
+    report += decision.note;
 
     alert(report);
 
@@ -171,8 +186,7 @@ async function startPhonemeMatchTest(targetKey) {
 
 function loadCognitiveIdentity(key) {
   try {
-    const raw =
-      localStorage.getItem(key + "_cognitive_identity");
+    const raw = localStorage.getItem(key + "_cognitive_identity");
 
     if (!raw) return null;
 
@@ -192,15 +206,13 @@ function loadCognitiveIdentity(key) {
 async function recordMatchSample() {
   return new Promise(async function (resolve) {
     try {
-      const stream =
-        await navigator.mediaDevices.getUserMedia({
-          audio: true
-        });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true
+      });
 
       const chunks = [];
 
-      const recorder =
-        new MediaRecorder(stream);
+      const recorder = new MediaRecorder(stream);
 
       recorder.ondataavailable = function (event) {
         if (event.data && event.data.size > 0) {
@@ -213,12 +225,9 @@ async function recordMatchSample() {
           track.stop();
         });
 
-        const blob =
-          new Blob(chunks, {
-            type:
-              recorder.mimeType ||
-              "audio/webm"
-          });
+        const blob = new Blob(chunks, {
+          type: recorder.mimeType || "audio/webm"
+        });
 
         resolve(blob);
       };
@@ -249,6 +258,10 @@ async function recordMatchSample() {
 // ======================================
 
 function compareSummaryWithCognitiveGenome(summary, genome) {
+  if (!summary || !genome) {
+    return Infinity;
+  }
+
   let total = 0;
 
   total += weightedNormalizedDistance(
@@ -329,11 +342,12 @@ function weightedNormalizedDistance(value, mean, variance, weight) {
   weight = Number(weight || 1);
 
   const tolerance =
-    Math.sqrt(variance) || Math.abs(mean) * 0.15 || 1;
+    Math.sqrt(variance) ||
+    Math.abs(mean) * 0.15 ||
+    1;
 
   return (
-    Math.abs(value - mean) /
-    tolerance
+    Math.abs(value - mean) / tolerance
   ) * weight;
 }
 
@@ -369,7 +383,7 @@ function classifySeparationDecision(winner, second, margin) {
 
   return {
     label: "فصل ملتبس ❌",
-    note: "الجينومان قريبان من العينة. نحتاج تحسين التسجيل أو تقوية الجينوم أو إضافة طبقات مقارنة زمنية أقوى."
+    note: "الجينومات قريبة من العينة. نحتاج تحسين التسجيل أو تقوية الجينوم أو إضافة طبقات مقارنة زمنية أقوى."
   };
 }
 
@@ -379,23 +393,40 @@ function classifySeparationDecision(winner, second, margin) {
 // ======================================
 
 function askActualSpokenKey() {
-  const answer = prompt(
+  const keys = getAvailablePhonemeKeysForMatch();
+
+  let message =
     "ما الحرف الذي نطقته فعليًا؟\n\n" +
-    "اكتب:\n" +
-    "ba = باء\n" +
-    "qa = قاف"
-  );
+    "اكتب أحد المفاتيح التالية:\n\n";
+
+  keys.forEach(function (key) {
+    const def =
+      typeof PHONEME_LETTER_DEFINITIONS !== "undefined"
+        ? PHONEME_LETTER_DEFINITIONS[key]
+        : null;
+
+    message +=
+      key +
+      " = " +
+      (def ? def.name || def.letter : key) +
+      "\n";
+  });
+
+  const answer = prompt(message);
 
   if (!answer) return null;
 
-  const key =
-    answer.trim().toLowerCase();
+  const key = answer.trim().toLowerCase();
 
-  if (key === "ba" || key === "qa") {
+  if (keys.includes(key)) {
     return key;
   }
 
-  alert("قيمة غير صحيحة. اكتب فقط: ba أو qa");
+  alert(
+    "قيمة غير صحيحة.\n\n" +
+    "اكتب أحد المفاتيح الظاهرة فقط."
+  );
+
   return null;
 }
 
@@ -412,11 +443,11 @@ function saveCognitiveMatchResult(
   decision,
   margin
 ) {
-  const logKey =
-    "cognitive_match_results_log";
+  const logKey = "cognitive_match_results_log";
 
-  const oldLog =
-    JSON.parse(localStorage.getItem(logKey) || "[]");
+  const oldLog = JSON.parse(
+    localStorage.getItem(logKey) || "[]"
+  );
 
   oldLog.push({
     buttonKey: buttonKey,
@@ -457,58 +488,38 @@ function saveCognitiveMatchResult(
 // ======================================
 
 function renderMatchResultsLog() {
-  const raw =
-    localStorage.getItem("cognitive_match_results_log");
+  const raw = localStorage.getItem("cognitive_match_results_log");
 
-  const results =
-    JSON.parse(raw || "[]");
+  const results = JSON.parse(raw || "[]");
 
-  const correctResults =
-    results.filter(function (r) {
-      return r.actualKey === r.detectedKey;
-    });
+  const correctResults = results.filter(function (r) {
+    return r.actualKey === r.detectedKey;
+  });
 
-  const accuracy =
-    results.length
-      ? ((correctResults.length / results.length) * 100).toFixed(2)
-      : "0.00";
+  const accuracy = results.length
+    ? ((correctResults.length / results.length) * 100).toFixed(2)
+    : "0.00";
 
-  const avgCorrectMargin =
-    correctResults.length
-      ? (
-          correctResults.reduce(function (sum, r) {
-            return sum + Number(r.margin || 0);
-          }, 0) / correctResults.length
-        ).toFixed(4)
-      : "0.0000";
+  const avgCorrectMargin = correctResults.length
+    ? (
+        correctResults.reduce(function (sum, r) {
+          return sum + Number(r.margin || 0);
+        }, 0) / correctResults.length
+      ).toFixed(4)
+    : "0.0000";
 
-  let box =
-    document.getElementById("match-results-log-box");
+  let box = document.getElementById("match-results-log-box");
 
   if (!box) {
-    box =
-      document.createElement("div");
+    box = document.createElement("div");
 
-    box.id =
-      "match-results-log-box";
-
-    box.style.background =
-      "#08111f";
-
-    box.style.color =
-      "white";
-
-    box.style.border =
-      "1px solid #334155";
-
-    box.style.borderRadius =
-      "14px";
-
-    box.style.padding =
-      "14px";
-
-    box.style.margin =
-      "14px 0";
+    box.id = "match-results-log-box";
+    box.style.background = "#08111f";
+    box.style.color = "white";
+    box.style.border = "1px solid #334155";
+    box.style.borderRadius = "14px";
+    box.style.padding = "14px";
+    box.style.margin = "14px 0";
 
     const target =
       document.getElementById("perceptualTrainingView") ||
@@ -535,8 +546,7 @@ function renderMatchResultsLog() {
   }
 
   results.forEach(function (r, index) {
-    const ok =
-      r.actualKey === r.detectedKey;
+    const ok = r.actualKey === r.detectedKey;
 
     const finalResult =
       ok ? "✅ صحيح" : "❌ خطأ";
@@ -587,8 +597,6 @@ function renderMatchResultsLog() {
   });
 
   html += `
-    <hr style="border-color:#334155;">
-
     <div style="margin-top:18px;">
       نسبة النجاح الحالية:
       <b style="color:#22c55e;">${accuracy}%</b>
@@ -614,4 +622,4 @@ function renderMatchResultsLog() {
 }
 
 
-console.log("🎯 محرك الفصل بالجِينوم المركزي جاهز V3.1");
+console.log("🎯 محرك الفصل بالجِينوم المركزي جاهز V3.2");
