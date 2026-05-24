@@ -1,10 +1,10 @@
 // ================================
 // phoneme-cognitive-engine.js
-// المحرك الإدراكي المركزي للحرف — V2
-// يجمع النوتات المبعثرة في سيمفونية واحدة
+// المحرك الإدراكي المركزي للحرف — V3
+// النسخة السيادية المستقرة
 // ================================
 
-console.log("🧠 phoneme-cognitive-engine.js جاهز V2");
+console.log("🧠 phoneme-cognitive-engine.js جاهز V3");
 
 
 // ======================================
@@ -12,10 +12,16 @@ console.log("🧠 phoneme-cognitive-engine.js جاهز V2");
 // ======================================
 
 async function getStoredAudio(fileName) {
+
   console.log("🔎 COGNITIVE LOAD:", fileName);
 
   if (typeof getAudioPromiseForMemory === "function") {
-    const blob = await getAudioPromiseForMemory(fileName, 3000);
+
+    const blob =
+      await getAudioPromiseForMemory(
+        fileName,
+        3000
+      );
 
     console.log(
       "✅ from getAudioPromiseForMemory:",
@@ -33,14 +39,21 @@ async function getStoredAudio(fileName) {
   console.log(
     "📦 from localStorage:",
     fileName,
-    dataUrl ? dataUrl.substring(0, 40) : null
+    dataUrl
+      ? dataUrl.substring(0, 40)
+      : null
   );
 
-  if (dataUrl && dataUrl.startsWith("data:")) {
+  if (
+    dataUrl &&
+    dataUrl.startsWith("data:")
+  ) {
     return cognitiveDataUrlToBlob(dataUrl);
   }
 
-  throw new Error("الصوت غير موجود: " + fileName);
+  throw new Error(
+    "الصوت غير موجود: " + fileName
+  );
 }
 
 
@@ -48,7 +61,10 @@ async function getStoredAudio(fileName) {
 // بناء الهوية الإدراكية المركزية
 // ======================================
 
-async function buildPhonemeCognitiveIdentity(phonemeKey) {
+async function buildPhonemeCognitiveIdentity(
+  phonemeKey
+) {
+
   try {
 
     const pack =
@@ -57,7 +73,12 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
         : null;
 
     if (!pack) {
-      alert("لا توجد حقيبة تدريب لهذا الحرف: " + phonemeKey);
+
+      alert(
+        "لا توجد حقيبة تدريب لهذا الحرف: " +
+        phonemeKey
+      );
+
       return null;
     }
 
@@ -68,10 +89,13 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
 
     const colorBinding =
       typeof bindPhonemeToColor === "function"
-        ? bindPhonemeToColor(pack.colorKey || phonemeKey)
+        ? bindPhonemeToColor(
+            pack.colorKey || phonemeKey
+          )
         : null;
 
     const color = {
+
       hex:
         colorBinding?.hex ||
         memory?.color?.hex ||
@@ -96,10 +120,15 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
       pack.letter ||
       phonemeKey;
 
-    const units = pack.positions || [];
+    const units =
+      pack.positions || [];
 
     if (!units.length) {
-      alert("حقيبة التدريب لا تحتوي وحدات");
+
+      alert(
+        "حقيبة التدريب لا تحتوي وحدات"
+      );
+
       return null;
     }
 
@@ -111,7 +140,10 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
         await getStoredAudio(unit.file);
 
       if (!blob) {
-        throw new Error("الصوت غير موجود: " + unit.file);
+
+        throw new Error(
+          "الصوت غير موجود: " + unit.file
+        );
       }
 
       const decoded =
@@ -133,9 +165,11 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
         );
 
       cognitiveUnits.push({
+
         text: unit.text,
         file: unit.file,
         role: unit.role,
+
         timeline,
         phases,
         summary
@@ -143,34 +177,53 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
     }
 
     const identity = {
-      method: "Noorani Central Cognitive Engine V2",
 
-      phonemeKey: phonemeKey,
+      method:
+        "Noorani Central Cognitive Engine V3",
 
-      phoneme: phoneme,
+      phonemeKey:
+        phonemeKey,
 
-      label: label,
+      phoneme:
+        phoneme,
 
-      color: color,
+      label:
+        label,
+
+      color:
+        color,
 
       pack: {
-        key: pack.key,
-        letter: pack.letter,
-        name: pack.name,
-        traits: pack.traits
+
+        key:
+          pack.key,
+
+        letter:
+          pack.letter,
+
+        name:
+          pack.name,
+
+        traits:
+          pack.traits
       },
 
-      units: cognitiveUnits,
+      units:
+        cognitiveUnits,
 
       genome:
-        buildCognitiveGenome(cognitiveUnits),
+        buildCognitiveGenome(
+          cognitiveUnits
+        ),
 
       createdAt:
         new Date().toISOString()
     };
 
     localStorage.setItem(
-      phonemeKey + "_cognitive_identity",
+      phonemeKey +
+      "_cognitive_identity",
+
       JSON.stringify(identity)
     );
 
@@ -205,13 +258,20 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
 // قراءة الصوت
 // ======================================
 
-async function getCognitiveAudioBlob(fileName) {
+async function getCognitiveAudioBlob(
+  fileName
+) {
 
   const dataUrl =
-    localStorage.getItem("audio_" + fileName) ||
+    localStorage.getItem(
+      "audio_" + fileName
+    ) ||
     localStorage.getItem(fileName);
 
-  if (!dataUrl || !dataUrl.startsWith("data:")) {
+  if (
+    !dataUrl ||
+    !dataUrl.startsWith("data:")
+  ) {
     return null;
   }
 
@@ -219,7 +279,9 @@ async function getCognitiveAudioBlob(fileName) {
 }
 
 
-function cognitiveDataUrlToBlob(dataUrl) {
+function cognitiveDataUrlToBlob(
+  dataUrl
+) {
 
   const parts =
     dataUrl.split(",");
@@ -244,7 +306,11 @@ function cognitiveDataUrlToBlob(dataUrl) {
   const bytes =
     new Uint8Array(binary.length);
 
-  for (let i = 0; i < binary.length; i++) {
+  for (
+    let i = 0;
+    i < binary.length;
+    i++
+  ) {
     bytes[i] =
       binary.charCodeAt(i);
   }
@@ -256,7 +322,9 @@ function cognitiveDataUrlToBlob(dataUrl) {
 }
 
 
-async function decodeCognitiveBlob(blob) {
+async function decodeCognitiveBlob(
+  blob
+) {
 
   const arrayBuffer =
     await blob.arrayBuffer();
@@ -269,9 +337,12 @@ async function decodeCognitiveBlob(blob) {
     new AudioContextClass();
 
   const audioBuffer =
-    await ctx.decodeAudioData(arrayBuffer);
+    await ctx.decodeAudioData(
+      arrayBuffer
+    );
 
   return {
+
     samples:
       audioBuffer.getChannelData(0),
 
@@ -285,7 +356,10 @@ async function decodeCognitiveBlob(blob) {
 // بناء الخط الزمني
 // ======================================
 
-function buildCognitiveTimeline(samples, sampleRate) {
+function buildCognitiveTimeline(
+  samples,
+  sampleRate
+) {
 
   const frameSize =
     Math.floor(sampleRate * 0.010);
@@ -302,7 +376,10 @@ function buildCognitiveTimeline(samples, sampleRate) {
   ) {
 
     const frame =
-      samples.slice(start, start + frameSize);
+      samples.slice(
+        start,
+        start + frameSize
+      );
 
     const energy =
       cognitiveRms(frame);
@@ -311,10 +388,15 @@ function buildCognitiveTimeline(samples, sampleRate) {
       cognitiveZcr(frame);
 
     const spectrum =
-      cognitiveSpectrum(frame, sampleRate);
+      cognitiveSpectrum(
+        frame,
+        sampleRate
+      );
 
     const centroid =
-      cognitiveSpectralCentroid(spectrum);
+      cognitiveSpectralCentroid(
+        spectrum
+      );
 
     const spread =
       cognitiveSpectralSpread(
@@ -323,7 +405,10 @@ function buildCognitiveTimeline(samples, sampleRate) {
       );
 
     timeline.push({
-      t: start / sampleRate,
+
+      t:
+        start / sampleRate,
+
       energy,
       zcr,
       centroid,
@@ -339,10 +424,14 @@ function buildCognitiveTimeline(samples, sampleRate) {
 // كشف المراحل الزمنية
 // ======================================
 
-function detectCognitivePhases(timeline) {
+function detectCognitivePhases(
+  timeline
+) {
 
   if (!timeline.length) {
+
     return {
+
       onset: null,
       burst: null,
       coreStart: null,
@@ -357,30 +446,47 @@ function detectCognitivePhases(timeline) {
     });
 
   const maxEnergy =
-    Math.max.apply(null, energies);
+    Math.max.apply(
+      null,
+      energies
+    );
 
   const threshold =
     maxEnergy * 0.18;
 
   let onsetIndex = 0;
 
-  for (let i = 0; i < timeline.length; i++) {
-    if (timeline[i].energy >= threshold) {
+  for (
+    let i = 0;
+    i < timeline.length;
+    i++
+  ) {
+
+    if (
+      timeline[i].energy >= threshold
+    ) {
       onsetIndex = i;
       break;
     }
   }
 
-  let burstIndex = onsetIndex;
+  let burstIndex =
+    onsetIndex;
+
   let maxRise = 0;
 
-  for (let i = onsetIndex + 1; i < timeline.length; i++) {
+  for (
+    let i = onsetIndex + 1;
+    i < timeline.length;
+    i++
+  ) {
 
     const rise =
       timeline[i].energy -
       timeline[i - 1].energy;
 
     if (rise > maxRise) {
+
       maxRise = rise;
       burstIndex = i;
     }
@@ -389,21 +495,34 @@ function detectCognitivePhases(timeline) {
   let endIndex =
     timeline.length - 1;
 
-  for (let i = timeline.length - 1; i >= 0; i--) {
+  for (
+    let i = timeline.length - 1;
+    i >= 0;
+    i--
+  ) {
 
-    if (timeline[i].energy >= threshold) {
+    if (
+      timeline[i].energy >= threshold
+    ) {
       endIndex = i;
       break;
     }
   }
 
   const coreStart =
-    Math.min(burstIndex + 1, endIndex);
+    Math.min(
+      burstIndex + 1,
+      endIndex
+    );
 
   const coreEnd =
-    Math.max(coreStart, endIndex - 1);
+    Math.max(
+      coreStart,
+      endIndex - 1
+    );
 
   return {
+
     onset:
       timeline[onsetIndex]?.t || 0,
 
@@ -421,9 +540,15 @@ function detectCognitivePhases(timeline) {
 
     onsetIndex,
     burstIndex,
-    coreStartIndex: coreStart,
-    coreEndIndex: coreEnd,
-    tailIndex: endIndex
+
+    coreStartIndex:
+      coreStart,
+
+    coreEndIndex:
+      coreEnd,
+
+    tailIndex:
+      endIndex
   };
 }
 
@@ -440,19 +565,25 @@ function summarizeCognitiveTimeline(
   const active =
     timeline.slice(
       phases.onsetIndex || 0,
-      (phases.tailIndex ||
-        timeline.length - 1) + 1
+      (
+        phases.tailIndex ||
+        timeline.length - 1
+      ) + 1
     );
 
   const burstFrame =
-    timeline[phases.burstIndex || 0] || {};
+    timeline[
+      phases.burstIndex || 0
+    ] || {};
 
   return {
 
     duration:
       active.length
         ? roundCognitive(
-            active[active.length - 1].t -
+            active[
+              active.length - 1
+            ].t -
             active[0].t
           )
         : 0,
@@ -460,28 +591,36 @@ function summarizeCognitiveTimeline(
     meanEnergy:
       roundCognitive(
         avgCognitive(
-          active.map(f => f.energy)
+          active.map(
+            f => f.energy
+          )
         )
       ),
 
     meanZcr:
       roundCognitive(
         avgCognitive(
-          active.map(f => f.zcr)
+          active.map(
+            f => f.zcr
+          )
         )
       ),
 
     meanCentroid:
       roundCognitive(
         avgCognitive(
-          active.map(f => f.centroid)
+          active.map(
+            f => f.centroid
+          )
         )
       ),
 
     meanSpread:
       roundCognitive(
         avgCognitive(
-          active.map(f => f.spread)
+          active.map(
+            f => f.spread
+          )
         )
       ),
 
@@ -503,15 +642,506 @@ function summarizeCognitiveTimeline(
     energyMovement:
       roundCognitive(
         movementCognitive(
-          active.map(f => f.energy)
+          active.map(
+            f => f.energy
+          )
         )
       ),
 
     spectralMovement:
       roundCognitive(
         movementCognitive(
-          active.map(f => f.centroid)
+          active.map(
+            f => f.centroid
+          )
         )
       )
   };
 }
+
+
+// ======================================
+// بناء الجينوم الإدراكي
+// ======================================
+
+function buildCognitiveGenome(
+  units
+) {
+
+  const summaries =
+    units.map(function (u) {
+      return u.summary;
+    });
+
+  return {
+
+    duration:
+      statCognitive(
+        summaries.map(
+          s => s.duration
+        )
+      ),
+
+    energy:
+      statCognitive(
+        summaries.map(
+          s => s.meanEnergy
+        )
+      ),
+
+    zcr:
+      statCognitive(
+        summaries.map(
+          s => s.meanZcr
+        )
+      ),
+
+    centroid:
+      statCognitive(
+        summaries.map(
+          s => s.meanCentroid
+        )
+      ),
+
+    spread:
+      statCognitive(
+        summaries.map(
+          s => s.meanSpread
+        )
+      ),
+
+    burstEnergy:
+      statCognitive(
+        summaries.map(
+          s => s.burstEnergy
+        )
+      ),
+
+    burstCentroid:
+      statCognitive(
+        summaries.map(
+          s => s.burstCentroid
+        )
+      ),
+
+    burstSpread:
+      statCognitive(
+        summaries.map(
+          s => s.burstSpread
+        )
+      ),
+
+    energyMovement:
+      statCognitive(
+        summaries.map(
+          s => s.energyMovement
+        )
+      ),
+
+    spectralMovement:
+      statCognitive(
+        summaries.map(
+          s => s.spectralMovement
+        )
+      )
+  };
+}
+
+
+// ======================================
+// تحميل الجينوم المحفوظ
+// ======================================
+
+function loadCognitiveIdentity(
+  key
+) {
+
+  try {
+
+    const raw =
+      localStorage.getItem(
+        key +
+        "_cognitive_identity"
+      );
+
+    if (!raw) return null;
+
+    return JSON.parse(raw);
+
+  } catch (err) {
+
+    console.error(
+      "❌ فشل تحميل الجينوم:",
+      key,
+      err
+    );
+
+    return null;
+  }
+}
+
+
+// ======================================
+// أدوات رياضية
+// ======================================
+
+function cognitiveRms(frame) {
+
+  if (!frame.length) return 0;
+
+  let sum = 0;
+
+  for (
+    let i = 0;
+    i < frame.length;
+    i++
+  ) {
+    sum +=
+      frame[i] * frame[i];
+  }
+
+  return Math.sqrt(
+    sum / frame.length
+  );
+}
+
+
+function cognitiveZcr(frame) {
+
+  if (!frame.length) return 0;
+
+  let count = 0;
+
+  for (
+    let i = 1;
+    i < frame.length;
+    i++
+  ) {
+
+    if (
+      (
+        frame[i - 1] >= 0 &&
+        frame[i] < 0
+      ) ||
+      (
+        frame[i - 1] < 0 &&
+        frame[i] >= 0
+      )
+    ) {
+      count++;
+    }
+  }
+
+  return count / frame.length;
+}
+
+
+function cognitiveSpectrum(
+  frame,
+  sampleRate
+) {
+
+  const size =
+    nextPowerOfTwoCognitive(
+      frame.length
+    );
+
+  const spectrum = [];
+
+  for (
+    let k = 0;
+    k < size / 2;
+    k++
+  ) {
+
+    let real = 0;
+    let imag = 0;
+
+    for (
+      let n = 0;
+      n < frame.length;
+      n++
+    ) {
+
+      const angle =
+        (
+          2 *
+          Math.PI *
+          k *
+          n
+        ) / size;
+
+      const windowed =
+        frame[n] *
+        hannCognitive(
+          n,
+          frame.length
+        );
+
+      real +=
+        windowed *
+        Math.cos(angle);
+
+      imag -=
+        windowed *
+        Math.sin(angle);
+    }
+
+    spectrum.push({
+
+      freq:
+        (k * sampleRate) / size,
+
+      magnitude:
+        Math.sqrt(
+          real * real +
+          imag * imag
+        )
+    });
+  }
+
+  return spectrum;
+}
+
+
+function cognitiveSpectralCentroid(
+  spectrum
+) {
+
+  let weighted = 0;
+  let total = 0;
+
+  spectrum.forEach(function (bin) {
+
+    weighted +=
+      bin.freq *
+      bin.magnitude;
+
+    total +=
+      bin.magnitude;
+  });
+
+  return total
+    ? weighted / total
+    : 0;
+}
+
+
+function cognitiveSpectralSpread(
+  spectrum,
+  centroid
+) {
+
+  let weighted = 0;
+  let total = 0;
+
+  spectrum.forEach(function (bin) {
+
+    const d =
+      bin.freq - centroid;
+
+    weighted +=
+      d *
+      d *
+      bin.magnitude;
+
+    total +=
+      bin.magnitude;
+  });
+
+  return total
+    ? Math.sqrt(
+        weighted / total
+      )
+    : 0;
+}
+
+
+function movementCognitive(
+  values
+) {
+
+  if (values.length < 2) {
+    return 0;
+  }
+
+  let sum = 0;
+
+  for (
+    let i = 1;
+    i < values.length;
+    i++
+  ) {
+
+    sum += Math.abs(
+      values[i] -
+      values[i - 1]
+    );
+  }
+
+  return (
+    sum /
+    (values.length - 1)
+  );
+}
+
+
+function statCognitive(
+  values
+) {
+
+  return {
+
+    mean:
+      roundCognitive(
+        avgCognitive(values)
+      ),
+
+    variance:
+      roundCognitive(
+        varCognitive(values)
+      ),
+
+    min:
+      roundCognitive(
+        Math.min.apply(
+          null,
+          values
+        )
+      ),
+
+    max:
+      roundCognitive(
+        Math.max.apply(
+          null,
+          values
+        )
+      )
+  };
+}
+
+
+function avgCognitive(
+  values
+) {
+
+  if (!values.length) {
+    return 0;
+  }
+
+  return (
+    values.reduce(
+      function (a, b) {
+        return a + b;
+      },
+      0
+    ) / values.length
+  );
+}
+
+
+function varCognitive(
+  values
+) {
+
+  if (!values.length) {
+    return 0;
+  }
+
+  const avg =
+    avgCognitive(values);
+
+  return avgCognitive(
+
+    values.map(function (v) {
+
+      const d =
+        v - avg;
+
+      return d * d;
+    })
+  );
+}
+
+
+function hannCognitive(
+  n,
+  length
+) {
+
+  if (length <= 1) {
+    return 1;
+  }
+
+  return 0.5 * (
+
+    1 -
+
+    Math.cos(
+      (
+        2 *
+        Math.PI *
+        n
+      ) /
+      (length - 1)
+    )
+  );
+}
+
+
+function nextPowerOfTwoCognitive(
+  n
+) {
+
+  let p = 1;
+
+  while (p < n) {
+    p *= 2;
+  }
+
+  return p;
+}
+
+
+function roundCognitive(
+  num
+) {
+
+  return Number(
+    Number(num || 0)
+      .toFixed(4)
+  );
+}
+
+
+// ======================================
+// تقرير مرئي
+// ======================================
+
+function renderCognitiveReport(
+  identity
+) {
+
+  console.log(
+    "🧠 الهوية الإدراكية:",
+    identity
+  );
+}
+
+
+// ======================================
+// واجهات عامة
+// ======================================
+
+window.buildPhonemeCognitiveIdentity =
+  buildPhonemeCognitiveIdentity;
+
+window.loadCognitiveIdentity =
+  loadCognitiveIdentity;
+
+window.getStoredAudio =
+  getStoredAudio;
+
+console.log(
+  "✅ phoneme-cognitive-engine.js اكتمل تحميله بالكامل V3"
+);
