@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>غرفة العمليات الصوتية V909 - مختبر الحقائب الإدراكية</title>
+  <title>غرفة العمليات الصوتية V910 - مختبر الحقائب الإدراكية</title>
 
   <meta name="theme-color" content="#111827">
 
@@ -20,7 +20,7 @@
 
   <div id="check-version"
        style="
-         background:#7c2d12;
+         background:#14532d;
          color:white;
          text-align:center;
          padding:14px;
@@ -28,19 +28,15 @@
          font-weight:bold;
          border-bottom:5px solid #facc15;
        ">
-    🧠 V909 — Noorani Cognitive Phoneme Lab
+    🧠 V910 — Noorani Cognitive Phoneme Lab
   </div>
 
   <header class="app-header">
     <h1>🔬 غرفة العمليات الصوتية</h1>
-    <p>النورانية العالمية — مختبر الفصل والتحليل الصوتي</p>
+    <p>النورانية العالمية — مختبر الحقائب الإدراكية والجينوم المركزي</p>
   </header>
 
   <main>
-
-    <!-- ============================= -->
-    <!-- الصفحة الرئيسية -->
-    <!-- ============================= -->
 
     <section id="homeView" class="panel">
 
@@ -58,10 +54,6 @@
     </section>
 
 
-    <!-- ============================= -->
-    <!-- مختبر الحقائب الإدراكية -->
-    <!-- ============================= -->
-
     <section
       id="perceptualTrainingView"
       class="panel"
@@ -71,7 +63,7 @@
       <h2>🧠 مختبر الحقائب الإدراكية</h2>
 
       <p>
-        تدريب الحروف، بناء الذاكرة، بناء الجينوم، واختبار الفصل.
+        تدريب الحروف، بناء الذاكرة، بناء الجينوم، واختبار الفصل الجماعي.
       </p>
 
       <div id="phonemeCardsGrid"></div>
@@ -89,8 +81,7 @@
           text-align:center;
           line-height:1.7;
         "
-      >
-      </div>
+      ></div>
 
       <div
         id="training-success-message"
@@ -104,8 +95,7 @@
           line-height:1.8;
           text-align:center;
         "
-      >
-      </div>
+      ></div>
 
       <button onclick="closePerceptualTrainingView()">
         🏠 العودة للرئيسية
@@ -113,10 +103,6 @@
 
     </section>
 
-
-    <!-- ============================= -->
-    <!-- واجهة التسجيل -->
-    <!-- ============================= -->
 
     <section id="recordView" class="panel" style="display:none;">
 
@@ -217,16 +203,7 @@
   </main>
 
 
-  <!-- ============================= -->
-  <!-- المكتبات -->
-  <!-- ============================= -->
-
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-
-
-  <!-- ============================= -->
-  <!-- ملفات المشروع -->
-  <!-- ============================= -->
 
   <script src="recording-manifest.js"></script>
   <script src="storage.js"></script>
@@ -246,50 +223,38 @@
   <script src="app.js"></script>
 
 
-  <!-- ============================= -->
-  <!-- واجهة الحقائب -->
-  <!-- ============================= -->
-
   <script>
 
     function openPerceptualTrainingView() {
-
       document.getElementById("homeView").style.display = "none";
-
       document.getElementById("recordView").style.display = "none";
-
       document.getElementById("perceptualTrainingView").style.display = "block";
 
       renderPhonemeCards();
+
+      if (typeof renderMatchResultsLog === "function") {
+        renderMatchResultsLog();
+      }
     }
 
 
     function closePerceptualTrainingView() {
-
       document.getElementById("perceptualTrainingView").style.display = "none";
-
       document.getElementById("recordView").style.display = "none";
-
       document.getElementById("homeView").style.display = "block";
     }
 
 
     function testPhonemeColorBinding(phonemeKey) {
-
       if (typeof bindPhonemeToColor !== "function") {
-
         alert("دالة bindPhonemeToColor غير موجودة");
-
         return;
       }
 
-      const result =
-        bindPhonemeToColor(phonemeKey);
+      const result = bindPhonemeToColor(phonemeKey);
 
       if (!result) {
-
         alert("فشل ربط الحرف باللون: " + phonemeKey);
-
         return;
       }
 
@@ -302,55 +267,78 @@
 
 
     function renderPhonemeCards() {
-
-      const grid =
-        document.getElementById("phonemeCardsGrid");
+      const grid = document.getElementById("phonemeCardsGrid");
 
       if (!grid) return;
 
-      if (
-        typeof getAllPhonemeTrainingPacks !== "function"
-      ) {
+      grid.innerHTML = "";
+
+      if (typeof getAllPhonemeTrainingPacks !== "function") {
+        grid.innerHTML = `
+          <div style="
+            background:#7f1d1d;
+            color:white;
+            padding:14px;
+            border-radius:12px;
+            line-height:1.8;
+          ">
+            ⚠️ لم يتم العثور على دالة getAllPhonemeTrainingPacks.
+            <br>
+            راجع ملف phoneme-training-pack.js.
+          </div>
+        `;
         return;
       }
 
-      const packs =
-        getAllPhonemeTrainingPacks();
+      const packs = getAllPhonemeTrainingPacks();
 
-      grid.innerHTML = "";
+      if (!packs || !Object.keys(packs).length) {
+        grid.innerHTML = `
+          <div style="
+            background:#7f1d1d;
+            color:white;
+            padding:14px;
+            border-radius:12px;
+            line-height:1.8;
+          ">
+            ⚠️ لا توجد حقائب إدراكية جاهزة.
+            <br>
+            يجب إنشاء الحروف داخل ملف phoneme-training-pack.js.
+          </div>
+        `;
+        return;
+      }
 
       Object.keys(packs).forEach(function (key) {
+        const pack = packs[key];
 
-        const pack =
-          packs[key];
-
-        const card =
-          document.createElement("div");
+        const card = document.createElement("div");
 
         card.style.background = "#08111f";
         card.style.color = "white";
-        card.style.border =
-          "1px solid " + pack.colorHex;
-
+        card.style.border = "1px solid " + (pack.colorHex || "#334155");
         card.style.borderRadius = "14px";
-
         card.style.padding = "14px";
-
         card.style.margin = "14px 0";
 
         card.innerHTML = `
           <h3 style="
             margin-top:0;
-            color:${pack.colorHex};
+            color:${pack.colorHex || "#38bdf8"};
           ">
-            ${pack.letter} — حقيبة ${pack.name}
+            ${pack.letter || key} — حقيبة ${pack.name || key}
           </h3>
 
           <p>
             اللون الإدراكي:
-            <b style="color:${pack.colorHex};">
-              ${pack.colorName}
+            <b style="color:${pack.colorHex || "#38bdf8"};">
+              ${pack.colorName || "غير محدد"}
             </b>
+          </p>
+
+          <p style="font-size:13px;color:#cbd5e1;">
+            المفتاح البرمجي:
+            <b>${key}</b>
           </p>
 
           <div style="
@@ -359,33 +347,23 @@
             gap:8px;
           ">
 
-            <button
-              onclick="startPerceptualTraining('${key}')"
-            >
+            <button onclick="startPerceptualTraining('${key}')">
               🎙 تدريب
             </button>
 
-            <button
-              onclick="testPhonemeColorBinding('${key}')"
-            >
+            <button onclick="testPhonemeColorBinding('${key}')">
               🎨 اللون
             </button>
 
-            <button
-              onclick="trainPhonemeMemory('${key}')"
-            >
+            <button onclick="trainPhonemeMemory('${key}')">
               🧠 الذاكرة
             </button>
 
-            <button
-              onclick="buildPhonemeCognitiveIdentity('${key}')"
-            >
+            <button onclick="buildPhonemeCognitiveIdentity('${key}')">
               🧬 الجينوم
             </button>
 
-            <button
-              onclick="startPhonemeMatchTest('${key}')"
-            >
+            <button onclick="startPhonemeMatchTest('${key}')">
               🎯 اختبار
             </button>
 
