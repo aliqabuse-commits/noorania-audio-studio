@@ -5,9 +5,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>غرفة العمليات الصوتية V3 - مختبر الفصل الصوتي</title>
+  <title>غرفة العمليات الصوتية V909 - مختبر الحقائب الإدراكية</title>
 
   <meta name="theme-color" content="#111827">
+
   <link rel="stylesheet" href="style.css">
 
   <script src="https://unpkg.com/wavesurfer.js@7"></script>
@@ -18,8 +19,16 @@
 <body>
 
   <div id="check-version"
-       style="background:#7c2d12;color:white;text-align:center;padding:14px;font-size:20px;font-weight:bold;border-bottom:5px solid #facc15;line-height:1.1;">
-    🧠 V908 — Perceptual Memory Training
+       style="
+         background:#7c2d12;
+         color:white;
+         text-align:center;
+         padding:14px;
+         font-size:20px;
+         font-weight:bold;
+         border-bottom:5px solid #facc15;
+       ">
+    🧠 V909 — Noorani Cognitive Phoneme Lab
   </div>
 
   <header class="app-header">
@@ -29,288 +38,258 @@
 
   <main>
 
+    <!-- ============================= -->
+    <!-- الصفحة الرئيسية -->
+    <!-- ============================= -->
+
     <section id="homeView" class="panel">
+
       <h2>القوائم الرئيسية</h2>
 
-      <button onclick="openPerceptualTrainingView()"
-              style="display:block;margin:10px auto;width:90%;">
-        🧠 ذاكرة التدريب الإدراكي
+      <button
+        onclick="openPerceptualTrainingView()"
+        style="display:block;margin:10px auto;width:90%;"
+      >
+        🧠 مختبر الحقائب الإدراكية
       </button>
 
       <div id="categoryList"></div>
+
     </section>
 
-    <section id="perceptualTrainingView" class="panel" style="display:none;">
 
-      <h2>🧠 ذاكرة التدريب الإدراكي</h2>
+    <!-- ============================= -->
+    <!-- مختبر الحقائب الإدراكية -->
+    <!-- ============================= -->
+
+    <section
+      id="perceptualTrainingView"
+      class="panel"
+      style="display:none;"
+    >
+
+      <h2>🧠 مختبر الحقائب الإدراكية</h2>
 
       <p>
-        تدريب النظام على إدراك الحروف وربط الصوت باللون والهوية.
+        تدريب الحروف، بناء الذاكرة، بناء الجينوم، واختبار الفصل.
       </p>
 
-      <div style="background:#08111f;color:white;border:1px solid #00F2FF;border-radius:12px;padding:12px;margin:12px 0;">
+      <div id="phonemeCardsGrid"></div>
 
-        <h3 style="margin-top:0;color:#00F2FF;">
-          🎨 حقيبة الباء الإدراكية
-        </h3>
-
-        <p>
-          اللون الإدراكي:
-          <b style="color:#00F2FF;">Noorani Turquoise — #00F2FF</b>
-        </p>
-
-        <button onclick="startPerceptualTraining('ba')">
-          🎙 تدريب الباء إدراكيًا
-        </button>
-
-        <button onclick="testPhonemeColorBinding('ba')">
-          🎨 اختبار ربط الباء باللون
-        </button>
-
-        <button onclick="trainPhonemeMemory('ba')">
-          🧠 بناء ذاكرة لون الباء
-        </button>
-<button onclick="buildPhonemeCognitiveIdentity('ba')">
-  🧠 بناء الجينوم المركزي للباء
-</button>
-        <button onclick="startPhonemeMatchTest('ba')">
-          🎯 اختبار مطابقة الباء
-        </button>
-
-        <hr style="border-color:#1f2937;margin:20px 0;">
-
-        <h3 style="margin-top:0;color:#0D47A1;">
-          🌌 حقيبة القاف الإدراكية
-        </h3>
-
-        <p>
-          اللون الإدراكي:
-          <b style="color:#0D47A1;">Midnight Blue — #0D47A1</b>
-        </p>
-
-        <button onclick="startPerceptualTraining('qa')">
-          🎙 تدريب القاف إدراكيًا
-        </button>
-
-        <button onclick="testPhonemeColorBinding('qa')">
-          🎨 اختبار ربط القاف باللون
-        </button>
-
-        <button onclick="trainPhonemeMemory('qa')">
-          🧠 بناء ذاكرة لون القاف
-        </button>
-<button onclick="buildPhonemeCognitiveIdentity('qa')">
-  🧠 بناء الجينوم المركزي للقاف
-</button>
-        <button onclick="startPhonemeMatchTest('qa')">
-          🎯 اختبار مطابقة القاف
-        </button>
-
-        <div id="training-rec-status"
-             style="
-               margin-top:12px;
-               background:#111827;
-               color:#00F2FF;
-               padding:10px;
-               border-radius:10px;
-               font-size:14px;
-               display:none;
-               text-align:center;
-               line-height:1.7;
-             ">
-        </div>
-
-        <div id="training-success-message"
-             style="
-               display:none;
-               background:#111827;
-               color:#22c55e;
-               padding:10px;
-               border-radius:10px;
-               margin:12px 0;
-               line-height:1.8;
-               text-align:center;
-             ">
-        </div>
-
-        <button onclick="closePerceptualTrainingView()">
-          🏠 العودة للرئيسية
-        </button>
-
+      <div
+        id="training-rec-status"
+        style="
+          margin-top:12px;
+          background:#111827;
+          color:#00F2FF;
+          padding:10px;
+          border-radius:10px;
+          font-size:14px;
+          display:none;
+          text-align:center;
+          line-height:1.7;
+        "
+      >
       </div>
 
+      <div
+        id="training-success-message"
+        style="
+          display:none;
+          background:#111827;
+          color:#22c55e;
+          padding:10px;
+          border-radius:10px;
+          margin:12px 0;
+          line-height:1.8;
+          text-align:center;
+        "
+      >
+      </div>
+
+      <button onclick="closePerceptualTrainingView()">
+        🏠 العودة للرئيسية
+      </button>
+
     </section>
+
+
+    <!-- ============================= -->
+    <!-- واجهة التسجيل -->
+    <!-- ============================= -->
 
     <section id="recordView" class="panel" style="display:none;">
 
       <div class="unit-card">
 
         <div id="unit">بَ</div>
+
         <p id="filename">ba_fatha.wav</p>
 
-        <div id="analysis-shell"
-             style="background:#000;border-radius:14px;margin:12px 0;padding:10px;border:1px solid #374151;">
+        <div
+          id="analysis-shell"
+          style="
+            background:#000;
+            border-radius:14px;
+            margin:12px 0;
+            padding:10px;
+            border:1px solid #374151;
+          "
+        >
 
-          <div id="waveform-container"
-               style="background:#050505;border-radius:10px;border:1px solid #111827;overflow:auto;min-height:140px;">
+          <div
+            id="waveform-container"
+            style="
+              background:#050505;
+              border-radius:10px;
+              border:1px solid #111827;
+              overflow:auto;
+              min-height:140px;
+            "
+          >
             <div id="waveform" style="min-height:140px;"></div>
           </div>
 
-          <div id="spectrogram-container"
-               style="background:#050505;border-radius:10px;border:1px solid #111827;margin-top:8px;overflow:auto;min-height:220px;">
+          <div
+            id="spectrogram-container"
+            style="
+              background:#050505;
+              border-radius:10px;
+              border:1px solid #111827;
+              margin-top:8px;
+              overflow:auto;
+              min-height:220px;
+            "
+          >
             <div id="spectrogram" style="min-height:220px;"></div>
           </div>
 
         </div>
 
-        <div id="genome-display"
-             style="display:flex;justify-content:space-between;align-items:stretch;gap:4px;margin:8px 0;direction:ltr;unicode-bidi:isolate;overflow:hidden;">
-
-          <div class="coord-box" style="flex:1;min-width:0;background:#1f2937;border-radius:8px;padding:5px 2px;text-align:center;border-top:3px solid #94a3b8;">
-            <div style="color:#94a3b8;font-size:8px;font-weight:bold;">PRE</div>
-            <div id="val-preCarrier" style="color:white;font-size:7px;white-space:nowrap;">0.000 ⟶ 0.000</div>
-          </div>
-
-          <div class="coord-box" style="flex:1;min-width:0;background:#1f2937;border-radius:8px;padding:5px 2px;text-align:center;border-top:3px solid #facc15;">
-            <div style="color:#facc15;font-size:8px;font-weight:bold;">CARRIER</div>
-            <div id="val-carrier" style="color:white;font-size:7px;white-space:nowrap;">0.000 ⟶ 0.000</div>
-          </div>
-
-          <div class="coord-box" style="flex:1;min-width:0;background:#1f2937;border-radius:8px;padding:5px 2px;text-align:center;border-top:3px solid #00f2ff;">
-            <div style="color:#00f2ff;font-size:8px;font-weight:bold;">PAYLOAD</div>
-            <div id="val-payload" style="color:white;font-size:7px;white-space:nowrap;">0.000 ⟶ 0.000</div>
-          </div>
-
-          <div class="coord-box" style="flex:1;min-width:0;background:#1f2937;border-radius:8px;padding:5px 2px;text-align:center;border-top:3px solid #f87171;">
-            <div style="color:#f87171;font-size:8px;font-weight:bold;">TAIL</div>
-            <div id="val-tail" style="color:white;font-size:7px;white-space:nowrap;">0.000 ⟶ 0.000</div>
-          </div>
-
-        </div>
-
-        <div id="coords-display"
-             style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;font-size:10px;color:#9ca3af;margin:6px 0;line-height:1.1;">
-
-          <div class="coord-box">
-            بداية:
-            <span id="val-x" style="color:#00f2ff">0.00</span>
-          </div>
-
-          <div class="coord-box">
-            المحمول:
-            <span id="val-y" style="color:#00f2ff">0.00</span>
-          </div>
-
-          <div class="coord-box">
-            الذيل:
-            <span id="val-z" style="color:#00f2ff">0.00</span>
-          </div>
-
-        </div>
-
-        <p id="counter" style="margin:4px 0 0;">1 / 6</p>
+        <p id="counter">1 / 6</p>
 
       </div>
 
       <div class="controls" style="gap:6px;">
-        <button id="recordBtn" onclick="toggleRecording()">🎙 تسجيل</button>
-        <button onclick="playRaw()">▶ استماع التسجيل</button>
-        <button onclick="playPayloadOnly()">▶ تشغيل المحمول فقط</button>
 
-        <button onclick="runBaCommonPayloadTest()">🧠 اكتشاف باء مشتركة</button>
-        <button onclick="runPhonemeIdentityEngine()">🧬 بناء هوية الباء</button>
-        <button onclick="runBurstSignatureEngine()">💥 استخراج انفجار الباء</button>
-        <button onclick="runSpectralSealEngine()">🌈 بناء الختم الطيفي للباء</button>
-        <button onclick="runBaaIdentityMatchEngine()">🎯 مطابقة هوية الباء</button>
-        <button onclick="runCorePurifierEngine()">🧬 تنقية النواة المشتركة</button>
-        <button onclick="runPayloadExtractorEngine()">🚀 استخراج المحمول الحقيقي</button>
-        <button onclick="runBurstOnsetEngine()">🔥 كشف بداية الانفجار</button>
-        <button onclick="runPayloadLockEngine()">🎯 تثبيت المحمول الحقيقي</button>
-        <button onclick="runPayloadPurifierEngine()">🧼 تنظيف المحمول</button>
-        <button onclick="runBaFinalIdentityEngine()">🧾 تثبيت الهوية النهائية للباء</button>
-        <button onclick="playPurifiedPayload()">▶️ تشغيل المحمول المنظف</button>
+        <button id="recordBtn" onclick="toggleRecording()">
+          🎙 تسجيل
+        </button>
 
-        <button class="approve" onclick="approveAndNext()">اعتماد وحفظ</button>
-        <button onclick="prevUnit()">⬅ السابق</button>
-        <button onclick="nextUnit()">اللاحق ➡</button>
+        <button onclick="playRaw()">
+          ▶ استماع التسجيل
+        </button>
+
+        <button onclick="approveAndNext()">
+          ✅ اعتماد وحفظ
+        </button>
+
+        <button onclick="prevUnit()">
+          ⬅ السابق
+        </button>
+
+        <button onclick="nextUnit()">
+          ➡ اللاحق
+        </button>
+
       </div>
 
       <div class="secondary-controls">
-        <button onclick="goHome()">🏠 الرئيسية</button>
-        <button onclick="exportApproved()">📦 تصدير</button>
-      </div>
 
-      <div id="common-payload-report"
-           style="display:none;background:#111827;color:white;border:1px solid #374151;border-radius:12px;padding:12px;margin:12px 0;text-align:right;">
+        <button onclick="goHome()">
+          🏠 الرئيسية
+        </button>
 
-        <h3 style="margin-top:0;">🧠 تقرير كاشف المحمول المشترك</h3>
-
-        <div id="common-report-summary"
-             style="font-size:13px;color:#cbd5e1;margin-bottom:10px;line-height:1.7;">
-        </div>
-
-        <div id="common-report-table"></div>
+        <button onclick="exportApproved()">
+          📦 تصدير
+        </button>
 
       </div>
 
       <hr>
 
       <h3>قائمة الوحدات</h3>
+
       <div id="unitList"></div>
 
     </section>
 
   </main>
 
+
+  <!-- ============================= -->
+  <!-- المكتبات -->
+  <!-- ============================= -->
+
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+
+  <!-- ============================= -->
+  <!-- ملفات المشروع -->
+  <!-- ============================= -->
 
   <script src="recording-manifest.js"></script>
   <script src="storage.js"></script>
   <script src="audio-lab.js"></script>
 
-  <script src="common-payload-finder.js"></script>
-  <script src="phoneme-identity-engine.js"></script>
-  <script src="burst-signature-engine.js"></script>
-  <script src="spectral-seal-engine.js"></script>
-  <script src="baa-identity-match-engine.js"></script>
-  <script src="core-purifier-engine.js"></script>
-  <script src="payload-extractor-engine.js"></script>
-  <script src="burst-onset-engine.js"></script>
-  <script src="payload-lock-engine.js"></script>
-  <script src="payload-purifier-engine.js"></script>
-  <script src="ba-final-identity-engine.js"></script>
-
   <script src="phoneme-colors.js"></script>
-  <script src="phoneme-color-memory.js"></script>
+
   <script src="phoneme-training-pack.js"></script>
+  <script src="phoneme-color-memory.js"></script>
+
   <script src="training-recorder.js"></script>
   <script src="phoneme-memory-trainer.js"></script>
-<script src="phoneme-cognitive-engine.js"></script>
-<script src="phoneme-match-engine.js"></script>
-<script src="app.js"></script>
+
+  <script src="phoneme-cognitive-engine.js"></script>
+  <script src="phoneme-match-engine.js"></script>
+
+  <script src="app.js"></script>
+
+
+  <!-- ============================= -->
+  <!-- واجهة الحقائب -->
+  <!-- ============================= -->
+
   <script>
+
     function openPerceptualTrainingView() {
+
       document.getElementById("homeView").style.display = "none";
+
       document.getElementById("recordView").style.display = "none";
+
       document.getElementById("perceptualTrainingView").style.display = "block";
+
+      renderPhonemeCards();
     }
 
+
     function closePerceptualTrainingView() {
+
       document.getElementById("perceptualTrainingView").style.display = "none";
+
       document.getElementById("recordView").style.display = "none";
+
       document.getElementById("homeView").style.display = "block";
     }
 
+
     function testPhonemeColorBinding(phonemeKey) {
+
       if (typeof bindPhonemeToColor !== "function") {
+
         alert("دالة bindPhonemeToColor غير موجودة");
+
         return;
       }
 
-      const result = bindPhonemeToColor(phonemeKey);
+      const result =
+        bindPhonemeToColor(phonemeKey);
 
       if (!result) {
+
         alert("فشل ربط الحرف باللون: " + phonemeKey);
+
         return;
       }
 
@@ -320,6 +299,103 @@
         "HEX: " + result.hex
       );
     }
+
+
+    function renderPhonemeCards() {
+
+      const grid =
+        document.getElementById("phonemeCardsGrid");
+
+      if (!grid) return;
+
+      if (
+        typeof getAllPhonemeTrainingPacks !== "function"
+      ) {
+        return;
+      }
+
+      const packs =
+        getAllPhonemeTrainingPacks();
+
+      grid.innerHTML = "";
+
+      Object.keys(packs).forEach(function (key) {
+
+        const pack =
+          packs[key];
+
+        const card =
+          document.createElement("div");
+
+        card.style.background = "#08111f";
+        card.style.color = "white";
+        card.style.border =
+          "1px solid " + pack.colorHex;
+
+        card.style.borderRadius = "14px";
+
+        card.style.padding = "14px";
+
+        card.style.margin = "14px 0";
+
+        card.innerHTML = `
+          <h3 style="
+            margin-top:0;
+            color:${pack.colorHex};
+          ">
+            ${pack.letter} — حقيبة ${pack.name}
+          </h3>
+
+          <p>
+            اللون الإدراكي:
+            <b style="color:${pack.colorHex};">
+              ${pack.colorName}
+            </b>
+          </p>
+
+          <div style="
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+          ">
+
+            <button
+              onclick="startPerceptualTraining('${key}')"
+            >
+              🎙 تدريب
+            </button>
+
+            <button
+              onclick="testPhonemeColorBinding('${key}')"
+            >
+              🎨 اللون
+            </button>
+
+            <button
+              onclick="trainPhonemeMemory('${key}')"
+            >
+              🧠 الذاكرة
+            </button>
+
+            <button
+              onclick="buildPhonemeCognitiveIdentity('${key}')"
+            >
+              🧬 الجينوم
+            </button>
+
+            <button
+              onclick="startPhonemeMatchTest('${key}')"
+            >
+              🎯 اختبار
+            </button>
+
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
   </script>
 
 </body>
