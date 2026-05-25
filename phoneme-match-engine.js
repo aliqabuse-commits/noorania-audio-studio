@@ -1,6 +1,6 @@
 // ================================
 // phoneme-match-engine.js
-// محرك الفصل بالجِينوم المركزي — V3.3
+// محرك الفصل بالجِينوم المركزي — 
 // ملتزم بمرجع المسميات السيادي
 // ================================
 
@@ -443,8 +443,10 @@ function renderMatchResultsLog() {
   }
 
   results.forEach(function (r, index) {
-    const ok = r.actualKey === r.detectedKey;
-
+    const ok =
+  r.actualKey &&
+  r.detectedKey &&
+  r.actualKey === r.detectedKey;
     const finalResult =
       ok ? "✅ صحيح" : "❌ خطأ";
 
@@ -457,8 +459,8 @@ function renderMatchResultsLog() {
         border-left:5px solid ${ok ? "#22c55e" : "#ef4444"};
       ">
         <div>#${index + 1}</div>
-        <div>زر الاختبار: <b>${r.buttonKey}</b></div>
-        <div>المنطوق فعليًا: <b>${r.actualKey}</b></div>
+        <div>زر الاختبار: <b>${r.buttonKey || "غير محدد"}</b></div>
+<div>المنطوق فعليًا: <b>${r.actualKey || "غير محدد"}</b></div>
         <div>المكتشف: <b>${r.detectedLabel}</b></div>
         <div>النتيجة: <b>${finalResult}</b></div>
         <div>هامش الفصل: <b>${r.margin}</b></div>
@@ -492,4 +494,4 @@ function renderMatchResultsLog() {
   });
 }
 
-console.log("🎯 محرك الفصل بالجِينوم المركزي جاهز V3.3");
+console.log("🎯 محرك الفصل بالجِينوم المركزي جاهز ");
