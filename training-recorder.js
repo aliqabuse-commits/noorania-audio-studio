@@ -1,9 +1,9 @@
 // ================================
 // training-recorder.js
-// مسجل التدريب الإدراكي للحروف — v3
+// مسجل التدريب الإدراكي للحروف — 
 // ================================
 
-console.log("🎙 training-recorder.js جاهز V3");
+console.log("🎙 training-recorder.js جاهز ");
 
 let perceptualTrainingRecorder = null;
 let perceptualTrainingStream = null;
@@ -386,4 +386,4 @@ function stopTrainingStream() {
 }
 
 
-console.log("🎙 مسجل التدريب الإدراكي جاهز V3");
+console.log("🎙 مسجل التدريب الإدراكي جاهز ");
