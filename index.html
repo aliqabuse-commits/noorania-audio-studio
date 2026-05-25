@@ -266,113 +266,158 @@
 
 
     function renderPhonemeCards() {
-      const grid = document.getElementById("phonemeCardsGrid");
+  const grid = document.getElementById("phonemeCardsGrid");
 
-      if (!grid) return;
+  if (!grid) return;
 
-      grid.innerHTML = "";
+  grid.innerHTML = "";
 
-      if (typeof getAllPhonemeTrainingPacks !== "function") {
-        grid.innerHTML = `
-          <div style="
-            background:#7f1d1d;
-            color:white;
-            padding:14px;
-            border-radius:12px;
-            line-height:1.8;
-          ">
-            ⚠️ لم يتم العثور على دالة getAllPhonemeTrainingPacks.
-            <br>
-            راجع ملف phoneme-training-pack.js.
-          </div>
-        `;
-        return;
-      }
+  if (typeof getAllPhonemeTrainingPacks !== "function") {
+    grid.innerHTML = `
+      <div style="
+        background:#7f1d1d;
+        color:white;
+        padding:14px;
+        border-radius:12px;
+        line-height:1.8;
+      ">
+        ⚠️ لم يتم العثور على دالة getAllPhonemeTrainingPacks.
+        <br>
+        راجع ملف phoneme-training-pack.js.
+      </div>
+    `;
+    return;
+  }
 
-      const packs = getAllPhonemeTrainingPacks();
+  const packs = getAllPhonemeTrainingPacks();
 
-      if (!packs || !Object.keys(packs).length) {
-        grid.innerHTML = `
-          <div style="
-            background:#7f1d1d;
-            color:white;
-            padding:14px;
-            border-radius:12px;
-            line-height:1.8;
-          ">
-            ⚠️ لا توجد حقائب إدراكية جاهزة.
-            <br>
-            يجب إنشاء الحروف داخل ملف phoneme-training-pack.js.
-          </div>
-        `;
-        return;
-      }
+  if (!packs || !Object.keys(packs).length) {
+    grid.innerHTML = `
+      <div style="
+        background:#7f1d1d;
+        color:white;
+        padding:14px;
+        border-radius:12px;
+        line-height:1.8;
+      ">
+        ⚠️ لا توجد حقائب إدراكية جاهزة.
+      </div>
+    `;
+    return;
+  }
 
-      Object.keys(packs).forEach(function (key) {
-        const pack = packs[key];
+  grid.innerHTML = `
+    <h3 style="text-align:center;margin:10px 0 18px;">
+      اختر الحقيبة الإدراكية
+    </h3>
+  `;
 
-        const card = document.createElement("div");
+  Object.keys(packs).forEach(function (key) {
+    const pack = packs[key];
 
-        card.style.background = "#08111f";
-        card.style.color = "white";
-        card.style.border = "1px solid " + (pack.colorHex || "#334155");
-        card.style.borderRadius = "14px";
-        card.style.padding = "14px";
-        card.style.margin = "14px 0";
+    const card = document.createElement("button");
 
-        card.innerHTML = `
-          <h3 style="
-            margin-top:0;
-            color:${pack.colorHex || "#38bdf8"};
-          ">
-            ${pack.letter || key} — حقيبة ${pack.name || key}
-          </h3>
+    card.style.display = "block";
+    card.style.width = "90%";
+    card.style.margin = "12px auto";
+    card.style.padding = "18px";
+    card.style.borderRadius = "18px";
+    card.style.border = "2px solid " + (pack.colorHex || "#334155");
+    card.style.background = "#08111f";
+    card.style.color = pack.colorHex || "#ffffff";
+    card.style.fontSize = "24px";
+    card.style.fontWeight = "bold";
 
-          <p>
-            اللون الإدراكي:
-            <b style="color:${pack.colorHex || "#38bdf8"};">
-              ${pack.colorName || "غير محدد"}
-            </b>
-          </p>
+    card.innerHTML =
+      "حقيبة " + pack.letter +
+      "<br>" +
+      "<span style='font-size:14px;color:#cbd5e1;'>" +
+      pack.name +
+      " — " +
+      key +
+      "</span>";
 
-          <p style="font-size:13px;color:#cbd5e1;">
-            المفتاح البرمجي:
-            <b>${key}</b>
-          </p>
+    card.onclick = function () {
+      renderPhonemeBagDetails(key, pack);
+    };
 
-          <div style="
-            display:flex;
-            flex-wrap:wrap;
-            gap:8px;
-          ">
+    grid.appendChild(card);
+  });
+}
+    function renderPhonemeBagDetails(key, pack) {
+  const grid = document.getElementById("phonemeCardsGrid");
 
-            <button onclick="startPerceptualTraining('${key}')">
-              🎙 تدريب
-            </button>
+  if (!grid) return;
 
-            <button onclick="testPhonemeColorBinding('${key}')">
-              🎨 اللون
-            </button>
+  grid.innerHTML = `
+    <div style="
+      background:#08111f;
+      color:white;
+      border:2px solid ${pack.colorHex || "#334155"};
+      border-radius:18px;
+      padding:18px;
+      margin:12px 0;
+      text-align:center;
+    ">
 
-            <button onclick="trainPhonemeMemory('${key}')">
-              🧠 الذاكرة
-            </button>
+      <h2 style="
+        color:${pack.colorHex || "#38bdf8"};
+        margin-top:0;
+      ">
+        ${pack.letter} — حقيبة ${pack.name}
+      </h2>
 
-            <button onclick="buildPhonemeCognitiveIdentity('${key}')">
-              🧬 الجينوم
-            </button>
+      <p>
+        اللون الإدراكي:
+        <b style="color:${pack.colorHex || "#38bdf8"};">
+          ${pack.colorName || "غير محدد"}
+        </b>
+      </p>
 
-            <button onclick="startPhonemeMatchTest('${key}')">
-              🎯 اختبار
-            </button>
+      <p style="font-size:14px;color:#cbd5e1;">
+        المفتاح البرمجي:
+        <b>${key}</b>
+      </p>
 
-          </div>
-        `;
+      <div style="
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+        justify-content:center;
+        margin-top:18px;
+      ">
 
-        grid.appendChild(card);
-      });
-    }
+        <button onclick="startPerceptualTraining('${key}')">
+          🎙 تدريب
+        </button>
 
+        <button onclick="testPhonemeColorBinding('${key}')">
+          🎨 اللون
+        </button>
+
+        <button onclick="trainPhonemeMemory('${key}')">
+          🧠 الذاكرة
+        </button>
+
+        <button onclick="buildPhonemeCognitiveIdentity('${key}')">
+          🧬 الجينوم
+        </button>
+
+        <button onclick="startPhonemeMatchTest('${key}')">
+          🎯 اختبار
+        </button>
+
+      </div>
+
+      <hr style="border-color:#1f2937;margin:18px 0;">
+
+      <button onclick="renderPhonemeCards()">
+        🔙 العودة إلى الحقائب
+      </button>
+
+    </div>
+  `;
+}
   </script>
 
 </body>
