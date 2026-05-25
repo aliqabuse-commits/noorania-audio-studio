@@ -414,8 +414,70 @@ function buildCognitiveGenome(units) {
 // تقرير مرئي مختصر
 // ======================================
 
-https://github.com/aliqabuse-commits/noorania-audio-studio/blob/71187cea175f2250584aa6da7a1bf93d1f804743/phoneme-cognitive-engine.js#L417
+function renderCognitiveReport(identity) {
+  const target =
+    document.getElementById("match-results-log-box");
 
+  if (!target) {
+    alert("افتح الحقيبة أولًا حتى يظهر تقرير الجينوم داخلها.");
+    return;
+  }
+
+  let box =
+    document.getElementById("cognitive-report-box");
+
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "cognitive-report-box";
+    target.appendChild(box);
+  }
+
+  box.style.background = "#08111f";
+  box.style.color = "white";
+  box.style.borderRadius = "14px";
+  box.style.padding = "14px";
+  box.style.margin = "12px 0";
+  box.style.border =
+    "1px solid " + (identity.color?.hex || "#38BDF8");
+
+  const g = identity.genome;
+
+  box.innerHTML = `
+    <h3 style="color:${identity.color.hex};margin-top:0;">
+      🧠 الجينوم الإدراكي المركزي لحرف ${identity.label}
+    </h3>
+
+    <div>الحرف: <b>${identity.phoneme}</b></div>
+    <div>المفتاح: <b>${identity.phonemeKey}</b></div>
+    <div>اللون: <b style="color:${identity.color.hex};">${identity.color.name}</b></div>
+
+    <hr style="border-color:#1f2937;">
+
+    <div>متوسط الطاقة: <b>${g.energy.mean}</b></div>
+    <div>متوسط الطيف: <b>${g.centroid.mean} Hz</b></div>
+    <div>اتساع الطيف: <b>${g.spread.mean}</b></div>
+    <div>الحركة الطيفية: <b>${g.spectralMovement.mean}</b></div>
+    <div>حركة الطاقة: <b>${g.energyMovement.mean}</b></div>
+    <div>طاقة الانفجار: <b>${g.burstEnergy.mean}</b></div>
+
+    <hr style="border-color:#1f2937;">
+
+    <div style="font-size:13px;color:#cbd5e1;">
+      هذا التقرير لا يصف رقمًا واحدًا للحرف، بل يصف مسارًا زمنيًا وسلوكيًا مركبًا.
+    </div>
+  `;
+
+  const chart = renderTimelineChart(identity);
+  box.appendChild(chart);
+
+  const multiChart = renderMultiLayerTimelineChart(identity);
+  box.appendChild(multiChart);
+
+  box.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+}
 // ======================================
 // أدوات رياضية
 // ======================================
