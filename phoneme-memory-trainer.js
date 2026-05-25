@@ -1,15 +1,10 @@
 // ================================
 // phoneme-memory-trainer.js
-// مدرب الذاكرة الإدراكية اللونية للحروف — V3
+// مدرب الذاكرة الإدراكية اللونية للحروف
 // ملتزم بمرجع المسميات السيادي
 // ================================
 
-console.log("🎨 phoneme-memory-trainer.js جاهز V3");
-
-
-// ======================================
-// تشغيل تدريب ذاكرة حرف
-// ======================================
+console.log("🎨 phoneme-memory-trainer.js جاهز");
 
 async function trainPhonemeMemory(phonemeKey) {
   try {
@@ -32,11 +27,7 @@ async function trainPhonemeMemory(phonemeKey) {
 
     const units = pack && pack.positions
       ? pack.positions.map(function (p) {
-          return {
-            text: p.text,
-            file: p.file,
-            role: p.role
-          };
+          return { text: p.text, file: p.file, role: p.role };
         })
       : memory.trainingUnits;
 
@@ -52,31 +43,18 @@ async function trainPhonemeMemory(phonemeKey) {
       return;
     }
 
-    showPhonemeTrainingLoading(
-      "جاري بناء ذاكرة لون " + memory.label + "..."
-    );
+    showPhonemeTrainingLoading("جاري بناء ذاكرة لون " + memory.label + "...");
 
     const samples = [];
 
     for (const unit of units) {
-      console.log("🔍 قراءة ملف التدريب:", unit.file);
-
       const blob = await getAudioPromiseForMemory(unit.file);
-
-      console.log("📦 نتيجة الملف:", unit.file, blob);
 
       if (!blob) {
         throw new Error("الصوت غير موجود: " + unit.file);
       }
 
       const decoded = await decodeBlobToMonoForMemory(blob);
-
-      console.log(
-        "✅ تم فك الصوت:",
-        unit.file,
-        decoded.sampleRate,
-        decoded.samples.length
-      );
 
       const features = extractPerceptualFeatures(
         decoded.samples,
@@ -104,27 +82,22 @@ async function trainPhonemeMemory(phonemeKey) {
     hidePhonemeTrainingLoading();
 
     alert(
-      "تم بناء ذاكرة لون " + memory.label + "\n" +
-      "اللون: " + memory.color.name + "\n" +
-      "الثقة الإدراكية: " + identity.confidence.toFixed(4)
+      "تم بناء ذاكرة لون " +
+      memory.label +
+      "\n" +
+      "اللون: " +
+      memory.color.name +
+      "\n" +
+      "الثقة الإدراكية: " +
+      identity.confidence.toFixed(4)
     );
 
   } catch (err) {
     hidePhonemeTrainingLoading();
-
     console.error("❌ فشل تدريب الذاكرة الإدراكية", err);
-
-    alert(
-      "فشل تدريب الذاكرة الإدراكية:\n" +
-      err.message
-    );
+    alert("فشل تدريب الذاكرة الإدراكية:\n" + err.message);
   }
 }
-
-
-// ======================================
-// فحص ملفات التدريب قبل البناء
-// ======================================
 
 async function findMissingTrainingFiles(units) {
   const missing = [];
@@ -139,11 +112,6 @@ async function findMissingTrainingFiles(units) {
 
   return missing;
 }
-
-
-// ======================================
-// بناء الهوية الإدراكية
-// ======================================
 
 function buildPerceptualIdentity(memory, samples) {
   const centroidValues = [];
@@ -163,12 +131,16 @@ function buildPerceptualIdentity(memory, samples) {
   });
 
   return {
-    method: "Phoneme Color Memory Trainer V3",
+    method: "Phoneme Color Memory Trainer",
 
-    phonemeKey: memory.key || memory.phonemeKey || memory.label || memory.phoneme,
+    phonemeKey:
+      memory.key ||
+      memory.phonemeKey ||
+      memory.label ||
+      memory.phoneme,
+
     phoneme: memory.phoneme,
     label: memory.label,
-
     color: memory.color,
 
     trainingUnits: samples.map(function (s) {
@@ -221,15 +193,9 @@ function buildPerceptualIdentity(memory, samples) {
     }),
 
     concept: memory.concept,
-
     createdAt: new Date().toISOString()
   };
 }
-
-
-// ======================================
-// استخراج السمات الإدراكية
-// ======================================
 
 function extractPerceptualFeatures(samples, sampleRate) {
   const active = detectMemoryActiveRange(samples);
@@ -256,11 +222,6 @@ function extractPerceptualFeatures(samples, sampleRate) {
     burstiness
   };
 }
-
-
-// ======================================
-// تحديد الجزء النشط
-// ======================================
 
 function detectMemoryActiveRange(samples) {
   const frameSize = 512;
@@ -311,11 +272,6 @@ function detectMemoryActiveRange(samples) {
   };
 }
 
-
-// ======================================
-// طيف مبسط
-// ======================================
-
 function memorySpectrum(segment, sampleRate) {
   const size = nextPowerOfTwoMemory(segment.length);
   const spectrum = [];
@@ -341,7 +297,6 @@ function memorySpectrum(segment, sampleRate) {
   return spectrum;
 }
 
-
 function memorySpectralCentroid(spectrum) {
   let weighted = 0;
   let total = 0;
@@ -353,7 +308,6 @@ function memorySpectralCentroid(spectrum) {
 
   return total ? weighted / total : 0;
 }
-
 
 function memorySpectralSpread(spectrum, centroid) {
   let weighted = 0;
@@ -367,11 +321,6 @@ function memorySpectralSpread(spectrum, centroid) {
 
   return total ? Math.sqrt(weighted / total) : 0;
 }
-
-
-// ======================================
-// قياس الانفجارية
-// ======================================
 
 function calcMemoryBurstiness(samples, sampleRate) {
   const frameSize = Math.floor(sampleRate * 0.010);
@@ -402,11 +351,6 @@ function calcMemoryBurstiness(samples, sampleRate) {
   return avgEnergy ? maxRise / avgEnergy : 0;
 }
 
-
-// ======================================
-// ثقة الإدراك
-// ======================================
-
 function calcPerceptualConfidence(values) {
   const centroidScore =
     1 / (1 + varianceMemory(values.centroidValues) / 100000);
@@ -432,32 +376,31 @@ function calcPerceptualConfidence(values) {
   );
 }
 
-
-// ======================================
-// تقرير الذاكرة الإدراكية
-// ======================================
-
 function renderPhonemeMemoryReport(identity) {
-  let box = document.getElementById("phoneme-memory-report-box");
+  const target =
+    document.getElementById("match-results-log-box");
+
+  if (!target) {
+    alert("افتح الحقيبة أولًا حتى يظهر تقرير الذاكرة داخلها.");
+    return;
+  }
+
+  let box =
+    document.getElementById("phoneme-memory-report-box");
 
   if (!box) {
     box = document.createElement("div");
     box.id = "phoneme-memory-report-box";
-    box.style.background = "#08111f";
-    box.style.color = "white";
-    box.style.padding = "14px";
-    box.style.margin = "12px 0";
-    box.style.borderRadius = "14px";
-    box.style.fontSize = "13px";
-    box.style.border = "1px solid " + identity.color.hex;
-
-    const target =
-      document.getElementById("perceptualTrainingView") ||
-      document.getElementById("unitList") ||
-      document.body;
-
     target.appendChild(box);
   }
+
+  box.style.background = "#08111f";
+  box.style.color = "white";
+  box.style.padding = "14px";
+  box.style.margin = "12px 0";
+  box.style.borderRadius = "14px";
+  box.style.fontSize = "13px";
+  box.style.border = "1px solid " + identity.color.hex;
 
   box.innerHTML = `
     <div style="
@@ -519,11 +462,6 @@ function renderPhonemeMemoryReport(identity) {
   });
 }
 
-
-// ======================================
-// قراءة الصوت مع منع التعليق
-// ======================================
-
 function getAudioPromiseForMemory(key, timeoutMs) {
   timeoutMs = timeoutMs || 3000;
 
@@ -563,7 +501,6 @@ function getAudioPromiseForMemory(key, timeoutMs) {
   });
 }
 
-
 function getTrainingAudioFromLocalStorage(fileName) {
   const dataUrl =
     localStorage.getItem("audio_" + fileName) ||
@@ -579,7 +516,6 @@ function getTrainingAudioFromLocalStorage(fileName) {
 
   return dataUrlToBlobMemory(dataUrl);
 }
-
 
 function dataUrlToBlobMemory(dataUrl) {
   const parts = dataUrl.split(",");
@@ -600,7 +536,6 @@ function dataUrlToBlobMemory(dataUrl) {
   return new Blob([bytes], { type: mime });
 }
 
-
 async function decodeBlobToMonoForMemory(blob) {
   const arrayBuffer = await blob.arrayBuffer();
 
@@ -616,11 +551,6 @@ async function decodeBlobToMonoForMemory(blob) {
     sampleRate: audioBuffer.sampleRate
   };
 }
-
-
-// ======================================
-// شاشة انتظار
-// ======================================
 
 function showPhonemeTrainingLoading(text) {
   let box = document.getElementById("global-loading");
@@ -650,7 +580,6 @@ function showPhonemeTrainingLoading(text) {
   box.style.display = "flex";
 }
 
-
 function hidePhonemeTrainingLoading() {
   const box = document.getElementById("global-loading");
 
@@ -658,11 +587,6 @@ function hidePhonemeTrainingLoading() {
     box.style.display = "none";
   }
 }
-
-
-// ======================================
-// أدوات رياضية
-// ======================================
 
 function calcMemoryRms(frame) {
   if (!frame.length) return 0;
@@ -675,7 +599,6 @@ function calcMemoryRms(frame) {
 
   return Math.sqrt(sum / frame.length);
 }
-
 
 function calcMemoryZcr(frame) {
   if (!frame.length) return 0;
@@ -694,7 +617,6 @@ function calcMemoryZcr(frame) {
   return count / frame.length;
 }
 
-
 function averageMemory(arr) {
   if (!arr.length) return 0;
 
@@ -702,7 +624,6 @@ function averageMemory(arr) {
     return a + b;
   }, 0) / arr.length;
 }
-
 
 function varianceMemory(arr) {
   if (!arr.length) return 0;
@@ -717,7 +638,6 @@ function varianceMemory(arr) {
   );
 }
 
-
 function hannMemory(n, length) {
   if (length <= 1) return 1;
 
@@ -730,7 +650,6 @@ function hannMemory(n, length) {
   );
 }
 
-
 function nextPowerOfTwoMemory(n) {
   let p = 1;
 
@@ -741,10 +660,8 @@ function nextPowerOfTwoMemory(n) {
   return p;
 }
 
-
 function roundMemory(num) {
   return Number(Number(num || 0).toFixed(4));
 }
 
-
-console.log("🎨 مدرب الذاكرة الإدراكية جاهز V3");
+console.log("🎨 مدرب الذاكرة الإدراكية جاهز");
