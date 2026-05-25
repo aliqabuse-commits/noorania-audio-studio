@@ -304,120 +304,223 @@
       </div>
     `;
     return;
+<script>
+
+  function openPerceptualTrainingView() {
+    document.getElementById("homeView").style.display = "none";
+    document.getElementById("recordView").style.display = "none";
+    document.getElementById("perceptualTrainingView").style.display = "block";
+
+    renderPhonemeCards();
   }
 
-  grid.innerHTML = `
-    <h3 style="text-align:center;margin:10px 0 18px;">
-      اختر الحقيبة الإدراكية
-    </h3>
-  `;
 
-  Object.keys(packs).forEach(function (key) {
-    const pack = packs[key];
+  function closePerceptualTrainingView() {
+    document.getElementById("perceptualTrainingView").style.display = "none";
+    document.getElementById("recordView").style.display = "none";
+    document.getElementById("homeView").style.display = "block";
+  }
 
-    const card = document.createElement("button");
 
-    card.style.display = "block";
-    card.style.width = "90%";
-    card.style.margin = "12px auto";
-    card.style.padding = "18px";
-    card.style.borderRadius = "18px";
-    card.style.border = "2px solid " + (pack.colorHex || "#334155");
-    card.style.background = "#08111f";
-    card.style.color = pack.colorHex || "#ffffff";
-    card.style.fontSize = "24px";
-    card.style.fontWeight = "bold";
+  function testPhonemeColorBinding(phonemeKey) {
+    if (typeof bindPhonemeToColor !== "function") {
+      alert("دالة bindPhonemeToColor غير موجودة");
+      return;
+    }
 
-    card.innerHTML =
-      "حقيبة " + pack.letter +
-      "<br>" +
-      "<span style='font-size:14px;color:#cbd5e1;'>" +
-      pack.name +
-      " — " +
-      key +
-      "</span>";
+    const result = bindPhonemeToColor(phonemeKey);
 
-    card.onclick = function () {
-      renderPhonemeBagDetails(key, pack);
-    };
+    if (!result) {
+      alert("فشل ربط الحرف باللون: " + phonemeKey);
+      return;
+    }
 
-    grid.appendChild(card);
-  });
-}
-    function renderPhonemeBagDetails(key, pack) {
-  const grid = document.getElementById("phonemeCardsGrid");
+    alert(
+      "الحرف: " + result.letter + "\n" +
+      "اللون: " + result.colorName + "\n" +
+      "HEX: " + result.hex
+    );
+  }
 
-  if (!grid) return;
 
-  grid.innerHTML = `
-    <div style="
-      background:#08111f;
-      color:white;
-      border:2px solid ${pack.colorHex || "#334155"};
-      border-radius:18px;
-      padding:18px;
-      margin:12px 0;
-      text-align:center;
-    ">
+  function renderPhonemeCards() {
 
-      <h2 style="
-        color:${pack.colorHex || "#38bdf8"};
-        margin-top:0;
+    const grid = document.getElementById("phonemeCardsGrid");
+
+    if (!grid) return;
+
+    grid.innerHTML = "";
+
+    if (typeof getAllPhonemeTrainingPacks !== "function") {
+
+      grid.innerHTML = `
+        <div style="
+          background:#7f1d1d;
+          color:white;
+          padding:14px;
+          border-radius:12px;
+          line-height:1.8;
+        ">
+          ⚠️ لم يتم العثور على دالة getAllPhonemeTrainingPacks.
+        </div>
+      `;
+
+      return;
+    }
+
+    const packs = getAllPhonemeTrainingPacks();
+
+    if (!packs || !Object.keys(packs).length) {
+
+      grid.innerHTML = `
+        <div style="
+          background:#7f1d1d;
+          color:white;
+          padding:14px;
+          border-radius:12px;
+          line-height:1.8;
+        ">
+          ⚠️ لا توجد حقائب إدراكية جاهزة.
+        </div>
+      `;
+
+      return;
+    }
+
+    grid.innerHTML = `
+      <h3 style="
+        text-align:center;
+        margin:10px 0 18px;
       ">
-        ${pack.letter} — حقيبة ${pack.name}
-      </h2>
+        اختر الحقيبة الإدراكية
+      </h3>
+    `;
 
-      <p>
-        اللون الإدراكي:
-        <b style="color:${pack.colorHex || "#38bdf8"};">
-          ${pack.colorName || "غير محدد"}
-        </b>
-      </p>
+    Object.keys(packs).forEach(function (key) {
 
-      <p style="font-size:14px;color:#cbd5e1;">
-        المفتاح البرمجي:
-        <b>${key}</b>
-      </p>
+      const pack = packs[key];
 
+      const card = document.createElement("button");
+
+      card.style.display = "block";
+      card.style.width = "90%";
+      card.style.margin = "12px auto";
+      card.style.padding = "24px";
+      card.style.borderRadius = "22px";
+      card.style.border =
+        "2px solid " + (pack.colorHex || "#334155");
+
+      card.style.background = "#08111f";
+      card.style.color = pack.colorHex || "#ffffff";
+      card.style.fontSize = "24px";
+      card.style.fontWeight = "bold";
+
+      card.innerHTML =
+        "حقيبة " + pack.letter +
+        "<br><br>" +
+        "<span style='font-size:15px;color:#cbd5e1;'>" +
+        key +
+        " — " +
+        pack.name +
+        "</span>";
+
+      card.onclick = function () {
+        renderPhonemeBagDetails(key, pack);
+      };
+
+      grid.appendChild(card);
+    });
+  }
+
+
+  function renderPhonemeBagDetails(key, pack) {
+
+    const grid =
+      document.getElementById("phonemeCardsGrid");
+
+    if (!grid) return;
+
+    grid.innerHTML = `
       <div style="
-        display:flex;
-        flex-wrap:wrap;
-        gap:10px;
-        justify-content:center;
-        margin-top:18px;
+        background:#08111f;
+        color:white;
+        border:2px solid ${pack.colorHex || "#334155"};
+        border-radius:18px;
+        padding:18px;
+        margin:12px 0;
+        text-align:center;
       ">
 
-        <button onclick="startPerceptualTraining('${key}')">
-          🎙 تدريب
-        </button>
+        <h2 style="
+          color:${pack.colorHex || "#38bdf8"};
+          margin-top:0;
+        ">
+          ${pack.letter} — حقيبة ${pack.name}
+        </h2>
 
-        <button onclick="testPhonemeColorBinding('${key}')">
-          🎨 اللون
-        </button>
+        <p>
+          اللون الإدراكي:
+          <b style="color:${pack.colorHex || "#38bdf8"};">
+            ${pack.colorName || "غير محدد"}
+          </b>
+        </p>
 
-        <button onclick="trainPhonemeMemory('${key}')">
-          🧠 الذاكرة
-        </button>
+        <p style="
+          font-size:14px;
+          color:#cbd5e1;
+        ">
+          المفتاح البرمجي:
+          <b>${key}</b>
+        </p>
 
-        <button onclick="buildPhonemeCognitiveIdentity('${key}')">
-          🧬 الجينوم
-        </button>
+        <div style="
+          display:flex;
+          flex-wrap:wrap;
+          gap:10px;
+          justify-content:center;
+          margin-top:18px;
+        ">
 
-        <button onclick="startPhonemeMatchTest('${key}')">
-          🎯 اختبار
+          <button onclick="startPerceptualTraining('${key}')">
+            🎙 تدريب
+          </button>
+
+          <button onclick="testPhonemeColorBinding('${key}')">
+            🎨 اللون
+          </button>
+
+          <button onclick="trainPhonemeMemory('${key}')">
+            🧠 الذاكرة
+          </button>
+
+          <button onclick="buildPhonemeCognitiveIdentity('${key}')">
+            🧬 الجينوم
+          </button>
+
+          <button onclick="startPhonemeMatchTest('${key}')">
+            🎯 اختبار
+          </button>
+
+        </div>
+
+        <hr style="
+          border-color:#1f2937;
+          margin:18px 0;
+        ">
+
+        <div id="match-results-log-box"></div>
+
+        <button onclick="renderPhonemeCards()">
+          🔙 العودة إلى الحقائب
         </button>
 
       </div>
+    `;
 
-      <hr style="border-color:#1f2937;margin:18px 0;">
-
-      <button onclick="renderPhonemeCards()">
-        🔙 العودة إلى الحقائب
-      </button>
-
-    </div>
-  `;
-}
+    if (typeof renderMatchResultsLog === "function") {
+      renderMatchResultsLog(key);
+    }
+  }
   </script>
 
 </body>
