@@ -446,9 +446,55 @@ function renderMatchResultsLog() {
     const ok =
   r.actualKey &&
   r.detectedKey &&
-  r.actualKey === r.detectedKey;
-    const finalResult =
-      ok ? "✅ صحيح" : "❌ خطأ";
+function renderMatchResultsLog(filterKey) {
+  const raw = localStorage.getItem("cognitive_match_results_log");
+  const allResults = JSON.parse(raw || "[]");
+
+  const results = filterKey
+    ? allResults.filter(function (r) {
+        return r.buttonKey === filterKey;
+      })
+    : allResults;
+
+  const correctResults = results.filter(function (r) {
+    return r.actualKey === r.detectedKey;
+  });
+
+  const accuracy = results.length
+    ? ((correctResults.length / results.length) * 100).toFixed(2)
+    : "0.00";
+
+  const avgCorrectMargin = correctResults.length
+    ? (
+        correctResults.reduce(function (sum, r) {
+          return sum + Number(r.margin || 0);
+        }, 0) / correctResults.length
+      ).toFixed(4)
+    : "0.0000";
+
+  let box = document.getElementById("match-results-log-box");
+
+  if (!box) return;
+
+  let html = `
+    <h3 style="margin-top:0;">
+      📊 سجل اختبارات الفصل
+      ${filterKey ? " — " + filterKey : ""}
+    </h3>
+  `;
+
+  if (!results.length) {
+    box.innerHTML =
+      html +
+      `<div>لا توجد نتائج محفوظة لهذه الحقيبة بعد.</div>`;
+    return;
+  }
+
+  results.forEach(function (r, index) {
+    const ok =
+      r.actualKey &&
+      r.detectedKey &&
+      r.actualKey === r.detectedKey;
 
     html += `
       <div style="
@@ -460,9 +506,9 @@ function renderMatchResultsLog() {
       ">
         <div>#${index + 1}</div>
         <div>زر الاختبار: <b>${r.buttonKey || "غير محدد"}</b></div>
-<div>المنطوق فعليًا: <b>${r.actualKey || "غير محدد"}</b></div>
+        <div>المنطوق فعليًا: <b>${r.actualKey || "غير محدد"}</b></div>
         <div>المكتشف: <b>${r.detectedLabel}</b></div>
-        <div>النتيجة: <b>${finalResult}</b></div>
+        <div>النتيجة: <b>${ok ? "✅ صحيح" : "❌ خطأ"}</b></div>
         <div>هامش الفصل: <b>${r.margin}</b></div>
         <div>القرار: <b>${r.decision}</b></div>
       </div>
@@ -471,7 +517,7 @@ function renderMatchResultsLog() {
 
   html += `
     <div style="margin-top:18px;">
-      نسبة النجاح الحالية:
+      نسبة النجاح لهذه الحقيبة:
       <b style="color:#22c55e;">${accuracy}%</b>
     </div>
 
@@ -481,17 +527,12 @@ function renderMatchResultsLog() {
     </div>
 
     <div style="margin-top:8px;">
-      عدد الاختبارات:
+      عدد اختبارات هذه الحقيبة:
       <b>${results.length}</b>
     </div>
   `;
 
   box.innerHTML = html;
-
-  box.scrollIntoView({
-    behavior: "smooth",
-    block: "center"
-  });
 }
 function clearCognitiveMatchResultsLog() {
   localStorage.removeItem("cognitive_match_results_log");
