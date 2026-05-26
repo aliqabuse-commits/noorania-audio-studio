@@ -381,7 +381,7 @@ function saveCognitiveMatchResult(
     oldLog[oldLog.length - 1]
   );
 
-  renderMatchResultsLog();
+  renderMatchResultsLog(buttonKey);
 }
 
 function renderMatchResultsLog() {
