@@ -485,6 +485,45 @@ function renderMatchResultsLog(filterKey) {
 
   if (!results.length) {
     box.innerHTML =
+function renderMatchResultsLog(filterKey) {
+  const raw = localStorage.getItem("cognitive_match_results_log");
+  const allResults = JSON.parse(raw || "[]");
+
+  const results = filterKey
+    ? allResults.filter(function (r) {
+        return r.buttonKey === filterKey;
+      })
+    : allResults;
+
+  const correctResults = results.filter(function (r) {
+    return r.actualKey === r.detectedKey;
+  });
+
+  const accuracy = results.length
+    ? ((correctResults.length / results.length) * 100).toFixed(2)
+    : "0.00";
+
+  const avgCorrectMargin = correctResults.length
+    ? (
+        correctResults.reduce(function (sum, r) {
+          return sum + Number(r.margin || 0);
+        }, 0) / correctResults.length
+      ).toFixed(4)
+    : "0.0000";
+
+  const box = document.getElementById("match-results-log-box");
+
+  if (!box) return;
+
+  let html = `
+    <h3 style="margin-top:0;">
+      📊 سجل اختبارات الفصل
+      ${filterKey ? " — " + filterKey : ""}
+    </h3>
+  `;
+
+  if (!results.length) {
+    box.innerHTML =
       html +
       `<div>لا توجد نتائج محفوظة لهذه الحقيبة بعد.</div>`;
     return;
