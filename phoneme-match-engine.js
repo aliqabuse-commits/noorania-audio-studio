@@ -493,5 +493,24 @@ function renderMatchResultsLog() {
     block: "center"
   });
 }
+function clearCognitiveMatchResultsLog() {
+  localStorage.removeItem("cognitive_match_results_log");
+
+  const box = document.getElementById("match-results-log-box");
+
+  if (box) {
+    box.innerHTML = `
+      <h3 style="margin-top:0;">
+        📊 سجل اختبارات الفصل
+      </h3>
+      <div>لا توجد نتائج محفوظة بعد.</div>
+    `;
+  }
+
+  alert("تم حذف سجل اختبارات الفصل بنجاح.");
+}
+
+window.clearCognitiveMatchResultsLog =
+  clearCognitiveMatchResultsLog;
 
 console.log("🎯 محرك الفصل بالجِينوم المركزي جاهز ");
