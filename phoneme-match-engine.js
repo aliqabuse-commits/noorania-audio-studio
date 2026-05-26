@@ -1,10 +1,10 @@
 // ================================
 // phoneme-match-engine.js
-// محرك الفصل بالجِينوم المركزي — 
+// محرك الفصل بالجِينوم المركزي
 // ملتزم بمرجع المسميات السيادي
 // ================================
 
-console.log("🎯 phoneme-match-engine.js جاهز V3.3");
+console.log("🎯 phoneme-match-engine.js جاهز");
 
 function getAvailablePhonemeKeysForMatch() {
   if (
@@ -172,7 +172,8 @@ async function startPhonemeMatchTest(targetKey) {
 
 function loadCognitiveIdentity(key) {
   try {
-    const raw = localStorage.getItem(key + "_cognitive_identity");
+    const raw =
+      localStorage.getItem(key + "_cognitive_identity");
 
     if (!raw) return null;
 
@@ -187,9 +188,10 @@ function loadCognitiveIdentity(key) {
 async function recordMatchSample() {
   return new Promise(async function (resolve) {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true
-      });
+      const stream =
+        await navigator.mediaDevices.getUserMedia({
+          audio: true
+        });
 
       const chunks = [];
       const recorder = new MediaRecorder(stream);
@@ -239,15 +241,68 @@ function compareSummaryWithCognitiveGenome(summary, genome) {
 
   let total = 0;
 
-  total += weightedNormalizedDistance(summary.meanEnergy, genome.energy.mean, genome.energy.variance, 1.0);
-  total += weightedNormalizedDistance(summary.meanCentroid, genome.centroid.mean, genome.centroid.variance, 1.5);
-  total += weightedNormalizedDistance(summary.meanSpread, genome.spread.mean, genome.spread.variance, 1.2);
-  total += weightedNormalizedDistance(summary.meanZcr, genome.zcr.mean, genome.zcr.variance, 0.8);
-  total += weightedNormalizedDistance(summary.burstEnergy, genome.burstEnergy.mean, genome.burstEnergy.variance, 1.3);
-  total += weightedNormalizedDistance(summary.burstCentroid, genome.burstCentroid.mean, genome.burstCentroid.variance, 1.4);
-  total += weightedNormalizedDistance(summary.burstSpread, genome.burstSpread.mean, genome.burstSpread.variance, 1.1);
-  total += weightedNormalizedDistance(summary.energyMovement, genome.energyMovement.mean, genome.energyMovement.variance, 1.1);
-  total += weightedNormalizedDistance(summary.spectralMovement, genome.spectralMovement.mean, genome.spectralMovement.variance, 1.5);
+  total += weightedNormalizedDistance(
+    summary.meanEnergy,
+    genome.energy.mean,
+    genome.energy.variance,
+    1.0
+  );
+
+  total += weightedNormalizedDistance(
+    summary.meanCentroid,
+    genome.centroid.mean,
+    genome.centroid.variance,
+    1.5
+  );
+
+  total += weightedNormalizedDistance(
+    summary.meanSpread,
+    genome.spread.mean,
+    genome.spread.variance,
+    1.2
+  );
+
+  total += weightedNormalizedDistance(
+    summary.meanZcr,
+    genome.zcr.mean,
+    genome.zcr.variance,
+    0.8
+  );
+
+  total += weightedNormalizedDistance(
+    summary.burstEnergy,
+    genome.burstEnergy.mean,
+    genome.burstEnergy.variance,
+    1.3
+  );
+
+  total += weightedNormalizedDistance(
+    summary.burstCentroid,
+    genome.burstCentroid.mean,
+    genome.burstCentroid.variance,
+    1.4
+  );
+
+  total += weightedNormalizedDistance(
+    summary.burstSpread,
+    genome.burstSpread.mean,
+    genome.burstSpread.variance,
+    1.1
+  );
+
+  total += weightedNormalizedDistance(
+    summary.energyMovement,
+    genome.energyMovement.mean,
+    genome.energyMovement.variance,
+    1.1
+  );
+
+  total += weightedNormalizedDistance(
+    summary.spectralMovement,
+    genome.spectralMovement.mean,
+    genome.spectralMovement.variance,
+    1.5
+  );
 
   return total;
 }
@@ -384,71 +439,12 @@ function saveCognitiveMatchResult(
   renderMatchResultsLog(buttonKey);
 }
 
-function renderMatchResultsLog() {
-  const raw = localStorage.getItem("cognitive_match_results_log");
-
-  const results = JSON.parse(raw || "[]");
-
-  const correctResults = results.filter(function (r) {
-    return r.actualKey === r.detectedKey;
-  });
-
-  const accuracy = results.length
-    ? ((correctResults.length / results.length) * 100).toFixed(2)
-    : "0.00";
-
-  const avgCorrectMargin = correctResults.length
-    ? (
-        correctResults.reduce(function (sum, r) {
-          return sum + Number(r.margin || 0);
-        }, 0) / correctResults.length
-      ).toFixed(4)
-    : "0.0000";
-
-  let box = document.getElementById("match-results-log-box");
-
-  if (!box) {
-    box = document.createElement("div");
-
-    box.id = "match-results-log-box";
-    box.style.background = "#08111f";
-    box.style.color = "white";
-    box.style.border = "1px solid #334155";
-    box.style.borderRadius = "14px";
-    box.style.padding = "14px";
-    box.style.margin = "14px 0";
-
-    const target =
-      document.getElementById("perceptualTrainingView") ||
-      document.body;
-
-    target.appendChild(box);
-  }
-
-  let html = `
-    <h3 style="margin-top:0;">
-      📊 سجل اختبارات الفصل
-    </h3>
-  `;
-
-  if (!results.length) {
-    html += `
-      <div>
-        لا توجد نتائج محفوظة بعد.
-      </div>
-    `;
-
-    box.innerHTML = html;
-    return;
-  }
-
-  results.forEach(function (r, index) {
-    const ok =
-  r.actualKey &&
-  r.detectedKey &&
 function renderMatchResultsLog(filterKey) {
-  const raw = localStorage.getItem("cognitive_match_results_log");
-  const allResults = JSON.parse(raw || "[]");
+  const raw =
+    localStorage.getItem("cognitive_match_results_log");
+
+  const allResults =
+    JSON.parse(raw || "[]");
 
   const results = filterKey
     ? allResults.filter(function (r) {
@@ -456,9 +452,10 @@ function renderMatchResultsLog(filterKey) {
       })
     : allResults;
 
-  const correctResults = results.filter(function (r) {
-    return r.actualKey === r.detectedKey;
-  });
+  const correctResults =
+    results.filter(function (r) {
+      return r.actualKey === r.detectedKey;
+    });
 
   const accuracy = results.length
     ? ((correctResults.length / results.length) * 100).toFixed(2)
@@ -472,46 +469,8 @@ function renderMatchResultsLog(filterKey) {
       ).toFixed(4)
     : "0.0000";
 
-  let box = document.getElementById("match-results-log-box");
-
-  if (!box) return;
-
-  let html = `
-    <h3 style="margin-top:0;">
-      📊 سجل اختبارات الفصل
-      ${filterKey ? " — " + filterKey : ""}
-    </h3>
-  `;
-
-  if (!results.length) {
-    box.innerHTML =
-function renderMatchResultsLog(filterKey) {
-  const raw = localStorage.getItem("cognitive_match_results_log");
-  const allResults = JSON.parse(raw || "[]");
-
-  const results = filterKey
-    ? allResults.filter(function (r) {
-        return r.buttonKey === filterKey;
-      })
-    : allResults;
-
-  const correctResults = results.filter(function (r) {
-    return r.actualKey === r.detectedKey;
-  });
-
-  const accuracy = results.length
-    ? ((correctResults.length / results.length) * 100).toFixed(2)
-    : "0.00";
-
-  const avgCorrectMargin = correctResults.length
-    ? (
-        correctResults.reduce(function (sum, r) {
-          return sum + Number(r.margin || 0);
-        }, 0) / correctResults.length
-      ).toFixed(4)
-    : "0.0000";
-
-  const box = document.getElementById("match-results-log-box");
+  const box =
+    document.getElementById("match-results-log-box");
 
   if (!box) return;
 
@@ -573,10 +532,12 @@ function renderMatchResultsLog(filterKey) {
 
   box.innerHTML = html;
 }
+
 function clearCognitiveMatchResultsLog() {
   localStorage.removeItem("cognitive_match_results_log");
 
-  const box = document.getElementById("match-results-log-box");
+  const box =
+    document.getElementById("match-results-log-box");
 
   if (box) {
     box.innerHTML = `
@@ -593,4 +554,10 @@ function clearCognitiveMatchResultsLog() {
 window.clearCognitiveMatchResultsLog =
   clearCognitiveMatchResultsLog;
 
-console.log("🎯 محرك الفصل بالجِينوم المركزي جاهز ");
+window.startPhonemeMatchTest =
+  startPhonemeMatchTest;
+
+window.renderMatchResultsLog =
+  renderMatchResultsLog;
+
+console.log("🎯 محرك الفصل بالجِينوم المركزي جاهز");
