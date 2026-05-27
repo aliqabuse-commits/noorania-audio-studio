@@ -392,13 +392,21 @@ async function splitBaseSegment() {
     // أول 38% = بَ
     // الباقي = صْ
     const cutPoint = duration * 0.18;
+    
+let payloadBuffer =
+  sliceAudioBuffer(
+    buffer,
+    cutPoint,
+    duration
+  );
 
-    const payloadBuffer =
-      sliceAudioBuffer(
-        buffer,
-        cutPoint,
-        duration
-      );
+// حذف فراغ بسيط من بداية صْ المفصول
+payloadBuffer =
+  sliceAudioBuffer(
+    payloadBuffer,
+    0.12,
+    payloadBuffer.duration
+  );
 
     extractedPayloadBlob =
       audioBufferToWavBlob(payloadBuffer);
