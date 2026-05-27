@@ -1,24 +1,38 @@
 // ================================
 // phoneme-merge-split-engine.js
-// محرك الفصل والدمج الصوتي — V1.1
+// محرك الفصل والدمج الصوتي — V1.2
+// تثبيت التسجيل الحقيقي أولًا
 // ================================
 
-console.log("🧩 phoneme-merge-split-engine.js جاهز V1.1");
+console.log("🧩 phoneme-merge-split-engine.js جاهز V1.2");
 
 let baseSegmentBlob = null;        // بَصْ
 let replacementBlob = null;        // قَ
 let extractedPayloadBlob = null;   // صْ
 let mergedSegmentBlob = null;      // قَصْ
 
+
+// ======================================
+// تحديث حالة المختبر
+// ======================================
+
 function updateMergeSplitStatus(message) {
   const box = document.getElementById("merge-split-status");
-  if (box) box.innerHTML = message;
+
+  if (box) {
+    box.innerHTML = message;
+  }
 }
+
+
+// ======================================
+// تسجيل المقطع الأصلي بَصْ
+// ======================================
 
 async function recordBaseSegment() {
   alert("سجّل الآن المقطع: بَصْ");
 
-  baseSegmentBlob = await recordMergeSample(1800);
+  baseSegmentBlob = await recordMergeSample(3000);
 
   if (!baseSegmentBlob) {
     alert("فشل تسجيل المقطع بَصْ");
@@ -28,14 +42,24 @@ async function recordBaseSegment() {
   extractedPayloadBlob = null;
   mergedSegmentBlob = null;
 
-  updateMergeSplitStatus("✅ تم تسجيل المقطع الأصلي: بَصْ");
+  updateMergeSplitStatus(
+    "✅ تم تسجيل المقطع الأصلي: <b>بَصْ</b><br>" +
+    "الحجم: " + baseSegmentBlob.size + " bytes<br>" +
+    "النوع: " + baseSegmentBlob.type
+  );
+
   alert("✅ تم تسجيل المقطع بَصْ");
 }
+
+
+// ======================================
+// تسجيل الحرف البديل قَ
+// ======================================
 
 async function recordCarrierReplacement() {
   alert("سجّل الآن الحرف البديل: قَ");
 
-  replacementBlob = await recordMergeSample(1200);
+  replacementBlob = await recordMergeSample(2000);
 
   if (!replacementBlob) {
     alert("فشل تسجيل الحرف قَ");
@@ -44,30 +68,68 @@ async function recordCarrierReplacement() {
 
   mergedSegmentBlob = null;
 
-  updateMergeSplitStatus("✅ تم تسجيل الحرف البديل: قَ");
+  updateMergeSplitStatus(
+    "✅ تم تسجيل الحرف البديل: <b>قَ</b><br>" +
+    "الحجم: " + replacementBlob.size + " bytes<br>" +
+    "النوع: " + replacementBlob.type
+  );
+
   alert("✅ تم تسجيل الحرف قَ");
 }
 
+
+// ======================================
+// تسجيل صوت حقيقي لمختبر الفصل والدمج
+// ======================================
+
 async function recordMergeSample(durationMs) {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false
+      }
+    });
 
     return await new Promise(function (resolve) {
-      const recorder = new MediaRecorder(stream);
       const chunks = [];
 
-      recorder.ondataavailable = function (e) {
-        if (e.data && e.data.size > 0) {
-          chunks.push(e.data);
+      let options = {};
+
+      if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+        options.mimeType = "audio/webm;codecs=opus";
+      } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+        options.mimeType = "audio/webm";
+      }
+
+      const recorder = new MediaRecorder(stream, options);
+
+      recorder.ondataavailable = function (event) {
+        if (event.data && event.data.size > 0) {
+          chunks.push(event.data);
         }
       };
 
       recorder.onstop = function () {
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach(function (track) {
+          track.stop();
+        });
+
+        if (!chunks.length) {
+          resolve(null);
+          return;
+        }
 
         const blob = new Blob(chunks, {
-          type: "audio/webm"
+          type: recorder.mimeType || "audio/webm"
         });
+
+        console.log(
+          "🎙 MERGE RECORDING:",
+          "size =", blob.size,
+          "type =", blob.type
+        );
 
         resolve(blob);
       };
@@ -75,31 +137,91 @@ async function recordMergeSample(durationMs) {
       recorder.start();
 
       setTimeout(function () {
-        recorder.stop();
-      }, durationMs || 1500);
+        if (recorder.state !== "inactive") {
+          recorder.requestData();
+          recorder.stop();
+        }
+      }, durationMs || 3000);
     });
 
   } catch (err) {
-    console.error("recordMergeSample error:", err);
+    console.error("❌ فشل تسجيل مختبر الفصل والدمج:", err);
     return null;
   }
 }
 
+
+// ======================================
+// تشغيل أي Blob صوتي
+// ======================================
+
+function playBlob(blob, label) {
+  if (!blob) {
+    alert("لا يوجد صوت مسجل: " + label);
+    return;
+  }
+
+  const url = URL.createObjectURL(blob);
+  const audio = new Audio(url);
+
+  audio.onended = function () {
+    URL.revokeObjectURL(url);
+  };
+
+  audio.play().catch(function (err) {
+    console.error("فشل التشغيل:", err);
+    alert("فشل تشغيل الصوت: " + label);
+  });
+}
+
+
+function playBaseSegment() {
+  playBlob(baseSegmentBlob, "بَصْ");
+}
+
+
+function playReplacementSegment() {
+  playBlob(replacementBlob, "قَ");
+}
+
+
+function playPayloadSegment() {
+  playBlob(extractedPayloadBlob, "صْ المفصول");
+}
+
+
+function playMergedSegment() {
+  playBlob(mergedSegmentBlob, "قَصْ");
+}
+
+
+// ======================================
+// تحويل Blob إلى AudioBuffer
+// ======================================
+
 async function blobToAudioBuffer(blob) {
   const arrayBuffer = await blob.arrayBuffer();
 
-  const audioContext = new (
+  const AudioContextClass =
     window.AudioContext ||
-    window.webkitAudioContext
-  )();
+    window.webkitAudioContext;
+
+  const audioContext = new AudioContextClass();
 
   return await audioContext.decodeAudioData(arrayBuffer);
 }
 
+
+// ======================================
+// تحويل AudioBuffer إلى WAV Blob
+// ======================================
+
 function audioBufferToWavBlob(buffer) {
   const numChannels = buffer.numberOfChannels;
   const sampleRate = buffer.sampleRate;
-  const length = buffer.length * numChannels * 2 + 44;
+
+  const length =
+    buffer.length * numChannels * 2 + 44;
 
   const arrayBuffer = new ArrayBuffer(length);
   const view = new DataView(arrayBuffer);
@@ -112,41 +234,88 @@ function audioBufferToWavBlob(buffer) {
 
   let offset = 0;
 
-  writeString(offset, "RIFF"); offset += 4;
-  view.setUint32(offset, length - 8, true); offset += 4;
-  writeString(offset, "WAVE"); offset += 4;
-  writeString(offset, "fmt "); offset += 4;
-  view.setUint32(offset, 16, true); offset += 4;
-  view.setUint16(offset, 1, true); offset += 2;
-  view.setUint16(offset, numChannels, true); offset += 2;
-  view.setUint32(offset, sampleRate, true); offset += 4;
-  view.setUint32(offset, sampleRate * numChannels * 2, true); offset += 4;
-  view.setUint16(offset, numChannels * 2, true); offset += 2;
-  view.setUint16(offset, 16, true); offset += 2;
-  writeString(offset, "data"); offset += 4;
-  view.setUint32(offset, length - offset - 4, true); offset += 4;
+  writeString(offset, "RIFF");
+  offset += 4;
+
+  view.setUint32(offset, length - 8, true);
+  offset += 4;
+
+  writeString(offset, "WAVE");
+  offset += 4;
+
+  writeString(offset, "fmt ");
+  offset += 4;
+
+  view.setUint32(offset, 16, true);
+  offset += 4;
+
+  view.setUint16(offset, 1, true);
+  offset += 2;
+
+  view.setUint16(offset, numChannels, true);
+  offset += 2;
+
+  view.setUint32(offset, sampleRate, true);
+  offset += 4;
+
+  view.setUint32(
+    offset,
+    sampleRate * numChannels * 2,
+    true
+  );
+  offset += 4;
+
+  view.setUint16(offset, numChannels * 2, true);
+  offset += 2;
+
+  view.setUint16(offset, 16, true);
+  offset += 2;
+
+  writeString(offset, "data");
+  offset += 4;
+
+  view.setUint32(offset, length - offset - 4, true);
+  offset += 4;
 
   for (let i = 0; i < buffer.length; i++) {
     for (let ch = 0; ch < numChannels; ch++) {
       let sample = buffer.getChannelData(ch)[i];
+
       sample = Math.max(-1, Math.min(1, sample));
+
       view.setInt16(
         offset,
-        sample < 0 ? sample * 0x8000 : sample * 0x7fff,
+        sample < 0
+          ? sample * 0x8000
+          : sample * 0x7fff,
         true
       );
+
       offset += 2;
     }
   }
 
-  return new Blob([arrayBuffer], { type: "audio/wav" });
+  return new Blob([arrayBuffer], {
+    type: "audio/wav"
+  });
 }
+
+
+// ======================================
+// قص AudioBuffer
+// ======================================
 
 function sliceAudioBuffer(buffer, startSecond, endSecond) {
   const sampleRate = buffer.sampleRate;
-  const startSample = Math.floor(startSecond * sampleRate);
-  const endSample = Math.floor(endSecond * sampleRate);
-  const frameCount = Math.max(1, endSample - startSample);
+
+  const startSample =
+    Math.floor(startSecond * sampleRate);
+
+  const endSample =
+    Math.floor(endSecond * sampleRate);
+
+  const frameCount =
+    Math.max(1, endSample - startSample);
 
   const newBuffer = new AudioBuffer({
     length: frameCount,
@@ -166,8 +335,14 @@ function sliceAudioBuffer(buffer, startSecond, endSecond) {
   return newBuffer;
 }
 
+
+// ======================================
+// دمج AudioBuffer
+// ======================================
+
 function concatAudioBuffers(bufferA, bufferB) {
   const sampleRate = bufferA.sampleRate;
+
   const numberOfChannels = Math.min(
     bufferA.numberOfChannels,
     bufferB.numberOfChannels
@@ -175,18 +350,31 @@ function concatAudioBuffers(bufferA, bufferB) {
 
   const newBuffer = new AudioBuffer({
     length: bufferA.length + bufferB.length,
-    numberOfChannels,
-    sampleRate
+    numberOfChannels: numberOfChannels,
+    sampleRate: sampleRate
   });
 
   for (let ch = 0; ch < numberOfChannels; ch++) {
     const output = newBuffer.getChannelData(ch);
-    output.set(bufferA.getChannelData(ch), 0);
-    output.set(bufferB.getChannelData(ch), bufferA.length);
+
+    output.set(
+      bufferA.getChannelData(ch),
+      0
+    );
+
+    output.set(
+      bufferB.getChannelData(ch),
+      bufferA.length
+    );
   }
 
   return newBuffer;
 }
+
+
+// ======================================
+// فصل بَ عن صْ — تجريبي
+// ======================================
 
 async function splitBaseSegment() {
   if (!baseSegmentBlob) {
@@ -195,38 +383,48 @@ async function splitBaseSegment() {
   }
 
   try {
-    const buffer = await blobToAudioBuffer(baseSegmentBlob);
+    const buffer =
+      await blobToAudioBuffer(baseSegmentBlob);
+
     const duration = buffer.duration;
 
-    // فصل تجريبي:
+    // فصل تجريبي فقط:
     // أول 38% = بَ
     // الباقي = صْ
     const cutPoint = duration * 0.38;
 
-    const payloadBuffer = sliceAudioBuffer(
-      buffer,
-      cutPoint,
-      duration
-    );
+    const payloadBuffer =
+      sliceAudioBuffer(
+        buffer,
+        cutPoint,
+        duration
+      );
 
-    extractedPayloadBlob = audioBufferToWavBlob(payloadBuffer);
+    extractedPayloadBlob =
+      audioBufferToWavBlob(payloadBuffer);
+
     mergedSegmentBlob = null;
 
     updateMergeSplitStatus(
-      "✂️ تم فصل المقطع تجريبيًا:<br>" +
-      "تم حذف بداية بَ، والاحتفاظ بالمحمول صْ.<br>" +
-      "نقطة الفصل التقريبية: " +
-      cutPoint.toFixed(3) +
-      " ثانية"
+      "✂️ تم الفصل التجريبي:<br>" +
+      "تم حذف بداية <b>بَ</b> والاحتفاظ بالمحمول <b>صْ</b>.<br>" +
+      "مدة المقطع الأصلي: " + duration.toFixed(3) + " ثانية<br>" +
+      "نقطة الفصل التقريبية: " + cutPoint.toFixed(3) + " ثانية<br>" +
+      "يمكنك الآن تجربة: ▶️ سماع صْ المفصول"
     );
 
     alert("✅ تم فصل بَ عن صْ تجريبيًا");
 
   } catch (err) {
-    console.error("splitBaseSegment error:", err);
+    console.error("❌ splitBaseSegment error:", err);
     alert("فشل فصل المقطع");
   }
 }
+
+
+// ======================================
+// دمج قَ + صْ
+// ======================================
 
 async function mergeReplacementWithPayload() {
   if (!replacementBlob) {
@@ -246,67 +444,56 @@ async function mergeReplacementWithPayload() {
     const payloadBuffer =
       await blobToAudioBuffer(extractedPayloadBlob);
 
-    const mergedBuffer = concatAudioBuffers(
-      replacementBuffer,
-      payloadBuffer
-    );
+    const mergedBuffer =
+      concatAudioBuffers(
+        replacementBuffer,
+        payloadBuffer
+      );
 
-    mergedSegmentBlob = audioBufferToWavBlob(mergedBuffer);
+    mergedSegmentBlob =
+      audioBufferToWavBlob(mergedBuffer);
 
     updateMergeSplitStatus(
       "🧩 تم الدمج التجريبي:<br>" +
-      "قَ + صْ = قَصْ<br>" +
-      "يمكنك الآن الضغط على: ▶️ سماع قَصْ"
+      "<b>قَ</b> + <b>صْ</b> = <b>قَصْ</b><br>" +
+      "يمكنك الآن تجربة: ▶️ سماع قَصْ"
     );
 
     alert("✅ تم دمج قَ + صْ");
 
   } catch (err) {
-    console.error("mergeReplacementWithPayload error:", err);
+    console.error("❌ mergeReplacementWithPayload error:", err);
     alert("فشل دمج قَ + صْ");
   }
 }
 
-function playMergedSegment() {
-  if (!mergedSegmentBlob) {
-    alert("لا يوجد مقطع مدموج بعد. نفّذ الدمج أولًا.");
-    return;
-  }
 
-  const url = URL.createObjectURL(mergedSegmentBlob);
-  const audio = new Audio(url);
+// ======================================
+// واجهات عامة
+// ======================================
 
-  audio.play();
+window.recordBaseSegment =
+  recordBaseSegment;
 
-  updateMergeSplitStatus(
-    "▶️ يتم الآن تشغيل الناتج التجريبي: قَصْ"
-  );
-}
+window.recordCarrierReplacement =
+  recordCarrierReplacement;
 
-function playBlob(blob, label) {
-  if (!blob) {
-    alert("لا يوجد صوت: " + label);
-    return;
-  }
+window.splitBaseSegment =
+  splitBaseSegment;
 
-  const url = URL.createObjectURL(blob);
+window.mergeReplacementWithPayload =
+  mergeReplacementWithPayload;
 
-  const audio = new Audio(url);
+window.playMergedSegment =
+  playMergedSegment;
 
-  audio.play();
-}
+window.playBaseSegment =
+  playBaseSegment;
 
+window.playReplacementSegment =
+  playReplacementSegment;
 
-function playBaseSegment() {
-  playBlob(baseSegmentBlob, "بَصْ");
-}
+window.playPayloadSegment =
+  playPayloadSegment;
 
-
-function playReplacementSegment() {
-  playBlob(replacementBlob, "قَ");
-}
-
-
-function playPayloadSegment() {
-  playBlob(extractedPayloadBlob, "صْ");
-}
+console.log("🧩 محرك الفصل والدمج الصوتي جاهز V1.2");
