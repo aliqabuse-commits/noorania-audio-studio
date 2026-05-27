@@ -59,7 +59,30 @@
 
   </header>
 
+<section
+  id="cognitiveStatisticsView"
+  class="panel"
+  style="display:none;"
+>
 
+  <h2>
+    📊 التحليل الإحصائي الذاتي
+  </h2>
+
+  <p>
+    تحليل الجينومات، الالتباسات،
+    الهيمنة الإدراكية، ومسار التطور.
+  </p>
+
+  <div id="cognitive-statistics-page-content"></div>
+
+  <button
+    onclick="closeCognitiveStatisticsView()"
+  >
+    🔙 العودة للحقيبة
+  </button>
+
+</section>
   <main>
 
     <!-- الصفحة الرئيسية -->
@@ -586,7 +609,7 @@
               </button>
 
 <button
-  onclick="openCognitiveStatisticsDoor()"
+  onclick="openCognitiveStatisticsView()"
   style="
     background:#0f172a;
     color:#38bdf8;
