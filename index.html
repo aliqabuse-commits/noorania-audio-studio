@@ -671,6 +671,57 @@ function openCognitiveStatisticsDoor() {
     box.appendChild(report);
   }
 }
+    function openCognitiveStatisticsView() {
+
+  document.getElementById(
+    "perceptualTrainingView"
+  ).style.display = "none";
+
+  document.getElementById(
+    "cognitiveStatisticsView"
+  ).style.display = "block";
+
+  const content =
+    document.getElementById(
+      "cognitive-statistics-page-content"
+    );
+
+  content.innerHTML = "";
+
+  if (
+    typeof analyzeCognitiveSystem !==
+    "function"
+  ) {
+
+    content.innerHTML =
+      "⚠️ محرك التحليل غير محمّل.";
+
+    return;
+  }
+
+  analyzeCognitiveSystem();
+
+  const report =
+    document.getElementById(
+      "cognitive-statistics-report-box"
+    );
+
+  if (report) {
+    content.appendChild(report);
+  }
+}
+
+
+function closeCognitiveStatisticsView() {
+
+  document.getElementById(
+    "cognitiveStatisticsView"
+  ).style.display = "none";
+
+  document.getElementById(
+    "perceptualTrainingView"
+  ).style.display = "block";
+}
   </script>
 
 </body>
