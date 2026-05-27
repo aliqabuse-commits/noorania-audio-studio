@@ -585,6 +585,12 @@
               🎯 اختبار
               </button>
             <button
+  onclick="startPhonemeMatchTest('${key}')"
+>
+  🎯 اختبار
+</button>
+
+<button
   onclick="openCognitiveStatisticsDoor()"
   style="
     background:#0f172a;
@@ -599,18 +605,13 @@
   📊 التحليل الذاتي
 </button>
 
-<div id="cognitive-statistics-door-box"></div>     
 <button onclick="clearCognitiveMatchResultsLog()">
   🗑 حذف سجل الاختبارات
 </button>
-          </div>
 
-          <hr style="
-            border-color:#1f2937;
-            margin:18px 0;
-          ">
+</div>
 
-          <div id="match-results-log-box"></div>
+<div id="cognitive-statistics-door-box"></div>
 
           <button onclick="renderPhonemeCards()">
             🔙 العودة إلى الحقائب
