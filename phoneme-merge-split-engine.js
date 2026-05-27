@@ -1,10 +1,10 @@
 // ================================
 // phoneme-merge-split-engine.js
-// محرك الفصل والدمج الصوتي — V1.2
-// تثبيت التسجيل الحقيقي أولًا
+// محرك الفصل والدمج الصوتي — V1.3
+// يعتمد على كاشف الحدود الإدراكية
 // ================================
 
-console.log("🧩 phoneme-merge-split-engine.js جاهز V1.2");
+console.log("🧩 phoneme-merge-split-engine.js جاهز V1.3");
 
 let baseSegmentBlob = null;        // بَصْ
 let replacementBlob = null;        // قَ
@@ -30,7 +30,7 @@ function updateMergeSplitStatus(message) {
 // ======================================
 
 async function recordBaseSegment() {
-  alert("سجّل الآن المقطع: بَصْ");
+  alert("اضغط حسنًا، ثم سجّل الآن المقطع: بَصْ");
 
   baseSegmentBlob = await recordMergeSample(3000);
 
@@ -57,7 +57,7 @@ async function recordBaseSegment() {
 // ======================================
 
 async function recordCarrierReplacement() {
-  alert("سجّل الآن الحرف البديل: قَ");
+  alert("اضغط حسنًا، ثم سجّل الآن الحرف البديل: قَ");
 
   replacementBlob = await recordMergeSample(2000);
 
@@ -86,10 +86,10 @@ async function recordMergeSample(durationMs) {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: {
-  echoCancellation: true,
-  noiseSuppression: true,
-  autoGainControl: true
-}
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      }
     });
 
     return await new Promise(function (resolve) {
@@ -373,7 +373,7 @@ function concatAudioBuffers(bufferA, bufferB) {
 
 
 // ======================================
-// فصل بَ عن صْ — تجريبي
+// فصل بَ عن صْ — بالهوية الإدراكية
 // ======================================
 
 async function splitBaseSegment() {
@@ -386,27 +386,33 @@ async function splitBaseSegment() {
     const buffer =
       await blobToAudioBuffer(baseSegmentBlob);
 
-    const duration = buffer.duration;
+    if (typeof detectPayloadBoundaryByIdentity !== "function") {
+      alert("كاشف الحدود الإدراكية غير محمّل");
+      return;
+    }
 
-    // فصل تجريبي فقط:
-    // أول 38% = بَ
-    // الباقي = صْ
-    const cutPoint = duration * 0.18;
-    
-let payloadBuffer =
-  sliceAudioBuffer(
-    buffer,
-    cutPoint,
-    duration
-  );
+    const result =
+      detectPayloadBoundaryByIdentity(buffer, {
+        carrierKey: "ba",
+        payloadKey: "sad",
+        windowSize: 0.18,
+        hopSize: 0.035,
+        minStart: 0.08
+      });
 
-// حذف فراغ بسيط من بداية صْ المفصول
-payloadBuffer =
-  sliceAudioBuffer(
-    payloadBuffer,
-    0.12,
-    payloadBuffer.duration
-  );
+    const cutPoint = result.boundary;
+
+    if (!cutPoint) {
+      alert("لم يستطع النظام تحديد بداية صْ");
+      return;
+    }
+
+    const payloadBuffer =
+      sliceAudioBuffer(
+        buffer,
+        cutPoint,
+        buffer.duration
+      );
 
     extractedPayloadBlob =
       audioBufferToWavBlob(payloadBuffer);
@@ -414,18 +420,35 @@ payloadBuffer =
     mergedSegmentBlob = null;
 
     updateMergeSplitStatus(
-      "✂️ تم الفصل التجريبي:<br>" +
-      "تم حذف بداية <b>بَ</b> والاحتفاظ بالمحمول <b>صْ</b>.<br>" +
-      "مدة المقطع الأصلي: " + duration.toFixed(3) + " ثانية<br>" +
-      "نقطة الفصل التقريبية: " + cutPoint.toFixed(3) + " ثانية<br>" +
-      "يمكنك الآن تجربة: ▶️ سماع صْ المفصول"
+      "🧭 تم الفصل بالهوية الإدراكية:<br>" +
+      "الحامل: <b>بَ</b><br>" +
+      "المحمول: <b>صْ</b><br>" +
+      "نقطة بداية المحمول: <b>" +
+      cutPoint.toFixed(3) +
+      " ثانية</b><br>" +
+      "عدد نوافذ التحليل: " +
+      result.scores.length +
+      "<br><br>" +
+      "الآن جرّب: ▶️ سماع صْ المفصول"
     );
 
-    alert("✅ تم فصل بَ عن صْ تجريبيًا");
+    console.log(
+      "🧭 Boundary detection result:",
+      result
+    );
+
+    alert("✅ تم فصل صْ بناءً على الهوية الإدراكية");
 
   } catch (err) {
-    console.error("❌ splitBaseSegment error:", err);
-    alert("فشل فصل المقطع");
+    console.error(
+      "❌ splitBaseSegment identity error:",
+      err
+    );
+
+    alert(
+      "فشل الفصل بالهوية الإدراكية:\n" +
+      err.message
+    );
   }
 }
 
@@ -504,4 +527,4 @@ window.playReplacementSegment =
 window.playPayloadSegment =
   playPayloadSegment;
 
-console.log("🧩 محرك الفصل والدمج الصوتي جاهز V1.2");
+console.log("🧩 محرك الفصل والدمج الصوتي جاهز V1.3");
