@@ -1,37 +1,18 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html><html lang="ar" dir="rtl"><head>  <meta charset="UTF-8"><meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
 
-<head>
-
-  <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+«»
 
   <title>
     غرفة العمليات الصوتية - مختبر الحقائب الإدراكية
-  </title>
+  </title><meta
+name="theme-color"
+content="#111827"
 
-  <meta
-    name="theme-color"
-    content="#111827"
-  >
+«»
 
-  <link rel="stylesheet" href="style.css">
-
-  <script src="https://unpkg.com/wavesurfer.js@7"></script>
-
-  <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
-
-  <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/spectrogram.min.js"></script>
-
-</head>
-
-<body>
-
-  <div
+  <link rel="stylesheet" href="style.css">  <script src="https://unpkg.com/wavesurfer.js@7"></script>  <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>  <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/spectrogram.min.js"></script></head><body>  <div
     id="check-version"
     style="
       background:#14532d;
@@ -44,20 +25,226 @@
     "
   >
     🧠 Noorani Cognitive Phoneme Lab
+  </div>  <header class="app-header"><h1>
+  🔬 غرفة العمليات الصوتية
+</h1>
+
+<p>
+  النورانية العالمية — مختبر الحقائب الإدراكية والجينوم المركزي
+</p>
+
+  </header>  <main><!-- الصفحة الرئيسية -->
+
+<section
+  id="homeView"
+  class="panel"
+>
+
+  <h2>
+    القوائم الرئيسية
+  </h2>
+
+  <button
+    onclick="openPerceptualTrainingView()"
+    style="
+      display:block;
+      margin:10px auto;
+      width:90%;
+    "
+  >
+    🧠 مختبر الحقائب الإدراكية
+  </button>
+
+  <div id="categoryList"></div>
+
+</section>
+
+
+<!-- صفحة الحقائب -->
+
+<section
+  id="perceptualTrainingView"
+  class="panel"
+  style="display:none;"
+>
+
+  <h2>
+    🧠 مختبر الحقائب الإدراكية
+  </h2>
+
+  <p>
+    تدريب الحروف، بناء الذاكرة،
+    بناء الجينوم، واختبار الفصل الجماعي.
+  </p>
+
+  <div id="phonemeCardsGrid"></div>
+
+  <div
+    id="training-rec-status"
+    style="
+      margin-top:12px;
+      background:#111827;
+      color:#00F2FF;
+      padding:10px;
+      border-radius:10px;
+      font-size:14px;
+      display:none;
+      text-align:center;
+      line-height:1.7;
+    "
+  ></div>
+
+  <div
+    id="training-success-message"
+    style="
+      display:none;
+      background:#111827;
+      color:#22c55e;
+      padding:10px;
+      border-radius:10px;
+      margin:12px 0;
+      line-height:1.8;
+      text-align:center;
+    "
+  ></div>
+
+  <button onclick="closePerceptualTrainingView()">
+    🏠 العودة للرئيسية
+  </button>
+
+</section>
+
+
+<!-- صفحة التسجيل -->
+
+<section
+  id="recordView"
+  class="panel"
+  style="display:none;"
+>
+
+  <div class="unit-card">
+
+    <div id="unit">
+      بَ
+    </div>
+
+    <p id="filename">
+      ba_fatha.wav
+    </p>
+
+    <div
+      id="analysis-shell"
+      style="
+        background:#000;
+        border-radius:14px;
+        margin:12px 0;
+        padding:10px;
+        border:1px solid #374151;
+      "
+    >
+
+      <div
+        id="waveform-container"
+        style="
+          background:#050505;
+          border-radius:10px;
+          border:1px solid #111827;
+          overflow:auto;
+          min-height:140px;
+        "
+      >
+
+        <div
+          id="waveform"
+          style="min-height:140px;"
+        ></div>
+
+      </div>
+
+      <div
+        id="spectrogram-container"
+        style="
+          background:#050505;
+          border-radius:10px;
+          border:1px solid #111827;
+          margin-top:8px;
+          overflow:auto;
+          min-height:220px;
+        "
+      >
+
+        <div
+          id="spectrogram"
+          style="min-height:220px;"
+        ></div>
+
+      </div>
+
+    </div>
+
+    <p id="counter">
+      1 / 6
+    </p>
+
   </div>
 
 
-  <header class="app-header">
+  <div
+    class="controls"
+    style="gap:6px;"
+  >
 
-    <h1>
-      🔬 غرفة العمليات الصوتية
-    </h1>
+    <button
+      id="recordBtn"
+      onclick="toggleRecording()"
+    >
+      🎙 تسجيل
+    </button>
 
-    <p>
-      النورانية العالمية — مختبر الحقائب الإدراكية والجينوم المركزي
-    </p>
+    <button onclick="playRaw()">
+      ▶ استماع التسجيل
+    </button>
 
-  </header>
+    <button onclick="approveAndNext()">
+      ✅ اعتماد وحفظ
+    </button>
+
+    <button onclick="prevUnit()">
+      ⬅ السابق
+    </button>
+
+    <button onclick="nextUnit()">
+      ➡ اللاحق
+    </button>
+
+  </div>
+
+
+  <div class="secondary-controls">
+
+    <button onclick="goHome()">
+      🏠 الرئيسية
+    </button>
+
+    <button onclick="exportApproved()">
+      📦 تصدير
+    </button>
+
+  </div>
+
+  <hr>
+
+  <h3>
+    قائمة الوحدات
+  </h3>
+
+  <div id="unitList"></div>
+
+</section>
+
+
+<!-- صفحة التحليل الذاتي -->
 
 <section
   id="cognitiveStatisticsView"
@@ -83,254 +270,8 @@
   </button>
 
 </section>
-  <main>
 
-    <!-- الصفحة الرئيسية -->
-
-    <section
-      id="homeView"
-      class="panel"
-    >
-
-      <h2>
-        القوائم الرئيسية
-      </h2>
-
-      <button
-        onclick="openPerceptualTrainingView()"
-        style="
-          display:block;
-          margin:10px auto;
-          width:90%;
-        "
-      >
-        🧠 مختبر الحقائب الإدراكية
-      </button>
-
-      <div id="categoryList"></div>
-
-    </section>
-
-
-    <!-- صفحة الحقائب -->
-
-    <section
-      id="perceptualTrainingView"
-      class="panel"
-      style="display:none;"
-    >
-
-      <h2>
-        🧠 مختبر الحقائب الإدراكية
-      </h2>
-
-      <p>
-        تدريب الحروف، بناء الذاكرة،
-        بناء الجينوم، واختبار الفصل الجماعي.
-      </p>
-
-      <div id="phonemeCardsGrid"></div>
-
-      <div
-        id="training-rec-status"
-        style="
-          margin-top:12px;
-          background:#111827;
-          color:#00F2FF;
-          padding:10px;
-          border-radius:10px;
-          font-size:14px;
-          display:none;
-          text-align:center;
-          line-height:1.7;
-        "
-      ></div>
-
-      <div
-        id="training-success-message"
-        style="
-          display:none;
-          background:#111827;
-          color:#22c55e;
-          padding:10px;
-          border-radius:10px;
-          margin:12px 0;
-          line-height:1.8;
-          text-align:center;
-        "
-      ></div>
-
-      <button onclick="closePerceptualTrainingView()">
-        🏠 العودة للرئيسية
-      </button>
-
-    </section>
-
-
-    <!-- صفحة التسجيل -->
-
-    <section
-      id="recordView"
-      class="panel"
-      style="display:none;"
-    >
-
-      <div class="unit-card">
-
-        <div id="unit">
-          بَ
-        </div>
-
-        <p id="filename">
-          ba_fatha.wav
-        </p>
-
-        <div
-          id="analysis-shell"
-          style="
-            background:#000;
-            border-radius:14px;
-            margin:12px 0;
-            padding:10px;
-            border:1px solid #374151;
-          "
-        >
-
-          <div
-            id="waveform-container"
-            style="
-              background:#050505;
-              border-radius:10px;
-              border:1px solid #111827;
-              overflow:auto;
-              min-height:140px;
-            "
-          >
-
-            <div
-              id="waveform"
-              style="min-height:140px;"
-            ></div>
-
-          </div>
-
-          <div
-            id="spectrogram-container"
-            style="
-              background:#050505;
-              border-radius:10px;
-              border:1px solid #111827;
-              margin-top:8px;
-              overflow:auto;
-              min-height:220px;
-            "
-          >
-
-            <div
-              id="spectrogram"
-              style="min-height:220px;"
-            ></div>
-
-          </div>
-
-        </div>
-
-        <p id="counter">
-          1 / 6
-        </p>
-
-      </div>
-
-
-      <div
-        class="controls"
-        style="gap:6px;"
-      >
-
-        <button
-          id="recordBtn"
-          onclick="toggleRecording()"
-        >
-          🎙 تسجيل
-        </button>
-
-        <button onclick="playRaw()">
-          ▶ استماع التسجيل
-        </button>
-
-        <button onclick="approveAndNext()">
-          ✅ اعتماد وحفظ
-        </button>
-
-        <button onclick="prevUnit()">
-          ⬅ السابق
-        </button>
-
-        <button onclick="nextUnit()">
-          ➡ اللاحق
-        </button>
-
-      </div>
-
-
-      <div class="secondary-controls">
-
-        <button onclick="goHome()">
-          🏠 الرئيسية
-        </button>
-
-        <button onclick="exportApproved()">
-          📦 تصدير
-        </button>
-
-      </div>
-
-      <hr>
-
-      <h3>
-        قائمة الوحدات
-      </h3>
-
-      <div id="unitList"></div>
-
-    </section>
-
-  </main>
-
-
-  <!-- المكتبات -->
-
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-
-
-  <!-- ملفات المشروع -->
-
-  <script src="recording-manifest.js"></script>
-
-  <script src="storage.js"></script>
-
-  <script src="audio-lab.js"></script>
-
-  <script src="phoneme-colors.js"></script>
-
-  <script src="phoneme-training-pack.js"></script>
-
-  <script src="phoneme-color-memory.js"></script>
-
-  <script src="training-recorder.js"></script>
-
-  <script src="phoneme-memory-trainer.js"></script>
-
-  <script src="phoneme-cognitive-engine.js"></script>
-
-  <script src="phoneme-match-engine.js"></script>
-<script src="cognitive-statistics-engine.js"></script>
-  <script src="app.js"></script>
-
-
-  <!-- سكربت الواجهات -->
-
-  <script>
+  </main>  <!-- المكتبات -->  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>  <!-- ملفات المشروع -->  <script src="recording-manifest.js"></script>  <script src="storage.js"></script>  <script src="audio-lab.js"></script>  <script src="phoneme-colors.js"></script>  <script src="phoneme-training-pack.js"></script>  <script src="phoneme-color-memory.js"></script>  <script src="training-recorder.js"></script>  <script src="phoneme-memory-trainer.js"></script>  <script src="phoneme-cognitive-engine.js"></script>  <script src="phoneme-match-engine.js"></script>  <script src="cognitive-statistics-engine.js"></script>  <script src="app.js"></script>  <!-- سكربت الواجهات -->  <script>
 
     function openPerceptualTrainingView() {
 
@@ -338,6 +279,9 @@
         "none";
 
       document.getElementById("recordView").style.display =
+        "none";
+
+      document.getElementById("cognitiveStatisticsView").style.display =
         "none";
 
       document.getElementById("perceptualTrainingView").style.display =
@@ -353,6 +297,9 @@
         "none";
 
       document.getElementById("recordView").style.display =
+        "none";
+
+      document.getElementById("cognitiveStatisticsView").style.display =
         "none";
 
       document.getElementById("homeView").style.display =
@@ -606,12 +553,39 @@
               onclick="startPhonemeMatchTest('${key}')"
             >
               🎯 اختبار
-              </button>
+            </button>
 
+            <button
+              onclick="openCognitiveStatisticsView()"
+              style="
+                background:#0f172a;
+                color:#38bdf8;
+                border:1px solid #38bdf8;
+                padding:10px 14px;
+                border-radius:10px;
+                margin-top:8px;
+                cursor:pointer;
+              "
+            >
+              📊 التحليل الذاتي
+            </button>
 
-<button onclick="clearCognitiveMatchResultsLog()">
-  🗑 حذف سجل الاختبارات
-</button>
+            <button onclick="clearCognitiveMatchResultsLog()">
+              🗑 حذف سجل الاختبارات
+            </button>
+
+          </div>
+
+          <hr style="
+            border-color:#1f2937;
+            margin:18px 0;
+          ">
+
+          <div id="match-results-log-box"></div>
+
+          <button onclick="renderPhonemeCards()">
+            🔙 العودة إلى الحقائب
+          </button>
 
         </div>
       `;
@@ -625,59 +599,57 @@
       }
     }
 
+
     function openCognitiveStatisticsView() {
 
-  document.getElementById(
-    "perceptualTrainingView"
-  ).style.display = "none";
+      document.getElementById(
+        "perceptualTrainingView"
+      ).style.display = "none";
 
-  document.getElementById(
-    "cognitiveStatisticsView"
-  ).style.display = "block";
+      document.getElementById(
+        "cognitiveStatisticsView"
+      ).style.display = "block";
 
-  const content =
-    document.getElementById(
-      "cognitive-statistics-page-content"
-    );
+      const content =
+        document.getElementById(
+          "cognitive-statistics-page-content"
+        );
 
-  content.innerHTML = "";
+      content.innerHTML = "";
 
-  if (
-    typeof analyzeCognitiveSystem !==
-    "function"
-  ) {
+      if (
+        typeof analyzeCognitiveSystem !==
+        "function"
+      ) {
 
-    content.innerHTML =
-      "⚠️ محرك التحليل غير محمّل.";
+        content.innerHTML =
+          "⚠️ محرك التحليل غير محمّل.";
 
-    return;
-  }
+        return;
+      }
 
-  analyzeCognitiveSystem();
+      analyzeCognitiveSystem();
 
-  const report =
-    document.getElementById(
-      "cognitive-statistics-report-box"
-    );
+      const report =
+        document.getElementById(
+          "cognitive-statistics-report-box"
+        );
 
-  if (report) {
-    content.appendChild(report);
-  }
-}
+      if (report) {
+        content.appendChild(report);
+      }
+    }
 
 
-function closeCognitiveStatisticsView() {
+    function closeCognitiveStatisticsView() {
 
-  document.getElementById(
-    "cognitiveStatisticsView"
-  ).style.display = "none";
+      document.getElementById(
+        "cognitiveStatisticsView"
+      ).style.display = "none";
 
-  document.getElementById(
-    "perceptualTrainingView"
-  ).style.display = "block";
-}
-  </script>
+      document.getElementById(
+        "perceptualTrainingView"
+      ).style.display = "block";
+    }
 
-</body>
-
-</html>
+  </script></body></html>
