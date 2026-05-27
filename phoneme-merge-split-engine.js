@@ -282,3 +282,31 @@ function playMergedSegment() {
     "▶️ يتم الآن تشغيل الناتج التجريبي: قَصْ"
   );
 }
+
+function playBlob(blob, label) {
+  if (!blob) {
+    alert("لا يوجد صوت: " + label);
+    return;
+  }
+
+  const url = URL.createObjectURL(blob);
+
+  const audio = new Audio(url);
+
+  audio.play();
+}
+
+
+function playBaseSegment() {
+  playBlob(baseSegmentBlob, "بَصْ");
+}
+
+
+function playReplacementSegment() {
+  playBlob(replacementBlob, "قَ");
+}
+
+
+function playPayloadSegment() {
+  playBlob(extractedPayloadBlob, "صْ");
+}
