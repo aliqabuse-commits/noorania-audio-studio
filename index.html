@@ -608,32 +608,10 @@
               🎯 اختبار
               </button>
 
-<button
-  onclick="openCognitiveStatisticsView()"
-  style="
-    background:#0f172a;
-    color:#38bdf8;
-    border:1px solid #38bdf8;
-    padding:10px 14px;
-    border-radius:10px;
-    margin-top:8px;
-    cursor:pointer;
-  "
->
-  📊 التحليل الذاتي
-</button>
 
 <button onclick="clearCognitiveMatchResultsLog()">
   🗑 حذف سجل الاختبارات
 </button>
-
-</div>
-
-<div id="cognitive-statistics-door-box"></div>
-
-          <button onclick="renderPhonemeCards()">
-            🔙 العودة إلى الحقائب
-          </button>
 
         </div>
       `;
@@ -646,31 +624,7 @@
         renderMatchResultsLog(key);
       }
     }
-function openCognitiveStatisticsDoor() {
-  const box =
-    document.getElementById("cognitive-statistics-door-box");
 
-  if (!box) return;
-
-  if (box.innerHTML.trim()) {
-    box.innerHTML = "";
-    return;
-  }
-
-  if (typeof analyzeCognitiveSystem !== "function") {
-    box.innerHTML = "⚠️ محرك التحليل الذاتي غير محمّل.";
-    return;
-  }
-
-  analyzeCognitiveSystem();
-
-  const report =
-    document.getElementById("cognitive-statistics-report-box");
-
-  if (report) {
-    box.appendChild(report);
-  }
-}
     function openCognitiveStatisticsView() {
 
   document.getElementById(
