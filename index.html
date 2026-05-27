@@ -583,9 +583,8 @@
               onclick="startPhonemeMatchTest('${key}')"
             >
               🎯 اختبار
-            </button>
-       <button
-  onclick="analyzeCognitiveSystem()"
+            </<button
+  onclick="openCognitiveStatisticsDoor()"
   style="
     background:#0f172a;
     color:#38bdf8;
@@ -597,7 +596,9 @@
   "
 >
   📊 التحليل الذاتي
-</button>     
+</button>
+
+<div id="cognitive-statistics-door-box"></div>     
 <button onclick="clearCognitiveMatchResultsLog()">
   🗑 حذف سجل الاختبارات
 </button>
@@ -625,7 +626,31 @@
         renderMatchResultsLog(key);
       }
     }
+function openCognitiveStatisticsDoor() {
+  const box =
+    document.getElementById("cognitive-statistics-door-box");
 
+  if (!box) return;
+
+  if (box.innerHTML.trim()) {
+    box.innerHTML = "";
+    return;
+  }
+
+  if (typeof analyzeCognitiveSystem !== "function") {
+    box.innerHTML = "⚠️ محرك التحليل الذاتي غير محمّل.";
+    return;
+  }
+
+  analyzeCognitiveSystem();
+
+  const report =
+    document.getElementById("cognitive-statistics-report-box");
+
+  if (report) {
+    box.appendChild(report);
+  }
+}
   </script>
 
 </body>
