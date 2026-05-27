@@ -391,7 +391,7 @@ async function splitBaseSegment() {
     // فصل تجريبي فقط:
     // أول 38% = بَ
     // الباقي = صْ
-    const cutPoint = duration * 0.38;
+    const cutPoint = duration * 0.18;
 
     const payloadBuffer =
       sliceAudioBuffer(
