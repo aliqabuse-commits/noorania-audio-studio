@@ -86,10 +86,10 @@ async function recordMergeSample(durationMs) {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: {
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl: false
-      }
+  echoCancellation: true,
+  noiseSuppression: true,
+  autoGainControl: true
+}
     });
 
     return await new Promise(function (resolve) {
