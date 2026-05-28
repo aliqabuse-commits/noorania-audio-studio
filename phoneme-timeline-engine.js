@@ -377,16 +377,7 @@ function detectTimelineRelease(frames) {
 
 
 // ======================================
-// واجهات عامة للنظام
-// ======================================
-
-window.buildPhonemeTimeline =
-  buildPhonemeTimeline;
-// ======================================
-// بناء المسار الزمني من زر الحقيبة
-// الهدف:
-// هذه الدالة هي الجسر بين زر الواجهة
-// ومحرك تحليل المسار الزمني الداخلي
+// بناء المسار الزمني من زر الحقيبة (عينة واحدة للاختبار)
 // ======================================
 
 async function buildTimelineForCurrentPhoneme(key) {
@@ -444,7 +435,7 @@ async function buildTimelineForCurrentPhoneme(key) {
 
 
 // ======================================
-// عرض تقرير المسار الزمني في الواجهة
+// عرض تقرير المسار الزمني لعينة واحدة في الواجهة
 // ======================================
 
 function renderTimelineReport(key, timeline) {
@@ -501,15 +492,291 @@ function renderTimelineReport(key, timeline) {
 }
 
 
+// =====================================================================
+// =====================================================================
+// التحديث الجديد: بناء الجينوم الزمني المترابط والمقيد ترتيبياً (V1.5)
+// =====================================================================
+// =====================================================================
+
+// ======================================
+// بناء المسار الزمني المرتب إجبارياً
+// تعليق: يجب أن يكون ترتيب المراحل إجبارياً (onset -> burst -> transition -> sustain -> release)
+// ممنوع أن يظهر release قبل sustain، وكل مرحلة تبحث فقط في النطاق الزمني الذي يلي المرحلة السابقة.
+// ======================================
+function buildOrderedPhonemeTimeline(samples, sampleRate) {
+  const frames = splitSamplesIntoFrames(samples, sampleRate, 1024, 512);
+
+  const analyzedFrames = frames.map(function (frame, index) {
+    return {
+      index: index,
+      energy: calculateFrameEnergy(frame),
+      zcr: calculateFrameZCR(frame),
+      centroid: calculateFrameCentroid(frame, sampleRate),
+      spread: calculateFrameSpread(frame, sampleRate, calculateFrameCentroid(frame, sampleRate))
+    };
+  });
+
+  // 1. Onset (البداية)
+  let onset = null;
+  for (let i = 0; i < analyzedFrames.length; i++) {
+    if (analyzedFrames[i].energy > 0.02) {
+      onset = analyzedFrames[i];
+      break;
+    }
+  }
+  let onsetIdx = onset ? onset.index : 0;
+
+  // 2. Burst (الانفجار - يبحث بعد البداية)
+  let burst = null;
+  let maxEnergy = 0;
+  for (let i = onsetIdx; i < analyzedFrames.length; i++) {
+    if (analyzedFrames[i].energy > maxEnergy) {
+      maxEnergy = analyzedFrames[i].energy;
+      burst = analyzedFrames[i];
+    }
+  }
+  let burstIdx = burst ? burst.index : onsetIdx;
+
+  // 3. Transition (الانتقال - يبحث بعد الانفجار)
+  let transition = null;
+  let maxMovement = 0;
+  for (let i = burstIdx + 1; i < analyzedFrames.length; i++) {
+    let movement = Math.abs(analyzedFrames[i].centroid - analyzedFrames[i - 1].centroid);
+    if (movement > maxMovement) {
+      maxMovement = movement;
+      transition = analyzedFrames[i];
+    }
+  }
+  let transIdx = transition ? transition.index : burstIdx;
+
+  // 4. Sustain (الاستقرار - يبحث بعد الانتقال)
+  let sustain = null;
+  let bestScore = Infinity;
+  for (let i = transIdx + 1; i < analyzedFrames.length - 1; i++) {
+    let delta1 = Math.abs(analyzedFrames[i].energy - analyzedFrames[i - 1].energy);
+    let delta2 = Math.abs(analyzedFrames[i].energy - analyzedFrames[i + 1].energy);
+    let score = delta1 + delta2;
+    if (score < bestScore) {
+      bestScore = score;
+      sustain = analyzedFrames[i];
+    }
+  }
+  let sustainIdx = sustain ? sustain.index : transIdx;
+
+  // 5. Release (الذيل - يبحث من النهاية رجوعاً، ولكن يتوقف عند الاستقرار)
+  let release = null;
+  for (let i = analyzedFrames.length - 1; i >= sustainIdx; i--) {
+    if (analyzedFrames[i].energy > 0.01) {
+      release = analyzedFrames[i];
+      break;
+    }
+  }
+
+  return {
+    onset: onset,
+    burst: burst,
+    transition: transition,
+    sustain: sustain,
+    release: release,
+    frames: analyzedFrames
+  };
+}
+
+
+// ======================================
+// دالة مساعدة لجلب الملف الصوتي بشكل آمن
+// ======================================
+async function getAudioBlobSafely(fileName) {
+  if (typeof getFileFromStorage === "function") {
+    const file = await getFileFromStorage(fileName);
+    if (file) return file;
+  }
+  
+  // طريقة تخزين الـ Base64 المباشرة في المتصفح إن وُجدت
+  let b64 = localStorage.getItem(fileName);
+  if (!b64) b64 = localStorage.getItem("record_" + fileName);
+  
+  if (b64) {
+    try {
+      const res = await fetch(b64);
+      return await res.blob();
+    } catch (e) {
+      console.warn("تعذر تحويل Base64 إلى Blob", e);
+    }
+  }
+  return null;
+}
+
+
+// ======================================
+// بناء الجينوم الزمني لجميع عينات الحقيبة
+// تعليق: العينة الواحدة سابقاً كانت لاختبار كفاءة المحرك فقط.
+// الهدف الآن هو استخراج الجينوم الزمني للحقيبة كاملة.
+// الحرف يتم التعامل معه كمخلوق زمني حي، وتتم دراسة سلوكه في كل مواضعه (الفتح، الكسر، الضم، السكون).
+// ======================================
+async function buildTimelineGenomeForPhoneme(key) {
+  if (typeof getPhonemeTrainingPack !== "function") {
+    alert("❌ دالة getPhonemeTrainingPack غير موجودة.");
+    return;
+  }
+
+  const pack = getPhonemeTrainingPack(key);
+  if (!pack) {
+    alert("❌ لم يتم العثور على حقيبة الحرف: " + key);
+    return;
+  }
+
+  console.log(`⏳ جاري بناء الجينوم الزمني لحقيبة ${key}...`);
+  
+  const genomeRecords = [];
+
+  // نمر على كل عينة (position) مسجلة في الحقيبة
+  for (const pos of pack.positions) {
+    
+    const blob = await getAudioBlobSafely(pos.file);
+    
+    if (!blob) {
+      console.warn(`⚠️ العينة ${pos.file} غير مسجلة بعد.`);
+      continue;
+    }
+
+    if (typeof decodeCognitiveBlob !== "function") {
+      console.error("❌ دالة decodeCognitiveBlob غير موجودة");
+      continue;
+    }
+
+    try {
+      // فك الصوت
+      const decoded = await decodeCognitiveBlob(blob);
+      
+      // بناء المسار الزمني المقيّد ترتيبياً للعينة
+      const timeline = buildOrderedPhonemeTimeline(decoded.samples, decoded.sampleRate);
+
+      // إضافة التقرير الزمني إلى الجينوم
+      genomeRecords.push({
+        position: pos,
+        timeline: timeline
+      });
+    } catch (err) {
+      console.error(`❌ فشل تحليل العينة ${pos.file}:`, err);
+    }
+  }
+
+  if (genomeRecords.length === 0) {
+    alert("⚠️ لا توجد أي عينات مسجلة لبناء الجينوم الزمني. الرجاء تسجيل الحقيبة أولاً.");
+    return;
+  }
+
+  const timelineGenome = {
+    key: key,
+    records: genomeRecords,
+    timestamp: new Date().toISOString()
+  };
+
+  // حفظ الجينوم في التخزين
+  localStorage.setItem(
+    key + "_timeline_genome",
+    JSON.stringify(timelineGenome, null, 2)
+  );
+
+  // عرض التقرير الشامل
+  renderTimelineGenomeReport(key, timelineGenome);
+  alert("✅ تم بناء الجينوم الزمني الشامل للحرف وحفظه بنجاح.");
+}
+
+
+// ======================================
+// عرض تقرير الجينوم الزمني المتكامل للحقيبة
+// ======================================
+function renderTimelineGenomeReport(key, timelineGenome) {
+  let box = document.getElementById("timeline-report-box");
+
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "timeline-report-box";
+    box.style.background = "#0f172a"; // أغمق قليلاً للتمييز
+    box.style.color = "#e5e7eb";
+    box.style.padding = "16px";
+    box.style.marginTop = "14px";
+    box.style.borderRadius = "12px";
+    box.style.border = "1px solid #38bdf8";
+    box.style.lineHeight = "1.8";
+
+    // نضع التقرير داخل الشبكة إذا كانت موجودة
+    const parent = document.getElementById("phonemeCardsGrid") || document.body;
+    parent.appendChild(box);
+  }
+
+  let html = `<h3 style="color: #38bdf8;">⏳ الجينوم الزمني — ${key}</h3>`;
+
+  let sumOnset = 0, sumBurst = 0, sumTrans = 0, sumSustain = 0, sumRelease = 0;
+  let count = timelineGenome.records.length;
+
+  if (count === 0) {
+    box.innerHTML = html + "<p>لا توجد بيانات زمنية لعرضها.</p>";
+    return;
+  }
+
+  // طباعة العينات بترتيبها
+  timelineGenome.records.forEach(record => {
+    let tl = record.timeline;
+    
+    // نستخرج الفهارس الزمنية بشكل آمن
+    let oIdx = tl.onset ? tl.onset.index : 0;
+    let bIdx = tl.burst ? tl.burst.index : 0;
+    let tIdx = tl.transition ? tl.transition.index : 0;
+    let sIdx = tl.sustain ? tl.sustain.index : 0;
+    let rIdx = tl.release ? tl.release.index : 0;
+
+    // جمع القيم لحساب المتوسط لاحقاً
+    sumOnset += oIdx; 
+    sumBurst += bIdx; 
+    sumTrans += tIdx; 
+    sumSustain += sIdx; 
+    sumRelease += rIdx;
+
+    html += `
+      <div style="margin-bottom: 12px; padding: 12px; background: #1e293b; border-radius: 8px;">
+        <b style="color: #facc15;">العينة: ${record.position.text}</b><br>
+        <span style="font-size: 14px; color: #cbd5e1; font-family: monospace;">
+          onset (${oIdx}) → burst (${bIdx}) → transition (${tIdx}) → sustain (${sIdx}) → release (${rIdx})
+        </span>
+      </div>
+    `;
+  });
+
+  // طباعة المتوسطات الحسابية
+  html += `
+    <div style="margin-top: 18px; border-top: 1px solid #334155; padding-top: 14px;">
+      <b style="color: #22c55e;">📊 متوسط المراحل الزمنية للجينوم:</b><br>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; font-size: 14px;">
+        <div>متوسط onset: <b style="color:white;">${Math.round(sumOnset / count)}</b></div>
+        <div>متوسط burst: <b style="color:white;">${Math.round(sumBurst / count)}</b></div>
+        <div>متوسط transition: <b style="color:white;">${Math.round(sumTrans / count)}</b></div>
+        <div>متوسط sustain: <b style="color:white;">${Math.round(sumSustain / count)}</b></div>
+        <div>متوسط release: <b style="color:white;">${Math.round(sumRelease / count)}</b></div>
+      </div>
+    </div>
+  `;
+
+  box.innerHTML = html;
+  
+  // لفت الانتباه للمستخدم بأن التقرير تم تحديثه
+  box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+
 // ======================================
 // إتاحة الدوال للواجهة
 // ======================================
 
-window.buildTimelineForCurrentPhoneme =
-  buildTimelineForCurrentPhoneme;
+window.buildPhonemeTimeline = buildPhonemeTimeline;
+window.buildOrderedPhonemeTimeline = buildOrderedPhonemeTimeline;
+window.buildTimelineForCurrentPhoneme = buildTimelineForCurrentPhoneme;
+window.buildTimelineGenomeForPhoneme = buildTimelineGenomeForPhoneme;
+window.renderTimelineReport = renderTimelineReport;
+window.renderTimelineGenomeReport = renderTimelineGenomeReport;
 
-window.renderTimelineReport =
-  renderTimelineReport;
 console.log(
-  "⏳ محرك المسار الزمني الإدراكي للحرف جاهز"
+  "⏳ محرك المسار الزمني الإدراكي للحرف جاهز V1.5"
 );
