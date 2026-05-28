@@ -640,13 +640,13 @@ async function mergeReplacementWithPayload() {
       await blobToAudioBuffer(extractedPayloadBlob);
 
     replacementBuffer =
-      trimReplacementForMerge(replacementBuffer);
+  trimReplacementForMerge(replacementBuffer);
 
-    let mergedBuffer =
+const mergedBuffer =
   crossfadeAudioBuffers(
     replacementBuffer,
     payloadBuffer,
-    0.065
+    0.08
   );
 
     mergedSegmentBlob =
