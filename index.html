@@ -57,7 +57,6 @@
 
   <main>
 
-    <!-- الصفحة الرئيسية -->
     <section
       id="homeView"
       class="panel"
@@ -100,7 +99,6 @@
     </section>
 
 
-    <!-- صفحة الحقائب -->
     <section
       id="perceptualTrainingView"
       class="panel"
@@ -171,7 +169,6 @@
     </section>
 
 
-    <!-- صفحة التسجيل -->
     <section
       id="recordView"
       class="panel"
@@ -295,7 +292,6 @@
     </section>
 
 
-    <!-- صفحة التحليل الذاتي -->
     <section
       id="cognitiveStatisticsView"
       class="panel"
@@ -322,7 +318,6 @@
     </section>
 
 
-    <!-- صفحة مختبر الفصل والدمج -->
     <section
       id="mergeSplitView"
       class="panel"
@@ -365,37 +360,37 @@
           margin-top:18px;
         "
       >
-<button onclick="recordBaseSegment()">
-  🎙 تسجيل المقطع بَصْ
-</button>
+        <button onclick="recordBaseSegment()">
+          🎙 تسجيل المقطع بَصْ
+        </button>
 
-<button onclick="recordCarrierReplacement()">
-  🎙 تسجيل الحرف قَ
-</button>
+        <button onclick="recordCarrierReplacement()">
+          🎙 تسجيل الحرف قَ
+        </button>
 
-<button onclick="splitBaseSegment()">
-  ✂️ فصل بَ عن صْ
-</button>
+        <button onclick="splitBaseSegment()">
+          ✂️ فصل بَ عن صْ
+        </button>
 
-<button onclick="mergeReplacementWithPayload()">
-  🧩 دمج قَ + صْ
-</button>
+        <button onclick="mergeReplacementWithPayload()">
+          🧩 دمج قَ + صْ
+        </button>
 
-<button onclick="playMergedSegment()">
-  ▶️ سماع قَصْ
-</button>
+        <button onclick="playMergedSegment()">
+          ▶️ سماع قَصْ
+        </button>
 
-<button onclick="playBaseSegment()">
-  ▶️ سماع بَصْ
-</button>
+        <button onclick="playBaseSegment()">
+          ▶️ سماع بَصْ
+        </button>
 
-<button onclick="playReplacementSegment()">
-  ▶️ سماع قَ
-</button>
+        <button onclick="playReplacementSegment()">
+          ▶️ سماع قَ
+        </button>
 
-<button onclick="playPayloadSegment()">
-  ▶️ سماع صْ المفصول
-</button>
+        <button onclick="playPayloadSegment()">
+          ▶️ سماع صْ المفصول
+        </button>
 
       </div>
 
@@ -425,11 +420,9 @@
   </main>
 
 
-  <!-- المكتبات -->
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
 
-  <!-- ملفات المشروع -->
   <script src="recording-manifest.js"></script>
   <script src="storage.js"></script>
   <script src="audio-lab.js"></script>
@@ -452,7 +445,6 @@
   <script src="app.js"></script>
 
 
-  <!-- سكربت الواجهات -->
   <script>
 
     function hideAllViews() {
@@ -545,19 +537,15 @@
       if (!grid) return;
 
       grid.innerHTML = "";
-// ======================================
-// تنسيق شبكة عرض الحقائب الإدراكية
-// الهدف: منع التزاحم والتراكب وجعل البطاقات مرتبة
-// ======================================
+      
+      // ======================================
+      // وظيفة التعديل: تحسين عرض بطاقات الحقائب وجعلها مرتبة وغير متزاحمة.
+      // ======================================
+      grid.style.display = "grid";
+      grid.style.gridTemplateColumns = "repeat(auto-fit, minmax(240px, 1fr))";
+      grid.style.gap = "18px";
+      grid.style.padding = "12px";
 
-grid.style.display = "grid";
-
-grid.style.gridTemplateColumns =
-  "repeat(auto-fit, minmax(240px, 1fr))";
-
-grid.style.gap = "18px";
-
-grid.style.padding = "12px";
       if (
         typeof getAllPhonemeTrainingPacks !==
         "function"
@@ -569,6 +557,7 @@ grid.style.padding = "12px";
             padding:14px;
             border-radius:12px;
             line-height:1.8;
+            grid-column: 1 / -1;
           ">
             ⚠️ لم يتم العثور على دالة
             getAllPhonemeTrainingPacks
@@ -592,6 +581,7 @@ grid.style.padding = "12px";
             padding:14px;
             border-radius:12px;
             line-height:1.8;
+            grid-column: 1 / -1;
           ">
             ⚠️ لا توجد حقائب إدراكية جاهزة
           </div>
@@ -600,10 +590,15 @@ grid.style.padding = "12px";
         return;
       }
 
+      // ======================================
+      // وظيفة التعديل: منع عنوان "اختر الحقيبة الإدراكية" من مزاحمة البطاقات 
+      // بإعطائه مساحة العرض كاملة (grid-column: 1 / -1)
+      // ======================================
       grid.innerHTML = `
         <h3 style="
           text-align:center;
           margin:10px 0 18px;
+          grid-column: 1 / -1;
         ">
           اختر الحقيبة الإدراكية
         </h3>
@@ -617,51 +612,30 @@ grid.style.padding = "12px";
             document.createElement("button");
 
           // ======================================
-// تنسيق بطاقة الحقيبة الواحدة
-// الهدف: جعل كل حقيبة تظهر كبطاقة مستقلة واضحة
-// ======================================
-
-card.style.display = "flex";
-
-card.style.flexDirection = "column";
-
-card.style.justifyContent = "center";
-
-card.style.alignItems = "center";
-
-card.style.width = "100%";
-
-card.style.margin = "0";
-
-card.style.minHeight = "180px";
-          card.style.padding = "24px";
+          // سبب تصغير البطاقات: البطاقات السابقة كانت ضخمة جدًا وتأخذ مساحة كبيرة من الشاشة.
+          // القيم الجديدة تجعل الشبكة أنيقة وسهلة التصفح والمقارنة.
+          // ======================================
+          card.style.display = "flex";
+          card.style.flexDirection = "column";
+          card.style.justifyContent = "center";
+          card.style.alignItems = "center";
+          card.style.width = "100%";
+          card.style.margin = "0";
+          
+          card.style.minHeight = "110px"; // تم تصغير الحد الأدنى للارتفاع
+          card.style.padding = "14px"; // تم تقليل الحشوة الداخلية
           card.style.borderRadius = "22px";
-
-          card.style.border =
-            "2px solid " +
-            (
-              pack.colorHex ||
-              "#334155"
-            );
-
-          card.style.background =
-            "#08111f";
-
-          card.style.color =
-            pack.colorHex ||
-            "#ffffff";
-
-          card.style.fontSize =
-            "24px";
-
-          card.style.fontWeight =
-            "bold";
+          card.style.border = "2px solid " + (pack.colorHex || "#334155");
+          card.style.background = "#08111f";
+          card.style.color = pack.colorHex || "#ffffff";
+          card.style.fontSize = "18px"; // تم تصغير حجم الخط للتناسب
+          card.style.fontWeight = "bold";
 
           card.innerHTML =
             "حقيبة " +
             pack.letter +
             "<br><br>" +
-            "<span style='font-size:15px;color:#cbd5e1;'>" +
+            "<span style='font-size:14px;color:#cbd5e1;'>" +
             key +
             " — " +
             pack.name +
@@ -691,7 +665,6 @@ card.style.minHeight = "180px";
 
       if (!grid) return;
 
-      // ملاحظة: تم إزالة استدعاء دالة renderMatchResultsLog(key) من الأسفل، ليتم استدعاؤها عبر الزر الجديد المخفي
       grid.innerHTML = `
         <div style="
           background:#08111f;
@@ -701,6 +674,7 @@ card.style.minHeight = "180px";
           padding:18px;
           margin:12px 0;
           text-align:center;
+          grid-column: 1 / -1;
         ">
 
           <h2 style="
@@ -713,7 +687,6 @@ card.style.minHeight = "180px";
             حقيبة ${pack.name}
           </h2>
 
-          <!-- تم نقل الزر هنا كما طلبت -->
           <button 
             onclick="renderPhonemeCards()" 
             style="margin-bottom: 20px; background: #1e293b; color: #f8fafc; border: 1px solid #334155;"
@@ -787,12 +760,8 @@ card.style.minHeight = "180px";
             margin:18px 0;
           ">
 
-          <!-- ====================================== -->
-          <!-- زر إظهار سجل الاختبارات -->
-          <!-- السجل لا يظهر مباشرة حتى لا يسحب الصفحة للأسفل -->
-          <!-- ====================================== -->
           <button
-            onclick="toggleMatchResultsLog()"
+            onclick="toggleMatchResultsLog('${key}')"
             style="
               margin-top:14px;
               background:#111827;
@@ -805,7 +774,7 @@ card.style.minHeight = "180px";
 
           <div
             id="match-results-log-box"
-            style="display:none;"
+            style="display:none; margin-top: 15px;"
           ></div>
 
         </div>
@@ -874,11 +843,10 @@ card.style.minHeight = "180px";
 
     // ======================================
     // إظهار / إخفاء سجل الاختبارات
-    // الهدف:
-    // منع فتح التقرير تلقائيًا عند دخول الحقيبة
+    // سبب تمرير key: للتأكد من أن الدالة renderMatchResultsLog(key)
+    // تقوم بجلب السجل الخاص بالحقيبة المحددة فقط عند الضغط على الزر، وليس استدعاء سجل فارغ أو عام.
     // ======================================
-
-    function toggleMatchResultsLog() {
+    function toggleMatchResultsLog(key) {
 
       const box =
         document.getElementById(
@@ -895,7 +863,7 @@ card.style.minHeight = "180px";
           typeof renderMatchResultsLog ===
           "function"
         ) {
-          renderMatchResultsLog();
+          renderMatchResultsLog(key);
         }
 
       } else {
