@@ -545,7 +545,19 @@
       if (!grid) return;
 
       grid.innerHTML = "";
+// ======================================
+// تنسيق شبكة عرض الحقائب الإدراكية
+// الهدف: منع التزاحم والتراكب وجعل البطاقات مرتبة
+// ======================================
 
+grid.style.display = "grid";
+
+grid.style.gridTemplateColumns =
+  "repeat(auto-fit, minmax(240px, 1fr))";
+
+grid.style.gap = "18px";
+
+grid.style.padding = "12px";
       if (
         typeof getAllPhonemeTrainingPacks !==
         "function"
@@ -604,9 +616,24 @@
           const card =
             document.createElement("button");
 
-          card.style.display = "block";
-          card.style.width = "90%";
-          card.style.margin = "12px auto";
+          // ======================================
+// تنسيق بطاقة الحقيبة الواحدة
+// الهدف: جعل كل حقيبة تظهر كبطاقة مستقلة واضحة
+// ======================================
+
+card.style.display = "flex";
+
+card.style.flexDirection = "column";
+
+card.style.justifyContent = "center";
+
+card.style.alignItems = "center";
+
+card.style.width = "100%";
+
+card.style.margin = "0";
+
+card.style.minHeight = "180px";
           card.style.padding = "24px";
           card.style.borderRadius = "22px";
 
