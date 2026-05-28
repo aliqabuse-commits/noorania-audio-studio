@@ -32,7 +32,7 @@ function updateMergeSplitStatus(message) {
 async function recordBaseSegment() {
   alert("اضغط حسنًا، ثم سجّل الآن المقطع: بَصْ");
 
-  baseSegmentBlob = await recordMergeSample(3000);
+  baseSegmentBlob = await recordMergeSample(1000);
 
   if (!baseSegmentBlob) {
     alert("فشل تسجيل المقطع بَصْ");
@@ -59,7 +59,7 @@ async function recordBaseSegment() {
 async function recordCarrierReplacement() {
   alert("اضغط حسنًا، ثم سجّل الآن الحرف البديل: قَ");
 
-  replacementBlob = await recordMergeSample(2000);
+  replacementBlob = await recordMergeSample(1000);
 
   if (!replacementBlob) {
     alert("فشل تسجيل الحرف قَ");
@@ -617,12 +617,21 @@ async function mergeReplacementWithPayload() {
     replacementBuffer =
       trimReplacementForMerge(replacementBuffer);
 
-    const mergedBuffer =
-      crossfadeAudioBuffers(
-        replacementBuffer,
-        payloadBuffer,
-        0.065
-      );
+    let mergedBuffer =
+  crossfadeAudioBuffers(
+    replacementBuffer,
+    payloadBuffer,
+    0.065
+  );
+
+if (mergedBuffer.duration > 1) {
+  mergedBuffer =
+    sliceAudioBuffer(
+      mergedBuffer,
+      0,
+      1
+    );
+}
 
     mergedSegmentBlob =
       audioBufferToWavBlob(mergedBuffer);
