@@ -444,7 +444,7 @@ function trimReplacementForMerge(buffer) {
   }
 
   // نأخذ فقط رأس قَ وبداية الفتحة، لا الحرف كاملًا
-  const maxCarrierDuration = 0.28;
+  const maxCarrierDuration = 0.20;
 
   const startSecond = startSample / sampleRate;
   const endSecond = Math.min(
@@ -646,7 +646,7 @@ const mergedBuffer =
   crossfadeAudioBuffers(
     replacementBuffer,
     payloadBuffer,
-    0.08
+    0.10
   );
 
     mergedSegmentBlob =
