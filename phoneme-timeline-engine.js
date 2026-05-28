@@ -382,7 +382,134 @@ function detectTimelineRelease(frames) {
 
 window.buildPhonemeTimeline =
   buildPhonemeTimeline;
+// ======================================
+// بناء المسار الزمني من زر الحقيبة
+// الهدف:
+// هذه الدالة هي الجسر بين زر الواجهة
+// ومحرك تحليل المسار الزمني الداخلي
+// ======================================
 
+async function buildTimelineForCurrentPhoneme(key) {
+  alert(
+    "⏳ سيبدأ بناء المسار الزمني للحرف:\n\n" +
+    key +
+    "\n\nسجّل الآن صوت الحرف."
+  );
+
+  if (typeof recordMatchSample !== "function") {
+    alert("دالة التسجيل recordMatchSample غير موجودة.");
+    return;
+  }
+
+  if (typeof decodeCognitiveBlob !== "function") {
+    alert("دالة فك الصوت decodeCognitiveBlob غير موجودة.");
+    return;
+  }
+
+  try {
+    const blob =
+      await recordMatchSample();
+
+    if (!blob) {
+      alert("فشل تسجيل عينة المسار الزمني.");
+      return;
+    }
+
+    const decoded =
+      await decodeCognitiveBlob(blob);
+
+    const timeline =
+      buildPhonemeTimeline(
+        decoded.samples,
+        decoded.sampleRate
+      );
+
+    localStorage.setItem(
+      key + "_timeline_genome",
+      JSON.stringify(timeline, null, 2)
+    );
+
+    renderTimelineReport(key, timeline);
+
+    alert("✅ تم بناء المسار الزمني وحفظه.");
+  } catch (err) {
+    console.error("❌ فشل بناء المسار الزمني:", err);
+
+    alert(
+      "فشل بناء المسار الزمني:\n" +
+      err.message
+    );
+  }
+}
+
+
+// ======================================
+// عرض تقرير المسار الزمني في الواجهة
+// ======================================
+
+function renderTimelineReport(key, timeline) {
+  let box =
+    document.getElementById("timeline-report-box");
+
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "timeline-report-box";
+
+    box.style.background = "#111827";
+    box.style.color = "#e5e7eb";
+    box.style.padding = "12px";
+    box.style.marginTop = "14px";
+    box.style.borderRadius = "12px";
+    box.style.lineHeight = "1.8";
+
+    const parent =
+      document.getElementById("phonemeCardsGrid");
+
+    if (parent) {
+      parent.appendChild(box);
+    }
+  }
+
+  box.innerHTML = `
+    <h3>⏳ تقرير المسار الزمني — ${key}</h3>
+
+    <div>
+      <b>onset:</b>
+      ${timeline.onset ? "frame " + timeline.onset.frameIndex : "غير محدد"}
+    </div>
+
+    <div>
+      <b>burst:</b>
+      ${timeline.burst ? "frame " + timeline.burst.index + " / energy " + timeline.burst.energy.toFixed(4) : "غير محدد"}
+    </div>
+
+    <div>
+      <b>transition:</b>
+      ${timeline.transition ? "frame " + timeline.transition.index : "غير محدد"}
+    </div>
+
+    <div>
+      <b>sustain:</b>
+      ${timeline.sustain ? "frame " + timeline.sustain.index : "غير محدد"}
+    </div>
+
+    <div>
+      <b>release:</b>
+      ${timeline.release ? "frame " + timeline.release.frameIndex : "غير محدد"}
+    </div>
+  `;
+}
+
+
+// ======================================
+// إتاحة الدوال للواجهة
+// ======================================
+
+window.buildTimelineForCurrentPhoneme =
+  buildTimelineForCurrentPhoneme;
+
+window.renderTimelineReport =
+  renderTimelineReport;
 console.log(
   "⏳ محرك المسار الزمني الإدراكي للحرف جاهز"
 );
