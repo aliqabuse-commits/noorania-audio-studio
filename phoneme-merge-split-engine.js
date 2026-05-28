@@ -444,7 +444,7 @@ function trimReplacementForMerge(buffer) {
   }
 
   // نأخذ فقط رأس قَ وبداية الفتحة، لا الحرف كاملًا
-  const maxCarrierDuration = 0.20;
+  const maxCarrierDuration = 0.17;
 
   const startSecond = startSample / sampleRate;
   const endSecond = Math.min(
