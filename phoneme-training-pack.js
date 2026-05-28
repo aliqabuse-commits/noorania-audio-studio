@@ -20,12 +20,60 @@ const PHONEME_LETTER_DEFINITIONS = {
   
   alif: {
     key: "alif",
-    letter: "ا",
-    name: "ألف",
+    letter: "أ",
+    name: "همزة",
     colorKey: "alif",
     fileBase: "alif",
-    traits: { place: "جوفي", tafkheem: false, burst: false, sibilant: false },
-    notes: ["الألف حرف جوفي", "المطلوب إدراك امتداد الصوت لا صوت القارئ"]
+    traits: { place: "حلقي", tafkheem: false, burst: true, sibilant: false },
+    notes: [
+      "هذه الحقيبة مخصصة للهمزة لا للألف المدية",
+      "الهمزة حرف حلقي شديد",
+      "المطلوب إدراك صوت الهمزة في أوضاعها المختلفة"
+    ],
+    positions: [
+      {
+        id: "alif_fatha",
+        text: "أَ",
+        file: "alif_fatha.wav",
+        role: "فتح",
+        description: "همزة مع الفتحة"
+      },
+      {
+        id: "alif_kasra",
+        text: "إِ",
+        file: "alif_kasra.wav",
+        role: "كسر",
+        description: "همزة مع الكسرة"
+      },
+      {
+        id: "alif_damma",
+        text: "أُ",
+        file: "alif_damma.wav",
+        role: "ضم",
+        description: "همزة مع الضمة"
+      },
+      {
+        id: "alif_sukoon_after_fatha",
+        text: "ءَأْ",
+        file: "alif_sukoon_fatha.wav",
+        role: "سكون بعد فتح",
+        description: "همزة ساكنة بعد فتحة"
+      },
+      {
+        id: "alif_sukoon_after_kasra",
+        text: "إِئْ",
+        file: "alif_sukoon_kasra.wav",
+        role: "سكون بعد كسر",
+        description: "همزة ساكنة بعد كسرة"
+      },
+      {
+        id: "alif_sukoon_after_damma",
+        text: "أُؤْ",
+        file: "alif_sukoon_damma.wav",
+        role: "سكون بعد ضم",
+        description: "همزة ساكنة بعد ضمة"
+      }
+    ]
   },
 
   ba: {
