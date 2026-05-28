@@ -624,15 +624,6 @@ async function mergeReplacementWithPayload() {
     0.065
   );
 
-if (mergedBuffer.duration > 1) {
-  mergedBuffer =
-    sliceAudioBuffer(
-      mergedBuffer,
-      0,
-      1
-    );
-}
-
     mergedSegmentBlob =
       audioBufferToWavBlob(mergedBuffer);
 
