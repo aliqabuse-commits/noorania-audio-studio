@@ -563,13 +563,20 @@ function buildOrderedPhonemeTimeline(samples, sampleRate) {
   }
   let sustainIdx = sustain ? sustain.index : transIdx;
 
-  // 5. Release (الذيل - يبحث من النهاية رجوعاً، ولكن يتوقف عند الاستقرار)
+  // 5. Release
+  // الذيل النهائي يبحث بعد sustain فقط
   let release = null;
+
   for (let i = analyzedFrames.length - 1; i >= sustainIdx; i--) {
     if (analyzedFrames[i].energy > 0.01) {
       release = analyzedFrames[i];
       break;
     }
+  }
+
+  // إذا لم يجد ذيلًا واضحًا، اجعل آخر إطار بعد sustain هو release
+  if (!release) {
+    release = analyzedFrames[analyzedFrames.length - 1];
   }
 
   return {
