@@ -1,10 +1,10 @@
 // ================================
 // phoneme-merge-split-engine.js
-// محرك الفصل والدمج الصوتي — V1.3
-// يعتمد على كاشف الحدود الإدراكية
+// محرك الفصل والدمج الصوتي — V1.4
+// فصل أنظف + دمج حي Crossfade
 // ================================
 
-console.log("🧩 phoneme-merge-split-engine.js جاهز V1.3");
+console.log("🧩 phoneme-merge-split-engine.js جاهز V1.4");
 
 let baseSegmentBlob = null;        // بَصْ
 let replacementBlob = null;        // قَ
@@ -337,43 +337,173 @@ function sliceAudioBuffer(buffer, startSecond, endSecond) {
 
 
 // ======================================
-// دمج AudioBuffer
+// حساب RMS
 // ======================================
 
-function concatAudioBuffers(bufferA, bufferB) {
+function rmsOfSamples(samples, start, end) {
+  let sum = 0;
+  let count = 0;
+
+  for (let i = start; i < end && i < samples.length; i++) {
+    sum += samples[i] * samples[i];
+    count++;
+  }
+
+  return count ? Math.sqrt(sum / count) : 0;
+}
+
+
+// ======================================
+// تنظيف البداية من الصمت والشوائب
+// ======================================
+
+function trimPayloadStart(buffer) {
+  const sampleRate = buffer.sampleRate;
+  const samples = buffer.getChannelData(0);
+
+  const frameMs = 10;
+  const frameSize =
+    Math.max(1, Math.floor(sampleRate * frameMs / 1000));
+
+  let maxRms = 0;
+
+  for (let i = 0; i < samples.length; i += frameSize) {
+    const rms =
+      rmsOfSamples(samples, i, i + frameSize);
+
+    if (rms > maxRms) {
+      maxRms = rms;
+    }
+  }
+
+  const threshold =
+    Math.max(maxRms * 0.18, 0.006);
+
+  let startFrame = 0;
+
+  for (let i = 0; i < samples.length; i += frameSize) {
+    const rms =
+      rmsOfSamples(samples, i, i + frameSize);
+
+    if (rms >= threshold) {
+      startFrame = i;
+      break;
+    }
+  }
+
+  // نترك هامشًا بسيطًا قبل بداية الصاد حتى لا نأكل أولها
+  const safetyBack =
+    Math.floor(sampleRate * 0.025);
+
+  const cleanStartSample =
+    Math.max(0, startFrame - safetyBack);
+
+  const cleanStartSecond =
+    cleanStartSample / sampleRate;
+
+  return {
+    buffer: sliceAudioBuffer(
+      buffer,
+      cleanStartSecond,
+      buffer.duration
+    ),
+    cleanStartSecond,
+    threshold
+  };
+}
+
+
+// ======================================
+// قص نهاية الحامل قَ حتى لا يبقى قَ منفصل طويل
+// ======================================
+
+function trimReplacementForMerge(buffer) {
+  const sampleRate = buffer.sampleRate;
+
+  // نأخذ آخر 65% تقريبًا من قَ لتقليل الإطالة قبل الصاد
+  const startSecond =
+    Math.max(0, buffer.duration * 0.15);
+
+  const endSecond =
+    Math.max(startSecond + 0.05, buffer.duration);
+
+  return sliceAudioBuffer(
+    buffer,
+    startSecond,
+    endSecond
+  );
+}
+
+
+// ======================================
+// دمج حي Crossfade
+// ======================================
+
+function crossfadeAudioBuffers(bufferA, bufferB, fadeSeconds) {
   const sampleRate = bufferA.sampleRate;
 
-  const numberOfChannels = Math.min(
-    bufferA.numberOfChannels,
-    bufferB.numberOfChannels
-  );
+  const numberOfChannels =
+    Math.min(
+      bufferA.numberOfChannels,
+      bufferB.numberOfChannels
+    );
 
-  const newBuffer = new AudioBuffer({
-    length: bufferA.length + bufferB.length,
+  let fadeSamples =
+    Math.floor((fadeSeconds || 0.06) * sampleRate);
+
+  fadeSamples =
+    Math.min(
+      fadeSamples,
+      Math.floor(bufferA.length * 0.35),
+      Math.floor(bufferB.length * 0.35)
+    );
+
+  fadeSamples =
+    Math.max(1, fadeSamples);
+
+  const outputLength =
+    bufferA.length + bufferB.length - fadeSamples;
+
+  const outputBuffer = new AudioBuffer({
+    length: outputLength,
     numberOfChannels: numberOfChannels,
     sampleRate: sampleRate
   });
 
   for (let ch = 0; ch < numberOfChannels; ch++) {
-    const output = newBuffer.getChannelData(ch);
+    const a = bufferA.getChannelData(ch);
+    const b = bufferB.getChannelData(ch);
+    const out = outputBuffer.getChannelData(ch);
 
-    output.set(
-      bufferA.getChannelData(ch),
-      0
-    );
+    const aKeepLength =
+      bufferA.length - fadeSamples;
 
-    output.set(
-      bufferB.getChannelData(ch),
-      bufferA.length
-    );
+    for (let i = 0; i < aKeepLength; i++) {
+      out[i] = a[i];
+    }
+
+    for (let i = 0; i < fadeSamples; i++) {
+      const t = i / Math.max(1, fadeSamples - 1);
+
+      const fadeOut = 1 - t;
+      const fadeIn = t;
+
+      out[aKeepLength + i] =
+        a[aKeepLength + i] * fadeOut +
+        b[i] * fadeIn;
+    }
+
+    for (let i = fadeSamples; i < bufferB.length; i++) {
+      out[aKeepLength + i] = b[i];
+    }
   }
 
-  return newBuffer;
+  return outputBuffer;
 }
 
 
 // ======================================
-// فصل بَ عن صْ — بالهوية الإدراكية
+// فصل بَ عن صْ — بالهوية الإدراكية + تنظيف
 // ======================================
 
 async function splitBaseSegment() {
@@ -407,12 +537,18 @@ async function splitBaseSegment() {
       return;
     }
 
-    const payloadBuffer =
+    let payloadBuffer =
       sliceAudioBuffer(
         buffer,
         cutPoint,
         buffer.duration
       );
+
+    const trimResult =
+      trimPayloadStart(payloadBuffer);
+
+    payloadBuffer =
+      trimResult.buffer;
 
     extractedPayloadBlob =
       audioBufferToWavBlob(payloadBuffer);
@@ -420,11 +556,14 @@ async function splitBaseSegment() {
     mergedSegmentBlob = null;
 
     updateMergeSplitStatus(
-      "🧭 تم الفصل بالهوية الإدراكية:<br>" +
+      "🧭 تم الفصل بالهوية الإدراكية والتنظيف:<br>" +
       "الحامل: <b>بَ</b><br>" +
       "المحمول: <b>صْ</b><br>" +
       "نقطة بداية المحمول: <b>" +
       cutPoint.toFixed(3) +
+      " ثانية</b><br>" +
+      "تنظيف بداية المحمول: <b>" +
+      trimResult.cleanStartSecond.toFixed(3) +
       " ثانية</b><br>" +
       "عدد نوافذ التحليل: " +
       result.scores.length +
@@ -437,7 +576,7 @@ async function splitBaseSegment() {
       result
     );
 
-    alert("✅ تم فصل صْ بناءً على الهوية الإدراكية");
+    alert("✅ تم فصل وتنظيف صْ بناءً على الهوية الإدراكية");
 
   } catch (err) {
     console.error(
@@ -454,7 +593,7 @@ async function splitBaseSegment() {
 
 
 // ======================================
-// دمج قَ + صْ
+// دمج قَ + صْ — دمج حي
 // ======================================
 
 async function mergeReplacementWithPayload() {
@@ -469,28 +608,33 @@ async function mergeReplacementWithPayload() {
   }
 
   try {
-    const replacementBuffer =
+    let replacementBuffer =
       await blobToAudioBuffer(replacementBlob);
 
     const payloadBuffer =
       await blobToAudioBuffer(extractedPayloadBlob);
 
+    replacementBuffer =
+      trimReplacementForMerge(replacementBuffer);
+
     const mergedBuffer =
-      concatAudioBuffers(
+      crossfadeAudioBuffers(
         replacementBuffer,
-        payloadBuffer
+        payloadBuffer,
+        0.065
       );
 
     mergedSegmentBlob =
       audioBufferToWavBlob(mergedBuffer);
 
     updateMergeSplitStatus(
-      "🧩 تم الدمج التجريبي:<br>" +
+      "🧩 تم الدمج الحي:<br>" +
       "<b>قَ</b> + <b>صْ</b> = <b>قَصْ</b><br>" +
+      "تم استخدام Crossfade لتداخل حي بين الحامل والمحمول.<br>" +
       "يمكنك الآن تجربة: ▶️ سماع قَصْ"
     );
 
-    alert("✅ تم دمج قَ + صْ");
+    alert("✅ تم دمج قَ + صْ بدمج حي");
 
   } catch (err) {
     console.error("❌ mergeReplacementWithPayload error:", err);
@@ -527,4 +671,4 @@ window.playReplacementSegment =
 window.playPayloadSegment =
   playPayloadSegment;
 
-console.log("🧩 محرك الفصل والدمج الصوتي جاهز V1.3");
+console.log("🧩 محرك الفصل والدمج الصوتي جاهز V1.4");
