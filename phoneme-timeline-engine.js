@@ -584,26 +584,49 @@ function buildOrderedPhonemeTimeline(samples, sampleRate) {
 
 
 // ======================================
-// دالة مساعدة لجلب الملف الصوتي بشكل آمن
+// جلب الملف الصوتي من تخزين المشروع
+// الهدف:
+// استخدام نفس ذاكرة التسجيلات التي تعتمد عليها
+// الذاكرة الإدراكية والجينوم المركزي
 // ======================================
+
 async function getAudioBlobSafely(fileName) {
-  if (typeof getFileFromStorage === "function") {
-    const file = await getFileFromStorage(fileName);
-    if (file) return file;
-  }
-  
-  // طريقة تخزين الـ Base64 المباشرة في المتصفح إن وُجدت
-  let b64 = localStorage.getItem(fileName);
-  if (!b64) b64 = localStorage.getItem("record_" + fileName);
-  
-  if (b64) {
-    try {
-      const res = await fetch(b64);
-      return await res.blob();
-    } catch (e) {
-      console.warn("تعذر تحويل Base64 إلى Blob", e);
+
+  // الطريقة الأساسية المعتمدة في مشروعنا
+  if (typeof getAudioPromiseForMemory === "function") {
+    const blob =
+      await getAudioPromiseForMemory(
+        fileName,
+        3000
+      );
+
+    if (blob) {
+      return blob;
     }
   }
+
+  // محاولة احتياطية من localStorage
+  const dataUrl =
+    localStorage.getItem("audio_" + fileName) ||
+    localStorage.getItem(fileName) ||
+    localStorage.getItem("record_" + fileName);
+
+  if (dataUrl) {
+    try {
+      const response =
+        await fetch(dataUrl);
+
+      return await response.blob();
+
+    } catch (err) {
+      console.warn(
+        "تعذر تحويل التسجيل إلى Blob:",
+        fileName,
+        err
+      );
+    }
+  }
+
   return null;
 }
 
