@@ -436,6 +436,7 @@
 
   <script src="phoneme-cognitive-engine.js"></script>
   <script src="phoneme-match-engine.js"></script>
+  <script src="phoneme-timeline-engine.js"></script>
   <script src="phoneme-boundary-engine.js"></script>
   <script src="phoneme-merge-split-engine.js"></script>
 
@@ -748,7 +749,11 @@
             >
               🎯 اختبار
             </button>
-
+<button
+  onclick="buildTimelineForCurrentPhoneme('${key}')"
+>
+  ⏳ بناء المسار الزمني
+</button>
             <button onclick="clearCognitiveMatchResultsLog()">
               🗑 حذف سجل الاختبارات
             </button>
