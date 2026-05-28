@@ -419,13 +419,38 @@ function trimPayloadStart(buffer) {
 
 function trimReplacementForMerge(buffer) {
   const sampleRate = buffer.sampleRate;
+  const samples = buffer.getChannelData(0);
 
-  // نأخذ آخر 65% تقريبًا من قَ لتقليل الإطالة قبل الصاد
-  const startSecond =
-    Math.max(0, buffer.duration * 0.15);
+  const frameSize = Math.floor(sampleRate * 0.010);
 
-  const endSecond =
-    Math.max(startSecond + 0.05, buffer.duration);
+  let maxRms = 0;
+
+  for (let i = 0; i < samples.length; i += frameSize) {
+    const rms = rmsOfSamples(samples, i, i + frameSize);
+    if (rms > maxRms) maxRms = rms;
+  }
+
+  const threshold = Math.max(maxRms * 0.20, 0.006);
+
+  let startSample = 0;
+
+  for (let i = 0; i < samples.length; i += frameSize) {
+    const rms = rmsOfSamples(samples, i, i + frameSize);
+
+    if (rms >= threshold) {
+      startSample = Math.max(0, i - Math.floor(sampleRate * 0.015));
+      break;
+    }
+  }
+
+  // نأخذ فقط رأس قَ وبداية الفتحة، لا الحرف كاملًا
+  const maxCarrierDuration = 0.28;
+
+  const startSecond = startSample / sampleRate;
+  const endSecond = Math.min(
+    buffer.duration,
+    startSecond + maxCarrierDuration
+  );
 
   return sliceAudioBuffer(
     buffer,
