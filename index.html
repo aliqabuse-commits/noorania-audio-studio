@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
@@ -691,6 +691,7 @@ card.style.minHeight = "180px";
 
       if (!grid) return;
 
+      // ملاحظة: تم إزالة استدعاء دالة renderMatchResultsLog(key) من الأسفل، ليتم استدعاؤها عبر الزر الجديد المخفي
       grid.innerHTML = `
         <div style="
           background:#08111f;
@@ -705,11 +706,20 @@ card.style.minHeight = "180px";
           <h2 style="
             color:${pack.colorHex || "#38bdf8"};
             margin-top:0;
+            margin-bottom:12px;
           ">
             ${pack.letter}
             —
             حقيبة ${pack.name}
           </h2>
+
+          <!-- تم نقل الزر هنا كما طلبت -->
+          <button 
+            onclick="renderPhonemeCards()" 
+            style="margin-bottom: 20px; background: #1e293b; color: #f8fafc; border: 1px solid #334155;"
+          >
+            🔙 العودة إلى الحقائب
+          </button>
 
           <p>
             اللون الإدراكي:
@@ -777,21 +787,29 @@ card.style.minHeight = "180px";
             margin:18px 0;
           ">
 
-          <div id="match-results-log-box"></div>
-
-          <button onclick="renderPhonemeCards()">
-            🔙 العودة إلى الحقائب
+          <!-- ====================================== -->
+          <!-- زر إظهار سجل الاختبارات -->
+          <!-- السجل لا يظهر مباشرة حتى لا يسحب الصفحة للأسفل -->
+          <!-- ====================================== -->
+          <button
+            onclick="toggleMatchResultsLog()"
+            style="
+              margin-top:14px;
+              background:#111827;
+              color:#38bdf8;
+              border:1px solid #38bdf8;
+            "
+          >
+            📊 إظهار سجل الاختبارات
           </button>
+
+          <div
+            id="match-results-log-box"
+            style="display:none;"
+          ></div>
 
         </div>
       `;
-
-      if (
-        typeof renderMatchResultsLog ===
-        "function"
-      ) {
-        renderMatchResultsLog(key);
-      }
     }
 
 
@@ -852,6 +870,38 @@ card.style.minHeight = "180px";
 
       document.getElementById("perceptualTrainingView").style.display =
         "block";
+    }
+
+    // ======================================
+    // إظهار / إخفاء سجل الاختبارات
+    // الهدف:
+    // منع فتح التقرير تلقائيًا عند دخول الحقيبة
+    // ======================================
+
+    function toggleMatchResultsLog() {
+
+      const box =
+        document.getElementById(
+          "match-results-log-box"
+        );
+
+      if (!box) return;
+
+      if (box.style.display === "none") {
+
+        box.style.display = "block";
+
+        if (
+          typeof renderMatchResultsLog ===
+          "function"
+        ) {
+          renderMatchResultsLog();
+        }
+
+      } else {
+
+        box.style.display = "none";
+      }
     }
 
   </script>
