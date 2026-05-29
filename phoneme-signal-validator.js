@@ -39,7 +39,8 @@ function validatePhonemeSignal(samples, sampleRate) {
 
   if (energy < 0.02) score -= 35;
   if (peak < 0.08) score -= 25;
-  if (silenceRatio > 0.65) score -= 25;
+  // تم تخفيف شرط خصم النقاط بسبب الصمت بناءً على التحديث
+  if (silenceRatio > 0.85) score -= 15;
   if (clarity < 0.25) score -= 25;
   if (noiseLevel > 0.45) score -= 20;
 
@@ -96,19 +97,56 @@ function calculateSignalPeak(samples) {
 
 
 // ======================================
-// حساب نسبة الصمت داخل التسجيل
+// استخراج منطقة الصوت الفعّالة
+// الهدف:
+// تجاهل الفراغ قبل النطق وبعده حتى لا نحكم
+// على التسجيل بالفشل بسبب الصمت الخارجي.
+// ======================================
+
+function getActiveSignalRegion(samples, threshold) {
+  let start = 0;
+  let end = samples.length - 1;
+
+  for (let i = 0; i < samples.length; i++) {
+    if (Math.abs(samples[i]) >= threshold) {
+      start = i;
+      break;
+    }
+  }
+
+  for (let i = samples.length - 1; i >= 0; i--) {
+    if (Math.abs(samples[i]) >= threshold) {
+      end = i;
+      break;
+    }
+  }
+
+  if (end <= start) {
+    return samples;
+  }
+
+  return samples.slice(start, end + 1);
+}
+
+
+// ======================================
+// حساب نسبة الصمت داخل منطقة الصوت الفعّالة فقط
+// وليس داخل الملف الكامل.
 // ======================================
 
 function calculateSilenceRatio(samples, threshold) {
+  const activeSamples =
+    getActiveSignalRegion(samples, threshold);
+
   let silent = 0;
 
-  for (let i = 0; i < samples.length; i++) {
-    if (Math.abs(samples[i]) < threshold) {
+  for (let i = 0; i < activeSamples.length; i++) {
+    if (Math.abs(activeSamples[i]) < threshold) {
       silent++;
     }
   }
 
-  return silent / samples.length;
+  return silent / activeSamples.length;
 }
 
 
