@@ -169,7 +169,112 @@ function buildSignalValidationReport(result) {
   );
 }
 
+// ======================================
+// فحص جودة تسجيلات حقيبة كاملة يدويًا
+// الهدف:
+// هذا الزر لا يبني ذاكرة ولا جينوم.
+// فقط يعرض تقرير جودة التسجيلات الموجودة.
+// ======================================
 
+async function testSignalQualityForPhoneme(key) {
+  if (typeof getPhonemeTrainingPack !== "function") {
+    alert("دالة getPhonemeTrainingPack غير موجودة.");
+    return;
+  }
+
+  if (typeof decodeCognitiveBlob !== "function") {
+    alert("دالة decodeCognitiveBlob غير موجودة.");
+    return;
+  }
+
+  const pack = getPhonemeTrainingPack(key);
+
+  if (!pack) {
+    alert("لم يتم العثور على حقيبة: " + key);
+    return;
+  }
+
+  let report =
+    "🛡️ تقرير جودة تسجيلات الحقيبة: " +
+    key +
+    "\n\n";
+
+  let validCount = 0;
+  let totalCount = 0;
+
+  for (const pos of pack.positions) {
+    let blob = null;
+
+    if (typeof getAudioPromiseForMemory === "function") {
+      blob =
+        await getAudioPromiseForMemory(
+          pos.file,
+          3000
+        );
+    }
+
+    if (!blob) {
+      report +=
+        "⚠️ " +
+        pos.text +
+        " — لا يوجد تسجيل محفوظ\n";
+
+      continue;
+    }
+
+    try {
+      const decoded =
+        await decodeCognitiveBlob(blob);
+
+      const result =
+        validatePhonemeSignal(
+          decoded.samples,
+          decoded.sampleRate
+        );
+
+      totalCount++;
+
+      if (result.accepted) {
+        validCount++;
+      }
+
+      report +=
+        pos.text +
+        " — " +
+        (result.accepted ? "✅ صالح" : "⚠️ يحتاج إعادة") +
+        " | الجودة: " +
+        result.score +
+        "% | الصمت: " +
+        result.silenceRatio +
+        " | الضوضاء: " +
+        result.noiseLevel +
+        "\n";
+
+    } catch (err) {
+      report +=
+        "❌ " +
+        pos.text +
+        " — فشل تحليل الجودة\n";
+    }
+  }
+
+  report +=
+    "\nالنتيجة العامة: " +
+    validCount +
+    " / " +
+    totalCount +
+    " تسجيلات صالحة.";
+
+  alert(report);
+}
+
+
+// ======================================
+// إتاحة زر فحص الجودة للواجهة
+// ======================================
+
+window.testSignalQualityForPhoneme =
+  testSignalQualityForPhoneme;
 // ======================================
 // إتاحة الدوال لبقية المحركات
 // ======================================
