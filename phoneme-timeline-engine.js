@@ -6,6 +6,22 @@
 
 console.log("⏳ phoneme-timeline-engine.js جاهز V1");
 
+// ======================================
+// تنظيف الذاكرة المؤقتة (إجباري)
+// الهدف: التخلص من الجينومات الزمنية القديمة والضخمة التي تسببت 
+// في خطأ (Exceeded the quota) بسبب احتوائها على آلاف الإطارات.
+// ======================================
+try {
+  Object.keys(localStorage)
+    .filter(k => k.endsWith("_timeline_genome"))
+    .forEach(k => {
+      localStorage.removeItem(k);
+      console.log("🗑️ تم حذف الجينوم الزمني القديم:", k);
+    });
+} catch (err) {
+  console.warn("⚠️ فشل تنظيف localStorage:", err);
+}
+
 
 // ======================================
 // بناء المسار الزمني الإدراكي للحرف
@@ -500,8 +516,6 @@ function renderTimelineReport(key, timeline) {
 
 // ======================================
 // بناء المسار الزمني المرتب إجبارياً
-// تعليق: يجب أن يكون ترتيب المراحل إجبارياً (onset -> burst -> transition -> sustain -> release)
-// ممنوع أن يظهر release قبل sustain، وكل مرحلة تبحث فقط في النطاق الزمني الذي يلي المرحلة السابقة.
 // ======================================
 function buildOrderedPhonemeTimeline(samples, sampleRate) {
   const frames = splitSamplesIntoFrames(samples, sampleRate, 1024, 512);
@@ -564,9 +578,7 @@ function buildOrderedPhonemeTimeline(samples, sampleRate) {
   let sustainIdx = sustain ? sustain.index : transIdx;
 
   // 5. Release
-  // الذيل النهائي يبحث بعد sustain فقط
   let release = null;
-
   for (let i = analyzedFrames.length - 1; i >= sustainIdx; i--) {
     if (analyzedFrames[i].energy > 0.01) {
       release = analyzedFrames[i];
@@ -574,29 +586,51 @@ function buildOrderedPhonemeTimeline(samples, sampleRate) {
     }
   }
 
-  // إذا لم يجد ذيلًا واضحًا، اجعل آخر إطار بعد sustain هو release
   if (!release) {
     release = analyzedFrames[analyzedFrames.length - 1];
   }
 
+  // ======================================
+  // التعديل: تقليص حجم الكائن المُرجع لتوفير مساحة التخزين (Slimmed-down)
+  // لا يتم إرجاع مصفوفة الإطارات (frames) الكاملة.
+  // ======================================
   return {
-    onset: onset,
-    burst: burst,
-    transition: transition,
-    sustain: sustain,
-    release: release,
-    frames: analyzedFrames
+    onset: onset ? {
+      index: onset.index,
+      energy: onset.energy,
+      centroid: onset.centroid
+    } : null,
+
+    burst: burst ? {
+      index: burst.index,
+      energy: burst.energy,
+      centroid: burst.centroid
+    } : null,
+
+    transition: transition ? {
+      index: transition.index,
+      energy: transition.energy,
+      centroid: transition.centroid
+    } : null,
+
+    sustain: sustain ? {
+      index: sustain.index,
+      energy: sustain.energy,
+      centroid: sustain.centroid
+    } : null,
+
+    release: release ? {
+      index: release.index,
+      energy: release.energy,
+      centroid: release.centroid
+    } : null
   };
 }
 
 
 // ======================================
 // جلب الملف الصوتي من تخزين المشروع
-// الهدف:
-// استخدام نفس ذاكرة التسجيلات التي تعتمد عليها
-// الذاكرة الإدراكية والجينوم المركزي
 // ======================================
-
 async function getAudioBlobSafely(fileName) {
 
   // الطريقة الأساسية المعتمدة في مشروعنا
@@ -640,9 +674,6 @@ async function getAudioBlobSafely(fileName) {
 
 // ======================================
 // بناء الجينوم الزمني لجميع عينات الحقيبة
-// تعليق: العينة الواحدة سابقاً كانت لاختبار كفاءة المحرك فقط.
-// الهدف الآن هو استخراج الجينوم الزمني للحقيبة كاملة.
-// الحرف يتم التعامل معه كمخلوق زمني حي، وتتم دراسة سلوكه في كل مواضعه (الفتح، الكسر، الضم، السكون).
 // ======================================
 async function buildTimelineGenomeForPhoneme(key) {
   alert("⏳ بدأ بناء المسار الزمني للحقيبة: " + key);
