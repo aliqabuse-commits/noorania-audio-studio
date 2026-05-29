@@ -35,16 +35,37 @@ function validatePhonemeSignal(samples, sampleRate) {
   const noiseLevel =
     estimateNoiseLevel(samples);
 
-  let score = 100;
+  // ======================================
+  // حساب درجة جودة تدريجية بدل الخصم الثابت
+  // الهدف:
+  // منع ظهور نتيجة واحدة مثل 75% لكل التسجيلات
+  // وجعل الدرجة تعكس اختلاف الطاقة والقمة والصمت والوضوح والضوضاء.
+  // ======================================
 
-  if (energy < 0.02) score -= 35;
-  if (peak < 0.08) score -= 25;
-  // تم تخفيف شرط خصم النقاط بسبب الصمت بناءً على التحديث
-  if (silenceRatio > 0.85) score -= 15;
-  if (clarity < 0.25) score -= 25;
-  if (noiseLevel > 0.45) score -= 20;
+  const energyScore =
+    clamp01(energy / 0.08) * 25;
 
-  score = Math.max(0, Math.min(100, score));
+  const peakScore =
+    clamp01(peak / 0.35) * 20;
+
+  const silenceScore =
+    (1 - clamp01(silenceRatio / 0.9)) * 20;
+
+  const clarityScore =
+    clamp01(clarity / 0.45) * 20;
+
+  const noiseScore =
+    (1 - clamp01(noiseLevel / 0.25)) * 15;
+
+  let score =
+    energyScore +
+    peakScore +
+    silenceScore +
+    clarityScore +
+    noiseScore;
+
+  score =
+    Math.max(0, Math.min(100, score));
 
   const accepted =
     score >= 55 &&
@@ -63,6 +84,20 @@ function validatePhonemeSignal(samples, sampleRate) {
       ? "العينة صالحة للتحليل."
       : "العينة ضعيفة أو مليئة بصمت/ضوضاء. يفضل إعادة التسجيل."
   };
+}
+
+
+// ======================================
+// حصر الرقم بين 0 و 1
+// ======================================
+
+function clamp01(value) {
+  value = Number(value || 0);
+
+  if (value < 0) return 0;
+  if (value > 1) return 1;
+
+  return value;
 }
 
 
@@ -282,7 +317,13 @@ async function testSignalQualityForPhoneme(key) {
         (result.accepted ? "✅ صالح" : "⚠️ يحتاج إعادة") +
         " | الجودة: " +
         result.score +
-        "% | الصمت: " +
+        "% | الطاقة: " +
+        result.energy +
+        " | القمة: " +
+        result.peak +
+        " | الوضوح: " +
+        result.clarity +
+        " | الصمت: " +
         result.silenceRatio +
         " | الضوضاء: " +
         result.noiseLevel +
