@@ -645,73 +645,101 @@ async function getAudioBlobSafely(fileName) {
 // الحرف يتم التعامل معه كمخلوق زمني حي، وتتم دراسة سلوكه في كل مواضعه (الفتح، الكسر، الضم، السكون).
 // ======================================
 async function buildTimelineGenomeForPhoneme(key) {
-  if (typeof getPhonemeTrainingPack !== "function") {
-    alert("❌ دالة getPhonemeTrainingPack غير موجودة.");
-    return;
-  }
+  alert("⏳ بدأ بناء المسار الزمني للحقيبة: " + key);
 
-  const pack = getPhonemeTrainingPack(key);
-  if (!pack) {
-    alert("❌ لم يتم العثور على حقيبة الحرف: " + key);
-    return;
-  }
-
-  console.log(`⏳ جاري بناء الجينوم الزمني لحقيبة ${key}...`);
-  
-  const genomeRecords = [];
-
-  // نمر على كل عينة (position) مسجلة في الحقيبة
-  for (const pos of pack.positions) {
-    
-    const blob = await getAudioBlobSafely(pos.file);
-    
-    if (!blob) {
-      console.warn(`⚠️ العينة ${pos.file} غير مسجلة بعد.`);
-      continue;
+  try {
+    if (typeof getPhonemeTrainingPack !== "function") {
+      alert("❌ دالة getPhonemeTrainingPack غير موجودة.");
+      return;
     }
 
-    if (typeof decodeCognitiveBlob !== "function") {
-      console.error("❌ دالة decodeCognitiveBlob غير موجودة");
-      continue;
+    const pack = getPhonemeTrainingPack(key);
+
+    if (!pack) {
+      alert("❌ لم يتم العثور على حقيبة الحرف: " + key);
+      return;
     }
 
-    try {
-      // فك الصوت
-      const decoded = await decodeCognitiveBlob(blob);
-      
-      // بناء المسار الزمني المقيّد ترتيبياً للعينة
-      const timeline = buildOrderedPhonemeTimeline(decoded.samples, decoded.sampleRate);
+    alert(
+      "تم العثور على الحقيبة: " + key + "\n\n" +
+      "عدد العينات: " + pack.positions.length
+    );
 
-      // إضافة التقرير الزمني إلى الجينوم
-      genomeRecords.push({
-        position: pos,
-        timeline: timeline
-      });
-    } catch (err) {
-      console.error(`❌ فشل تحليل العينة ${pos.file}:`, err);
+    const genomeRecords = [];
+
+    for (const pos of pack.positions) {
+      try {
+        console.log("⏳ فحص عينة:", pos.text, pos.file);
+
+        const blob = await getAudioBlobSafely(pos.file);
+
+        if (!blob) {
+          console.warn("⚠️ لا يوجد تسجيل:", pos.file);
+          continue;
+        }
+
+        if (typeof decodeCognitiveBlob !== "function") {
+          alert("❌ دالة decodeCognitiveBlob غير موجودة.");
+          return;
+        }
+
+        const decoded = await decodeCognitiveBlob(blob);
+
+        const timeline = buildOrderedPhonemeTimeline(
+          decoded.samples,
+          decoded.sampleRate
+        );
+
+        genomeRecords.push({
+          position: pos,
+          timeline: timeline
+        });
+
+      } catch (err) {
+        alert(
+          "❌ فشل تحليل العينة:\n" +
+          pos.text + "\n" +
+          pos.file + "\n\n" +
+          err.message
+        );
+
+        console.error("❌ فشل تحليل العينة:", pos.file, err);
+      }
     }
+
+    if (!genomeRecords.length) {
+      alert(
+        "⚠️ لم يتم تحليل أي عينة للحقيبة: " + key +
+        "\n\nقد تكون التسجيلات غير موجودة أو فشل فك الصوت."
+      );
+      return;
+    }
+
+    const timelineGenome = {
+      key: key,
+      records: genomeRecords,
+      timestamp: new Date().toISOString()
+    };
+
+    localStorage.setItem(
+      key + "_timeline_genome",
+      JSON.stringify(timelineGenome, null, 2)
+    );
+
+    renderTimelineGenomeReport(key, timelineGenome);
+
+    alert("✅ تم بناء الجينوم الزمني الشامل للحرف وحفظه بنجاح.");
+
+  } catch (err) {
+    alert(
+      "❌ توقف بناء المسار الزمني للحقيبة:\n" +
+      key +
+      "\n\n" +
+      err.message
+    );
+
+    console.error("❌ buildTimelineGenomeForPhoneme error:", err);
   }
-
-  if (genomeRecords.length === 0) {
-    alert("⚠️ لا توجد أي عينات مسجلة لبناء الجينوم الزمني. الرجاء تسجيل الحقيبة أولاً.");
-    return;
-  }
-
-  const timelineGenome = {
-    key: key,
-    records: genomeRecords,
-    timestamp: new Date().toISOString()
-  };
-
-  // حفظ الجينوم في التخزين
-  localStorage.setItem(
-    key + "_timeline_genome",
-    JSON.stringify(timelineGenome, null, 2)
-  );
-
-  // عرض التقرير الشامل
-  renderTimelineGenomeReport(key, timelineGenome);
-  alert("✅ تم بناء الجينوم الزمني الشامل للحرف وحفظه بنجاح.");
 }
 
 
