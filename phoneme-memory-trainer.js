@@ -376,33 +376,11 @@ function calcPerceptualConfidence(values) {
   );
 }
 
+// ======================================
+// التعديل: بناء هيكل HTML للتقرير وتوجيهه للوحة الموحدة بدلاً من الصندوق المستقل
+// ======================================
 function renderPhonemeMemoryReport(identity) {
-  const target =
-    document.getElementById("match-results-log-box");
-
-  if (!target) {
-    alert("افتح الحقيبة أولًا حتى يظهر تقرير الذاكرة داخلها.");
-    return;
-  }
-
-  let box =
-    document.getElementById("phoneme-memory-report-box");
-
-  if (!box) {
-    box = document.createElement("div");
-    box.id = "phoneme-memory-report-box";
-    target.appendChild(box);
-  }
-
-  box.style.background = "#08111f";
-  box.style.color = "white";
-  box.style.padding = "14px";
-  box.style.margin = "12px 0";
-  box.style.borderRadius = "14px";
-  box.style.fontSize = "13px";
-  box.style.border = "1px solid " + identity.color.hex;
-
-  box.innerHTML = `
+  const html = `
     <div style="
       font-size:18px;
       font-weight:bold;
@@ -456,10 +434,11 @@ function renderPhonemeMemoryReport(identity) {
     <div>القاعدة: ${identity.concept.rule}</div>
   `;
 
-  box.scrollIntoView({
-    behavior: "smooth",
-    block: "center"
-  });
+  if (typeof renderToUnifiedPanel === 'function') {
+    renderToUnifiedPanel(html);
+  } else {
+    console.warn("⚠️ مدير التقارير الموحد غير متاح לעرض الذاكرة الإدراكية.");
+  }
 }
 
 function getAudioPromiseForMemory(key, timeoutMs) {
@@ -663,5 +642,11 @@ function nextPowerOfTwoMemory(n) {
 function roundMemory(num) {
   return Number(Number(num || 0).toFixed(4));
 }
+
+// ======================================
+// التعديل: إتاحة الدوال لـ window (كما طُلب للعمل مع مدير التقارير)
+// ======================================
+window.trainPhonemeMemory = trainPhonemeMemory;
+window.renderPhonemeMemoryReport = renderPhonemeMemoryReport;
 
 console.log("🎨 مدرب الذاكرة الإدراكية جاهز");
