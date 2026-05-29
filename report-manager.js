@@ -80,14 +80,19 @@ function viewSavedReport(reportType, phonemeKey) {
     }
   }
   else if (reportType === 'memory') {
-    data = localStorage.getItem(phonemeKey + "_memory");
+    // التعديل: استخدام المفتاح الصحيح _perceptual_identity بدلاً من _memory
+    data = localStorage.getItem(phonemeKey + "_perceptual_identity");
     if(data) {
       const parsed = JSON.parse(data);
-      const html = `
-        <h3 style="color:#38bdf8;">🧠 الذاكرة الإدراكية — ${phonemeKey}</h3>
-        <pre style="color:#e5e7eb; background:#111827; padding:10px; border-radius:8px; text-align:left; direction:ltr;">${JSON.stringify(parsed, null, 2)}</pre>
-      `;
-      renderToUnifiedPanel(html);
+      if(typeof renderPhonemeMemoryReport === 'function') {
+        renderPhonemeMemoryReport(parsed);
+      } else {
+        const html = `
+          <h3 style="color:#38bdf8;">🧠 الذاكرة الإدراكية — ${phonemeKey}</h3>
+          <pre style="color:#e5e7eb; background:#111827; padding:10px; border-radius:8px; text-align:left; direction:ltr;">${JSON.stringify(parsed, null, 2)}</pre>
+        `;
+        renderToUnifiedPanel(html);
+      }
       return;
     }
   }
@@ -164,7 +169,8 @@ function copyAllPhonemeReports(phonemeKey) {
   if(sig) fullText += `[🛡️ جودة التسجيل]\n${sig}\n\n----------------------\n\n`;
 
   // الذاكرة الإدراكية
-  const mem = localStorage.getItem(phonemeKey + "_memory");
+  // التعديل: استخدام المفتاح الصحيح _perceptual_identity
+  const mem = localStorage.getItem(phonemeKey + "_perceptual_identity");
   if(mem) fullText += `[🧠 الذاكرة الإدراكية]\n${JSON.stringify(JSON.parse(mem), null, 2)}\n\n----------------------\n\n`;
 
   // الجينوم المركزي
@@ -186,4 +192,3 @@ function copyAllPhonemeReports(phonemeKey) {
     alert("❌ فشل النسخ: " + err);
   });
 }
-
