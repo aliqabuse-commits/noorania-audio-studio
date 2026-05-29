@@ -109,6 +109,19 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
 
       const decoded = await decodeCognitiveBlob(blob);
 
+      // ======================================
+      // منع العينات الضعيفة من دخول الجينوم
+      // ======================================
+      if (typeof validatePhonemeSignal === "function") {
+        const result = validatePhonemeSignal(decoded.samples, decoded.sampleRate);
+        if (!result.accepted) {
+          console.warn(`⚠️ تم تجاهل العينة [${unit.file}] لأنها غير صالحة ولا تصلح لبناء الجينوم.`, result);
+          // تخطي هذه العينة وعدم إدراجها في بناء الجينوم
+          continue; 
+        }
+      }
+      // ======================================
+
       const timeline = buildCognitiveTimeline(
         decoded.samples,
         decoded.sampleRate
@@ -126,6 +139,11 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
         phases,
         summary
       });
+    }
+
+    if (cognitiveUnits.length === 0) {
+      alert("❌ لا توجد عينات صالحة لبناء الجينوم الإدراكي للحرف " + label + ". جميع العينات المسجلة إما ضعيفة أو غير صالحة.");
+      return null;
     }
 
     const identity = {
