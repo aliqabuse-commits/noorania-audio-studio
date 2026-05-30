@@ -1,15 +1,15 @@
 // ================================
 // phoneme-merge-split-engine.js
-// محرك الفصل والدمج الصوتي — V1.4
-// فصل أنظف + دمج حي Crossfade
+// محرك الفصل والدمج الصوتي — V1.7
+// مختبر الفصل والدمج الديناميكي (الاستدعاء الموثق من الحقائب)
 // ================================
 
-console.log("🧩 phoneme-merge-split-engine.js جاهز V1.4");
+console.log("🧩 phoneme-merge-split-engine.js جاهز V1.7");
 
-let baseSegmentBlob = null;        // بَصْ
-let replacementBlob = null;        // قَ
-let extractedPayloadBlob = null;   // صْ
-let mergedSegmentBlob = null;      // قَصْ
+let baseSegmentBlob = null;        // المقطع الأصلي
+let replacementBlob = null;        // الحامل الجديد
+let extractedPayloadBlob = null;   // المحمول المفصول
+let mergedSegmentBlob = null;      // الناتج المدموج
 
 
 // ======================================
@@ -26,55 +26,234 @@ function updateMergeSplitStatus(message) {
 
 
 // ======================================
-// تسجيل المقطع الأصلي بَصْ
+// 1️⃣ الطبقة الديناميكية: أدوات التحليل والاستدعاء الموثق
+// ======================================
+
+// تطبيع النص العربي: إزالة التشكيل والتطويل لتسهيل المقارنة
+function normalizeArabic(text) {
+  if (!text) return "";
+  return text.replace(/[\u064B-\u065F\u0640]/g, '').trim();
+}
+
+// تحليل النص إلى مفاتيح برمجية من الحقائب
+function resolveDynamicKeys(text) {
+  if (typeof getAllPhonemeTrainingPacks !== "function") return null;
+  
+  const packs = getAllPhonemeTrainingPacks();
+  if (!packs) return null;
+
+  const cleanText = normalizeArabic(text);
+  const chars = cleanText.split('');
+  const keys = [];
+
+  for (const char of chars) {
+    for (const key in packs) {
+      if (normalizeArabic(packs[key].letter) === char) {
+        keys.push(key);
+        break;
+      }
+    }
+  }
+  return keys;
+}
+
+// أداة بحث آمنة عن التسجيلات في التخزين (فقط للملفات المعتمدة)
+async function searchAudioBlobSafely(fileName) {
+  if (typeof getAudioPromiseForMemory === "function") {
+    const blob = await getAudioPromiseForMemory(fileName, 3000);
+    if (blob) return blob;
+  }
+  const dataUrl = 
+    localStorage.getItem("audio_" + fileName) || 
+    localStorage.getItem(fileName) || 
+    localStorage.getItem("record_" + fileName);
+
+  if (dataUrl) {
+    try {
+      const response = await fetch(dataUrl);
+      return await response.blob();
+    } catch (err) {
+      console.warn("تعذر تحويل التسجيل إلى Blob:", fileName, err);
+    }
+  }
+  return null;
+}
+
+// البحث الطبقي الآمن لضمان أن الملف معتمد ضمن الحقائب الإدراكية
+function findAuthorizedFileInPacks(text, keys) {
+  if (typeof getAllPhonemeTrainingPacks !== "function") return null;
+  
+  const packs = getAllPhonemeTrainingPacks();
+  if (!packs) return null;
+
+  const normText = normalizeArabic(text);
+  let targetPacks = [];
+
+  if (keys && keys.length) {
+    keys.forEach(k => { if (packs[k]) targetPacks.push(packs[k]); });
+  } else {
+    targetPacks = Object.values(packs);
+  }
+
+  // الطبقة 1: التطابق التام للنص
+  for (const pack of targetPacks) {
+    if (!pack.positions) continue;
+    const exactMatch = pack.positions.find(p => p.text === text);
+    if (exactMatch) return exactMatch.file;
+  }
+
+  // الطبقة 2: التطابق بعد إزالة التشكيل
+  for (const pack of targetPacks) {
+    if (!pack.positions) continue;
+    const normMatch = pack.positions.find(p => normalizeArabic(p.text) === normText);
+    if (normMatch) return normMatch.file;
+  }
+
+  // الطبقة 3: إن كان الإدخال حرفًا واحدًا فاستدعِ عينة הפتحة الافتراضية
+  if (normText.length === 1) {
+    for (const pack of targetPacks) {
+      if (normalizeArabic(pack.letter) === normText && pack.positions) {
+        const fathaMatch = pack.positions.find(p => 
+          p.role === "فتح" || 
+          p.role === "fatha" || 
+          normalizeArabic(p.text) === normText
+        );
+        if (fathaMatch) return fathaMatch.file;
+      }
+    }
+  }
+
+  // الطبقة 4: مقطع مركب لا يوجد في أي حقيبة معتمدة
+  return null;
+}
+
+// دالة حفظ مؤقتة لدعم عمليات التسجيل اليدوية داخل جلسة المختبر
+function saveTempAudioToStorage(fileName, blob) {
+  const reader = new FileReader();
+  reader.onloadend = function () {
+    try {
+      localStorage.setItem("audio_" + fileName, reader.result);
+    } catch (err) {
+      console.warn("تعذر الحفظ في التخزين المحلي:", err);
+    }
+  };
+  reader.readAsDataURL(blob);
+}
+
+// دالة الاستدعاء الديناميكي الموثق (بدون أي تخمين)
+async function fetchSegmentSafely(type) {
+  const inputId = type === 'base' ? 'merge-base-input' : 'merge-carrier-input';
+  const inputEl = document.getElementById(inputId);
+  const text = inputEl && inputEl.value.trim() ? inputEl.value.trim() : (type === 'base' ? 'بص' : 'ق');
+
+  if (!text) {
+    alert("يرجى إدخال النص أولاً في الحقل المخصص.");
+    return false;
+  }
+
+  // 1. استخراج المفاتيح
+  const keys = resolveDynamicKeys(text);
+
+  // 2. البحث عن الملف المعتمد حصراً في الحقائب
+  const authorizedFileName = findAuthorizedFileInPacks(text, keys);
+
+  if (!authorizedFileName) {
+    alert("لا يوجد تسجيل معتمد لهذا العنصر. يمكنك استخدام زر التسجيل لإنشائه.");
+    return false;
+  }
+
+  // 3. جلب التسجيل الصحيح المعتمد من الذاكرة
+  const blob = await searchAudioBlobSafely(authorizedFileName);
+
+  if (blob) {
+    if (type === 'base') {
+      baseSegmentBlob = blob;
+      extractedPayloadBlob = null;
+      mergedSegmentBlob = null;
+      updateMergeSplitStatus("✅ تم استدعاء المقطع الأصلي المعتمد: <b>" + text + "</b> بنجاح.");
+    } else {
+      replacementBlob = blob;
+      mergedSegmentBlob = null;
+      updateMergeSplitStatus("✅ تم استدعاء الحامل الجديد المعتمد: <b>" + text + "</b> بنجاح.");
+    }
+    return true;
+  } else {
+    // الملف معتمد برمجياً في الحقيبة، لكن لم يقم المستخدم بتسجيله بعد
+    alert("لا يوجد تسجيل معتمد لهذا العنصر. يمكنك استخدام زر التسجيل لإنشائه.");
+    return false;
+  }
+}
+
+// الدوال التوافقية للاستدعاء الديناميكي من الواجهة
+function fetchDynamicBaseSegment() {
+  return fetchSegmentSafely("base");
+}
+
+function fetchDynamicCarrierReplacement() {
+  return fetchSegmentSafely("carrier");
+}
+
+
+// ======================================
+// تسجيل المقطع الأصلي (معدلة لتدعم الديناميكية)
 // ======================================
 
 async function recordBaseSegment() {
-  alert("اضغط حسنًا، ثم سجّل الآن المقطع: بَصْ");
+  const inputEl = document.getElementById("merge-base-input");
+  const text = inputEl && inputEl.value.trim() ? inputEl.value.trim() : "بَصْ";
+
+  alert("اضغط حسنًا، ثم سجّل الآن المقطع: " + text);
 
   baseSegmentBlob = await recordMergeSample(1000);
 
   if (!baseSegmentBlob) {
-    alert("فشل تسجيل المقطع بَصْ");
+    alert("فشل تسجيل المقطع " + text);
     return;
   }
 
   extractedPayloadBlob = null;
   mergedSegmentBlob = null;
 
+  saveTempAudioToStorage(text + ".wav", baseSegmentBlob);
+
   updateMergeSplitStatus(
-    "✅ تم تسجيل المقطع الأصلي: <b>بَصْ</b><br>" +
+    "✅ تم تسجيل المقطع الأصلي: <b>" + text + "</b><br>" +
     "الحجم: " + baseSegmentBlob.size + " bytes<br>" +
     "النوع: " + baseSegmentBlob.type
   );
 
-  alert("✅ تم تسجيل المقطع بَصْ");
+  alert("✅ تم تسجيل المقطع " + text);
 }
 
 
 // ======================================
-// تسجيل الحرف البديل قَ
+// تسجيل الحرف البديل (معدلة لتدعم الديناميكية)
 // ======================================
 
 async function recordCarrierReplacement() {
-  alert("اضغط حسنًا، ثم سجّل الآن الحرف البديل: قَ");
+  const inputEl = document.getElementById("merge-carrier-input");
+  const text = inputEl && inputEl.value.trim() ? inputEl.value.trim() : "قَ";
+
+  alert("اضغط حسنًا، ثم سجّل الآن الحامل الجديد: " + text);
 
   replacementBlob = await recordMergeSample(1000);
 
   if (!replacementBlob) {
-    alert("فشل تسجيل الحرف قَ");
+    alert("فشل تسجيل الحامل " + text);
     return;
   }
 
   mergedSegmentBlob = null;
 
+  saveTempAudioToStorage(text + ".wav", replacementBlob);
+
   updateMergeSplitStatus(
-    "✅ تم تسجيل الحرف البديل: <b>قَ</b><br>" +
+    "✅ تم تسجيل الحامل الجديد: <b>" + text + "</b><br>" +
     "الحجم: " + replacementBlob.size + " bytes<br>" +
     "النوع: " + replacementBlob.type
   );
 
-  alert("✅ تم تسجيل الحرف قَ");
+  alert("✅ تم تسجيل الحامل " + text);
 }
 
 
@@ -157,7 +336,7 @@ async function recordMergeSample(durationMs) {
 
 function playBlob(blob, label) {
   if (!blob) {
-    alert("لا يوجد صوت مسجل: " + label);
+    alert("لا يوجد صوت مسجل أو مستدعى: " + label);
     return;
   }
 
@@ -174,24 +353,42 @@ function playBlob(blob, label) {
   });
 }
 
-
+// الدوال التوافقية المستقلة للتشغيل
 function playBaseSegment() {
-  playBlob(baseSegmentBlob, "بَصْ");
+  const inputEl = document.getElementById("merge-base-input");
+  const text = inputEl && inputEl.value.trim() ? inputEl.value.trim() : "بَصْ";
+  playBlob(baseSegmentBlob, text);
 }
-
 
 function playReplacementSegment() {
-  playBlob(replacementBlob, "قَ");
+  const inputEl = document.getElementById("merge-carrier-input");
+  const text = inputEl && inputEl.value.trim() ? inputEl.value.trim() : "قَ";
+  playBlob(replacementBlob, text);
 }
-
 
 function playPayloadSegment() {
-  playBlob(extractedPayloadBlob, "صْ المفصول");
+  const baseInput = document.getElementById("merge-base-input");
+  const baseText = baseInput ? baseInput.value.trim() : "بص";
+  const normBaseText = normalizeArabic(baseText);
+  const chars = normBaseText.split('');
+  const payloadText = chars.length >= 2 ? chars[1] + "ْ" : "صْ";
+  
+  playBlob(extractedPayloadBlob, payloadText + " المفصول");
 }
 
-
 function playMergedSegment() {
-  playBlob(mergedSegmentBlob, "قَصْ");
+  const baseInput = document.getElementById("merge-base-input");
+  const baseText = baseInput ? baseInput.value.trim() : "بص";
+  const normBaseText = normalizeArabic(baseText);
+  const chars = normBaseText.split('');
+  const payloadText = chars.length >= 2 ? chars[1] + "ْ" : "صْ";
+
+  const repInput = document.getElementById("merge-carrier-input");
+  const repText = repInput ? repInput.value.trim() : "قَ";
+  const cleanRep = normalizeArabic(repText);
+
+  const mergedText = cleanRep + "َ" + payloadText;
+  playBlob(mergedSegmentBlob, mergedText);
 }
 
 
@@ -391,7 +588,6 @@ function trimPayloadStart(buffer) {
     }
   }
 
-  // نترك هامشًا بسيطًا قبل بداية الصاد حتى لا نأكل أولها
   const safetyBack =
     Math.floor(sampleRate * 0.025);
 
@@ -414,7 +610,7 @@ function trimPayloadStart(buffer) {
 
 
 // ======================================
-// قص نهاية الحامل قَ حتى لا يبقى قَ منفصل طويل
+// قص نهاية الحامل للدمج
 // ======================================
 
 function trimReplacementForMerge(buffer) {
@@ -443,9 +639,7 @@ function trimReplacementForMerge(buffer) {
     }
   }
 
-  // نأخذ فقط رأس قَ وبداية الفتحة، لا الحرف كاملًا
   const maxCarrierDuration = 0.17;
-
   const startSecond = startSample / sampleRate;
   const endSecond = Math.min(
     buffer.duration,
@@ -528,172 +722,159 @@ function crossfadeAudioBuffers(bufferA, bufferB, fadeSeconds) {
 
 
 // ======================================
-// فصل بَ عن صْ — بالهوية الإدراكية + تنظيف
+// فصل المقطع الأصلي — بالهوية الإدراكية + تنظيف
 // ======================================
 
 async function splitBaseSegment() {
   if (!baseSegmentBlob) {
-    alert("سجّل أولًا المقطع بَصْ");
+    alert("سجّل أو استدعِ أولًا المقطع الأصلي");
     return;
   }
 
   try {
-    const buffer =
-      await blobToAudioBuffer(baseSegmentBlob);
+    const buffer = await blobToAudioBuffer(baseSegmentBlob);
 
     if (typeof detectPayloadBoundaryByIdentity !== "function") {
       alert("كاشف الحدود الإدراكية غير محمّل");
       return;
     }
 
-    const result =
-      detectPayloadBoundaryByIdentity(buffer, {
-        carrierKey: "ba",
-        payloadKey: "sad",
-        windowSize: 0.18,
-        hopSize: 0.035,
-        minStart: 0.08
-      });
+    // جلب النصوص من الواجهة لاستخراج المفاتيح
+    const baseInput = document.getElementById("merge-base-input");
+    const baseText = baseInput ? baseInput.value.trim() : "بص";
+
+    let carrierKey = "ba";
+    let payloadKey = "sad";
+    
+    const keys = resolveDynamicKeys(baseText);
+    if (keys && keys.length >= 2) {
+      carrierKey = keys[0];
+      payloadKey = keys[1];
+    } else if (keys && keys.length === 1) {
+      carrierKey = keys[0];
+      payloadKey = keys[0];
+    }
+
+    const normBaseText = normalizeArabic(baseText);
+    const chars = normBaseText.split('');
+    const carrierText = chars[0] ? chars[0] + "َ" : "بَ";
+    const payloadText = chars[1] ? chars[1] + "ْ" : "صْ";
+
+    const result = detectPayloadBoundaryByIdentity(buffer, {
+      carrierKey: carrierKey,
+      payloadKey: payloadKey,
+      windowSize: 0.18,
+      hopSize: 0.035,
+      minStart: 0.08
+    });
 
     const cutPoint = result.boundary;
 
     if (!cutPoint) {
-      alert("لم يستطع النظام تحديد بداية صْ");
+      alert("لم يستطع النظام تحديد بداية " + payloadText);
       return;
     }
 
-    let payloadBuffer =
-      sliceAudioBuffer(
-        buffer,
-        cutPoint,
-        buffer.duration
-      );
+    let payloadBuffer = sliceAudioBuffer(buffer, cutPoint, buffer.duration);
+    const trimResult = trimPayloadStart(payloadBuffer);
+    payloadBuffer = trimResult.buffer;
 
-    const trimResult =
-      trimPayloadStart(payloadBuffer);
-
-    payloadBuffer =
-      trimResult.buffer;
-
-    extractedPayloadBlob =
-      audioBufferToWavBlob(payloadBuffer);
-
+    extractedPayloadBlob = audioBufferToWavBlob(payloadBuffer);
     mergedSegmentBlob = null;
 
     updateMergeSplitStatus(
       "🧭 تم الفصل بالهوية الإدراكية والتنظيف:<br>" +
-      "الحامل: <b>بَ</b><br>" +
-      "المحمول: <b>صْ</b><br>" +
-      "نقطة بداية المحمول: <b>" +
-      cutPoint.toFixed(3) +
-      " ثانية</b><br>" +
-      "تنظيف بداية المحمول: <b>" +
-      trimResult.cleanStartSecond.toFixed(3) +
-      " ثانية</b><br>" +
-      "عدد نوافذ التحليل: " +
-      result.scores.length +
-      "<br><br>" +
-      "الآن جرّب: ▶️ سماع صْ المفصول"
+      "الحامل: <b>" + carrierText + "</b><br>" +
+      "المحمول: <b>" + payloadText + "</b><br>" +
+      "نقطة بداية المحمول: <b>" + cutPoint.toFixed(3) + " ثانية</b><br>" +
+      "تنظيف بداية المحمول: <b>" + trimResult.cleanStartSecond.toFixed(3) + " ثانية</b><br>" +
+      "عدد نوافذ التحليل: " + result.scores.length + "<br><br>" +
+      "الآن جرّب: ▶️ سماع " + payloadText + " المفصول"
     );
 
-    console.log(
-      "🧭 Boundary detection result:",
-      result
-    );
-
-    alert("✅ تم فصل وتنظيف صْ بناءً على الهوية الإدراكية");
+    console.log("🧭 Boundary detection result:", result);
+    alert("✅ تم فصل وتنظيف " + payloadText + " بناءً على الهوية الإدراكية");
 
   } catch (err) {
-    console.error(
-      "❌ splitBaseSegment identity error:",
-      err
-    );
-
-    alert(
-      "فشل الفصل بالهوية الإدراكية:\n" +
-      err.message
-    );
+    console.error("❌ splitBaseSegment identity error:", err);
+    alert("فشل الفصل بالهوية الإدراكية:\n" + err.message);
   }
 }
 
 
 // ======================================
-// دمج قَ + صْ — دمج حي
+// دمج حي للحامل والمحمول
 // ======================================
 
 async function mergeReplacementWithPayload() {
   if (!replacementBlob) {
-    alert("سجّل أولًا الحرف قَ");
+    alert("سجّل أو استدعِ أولًا الحامل الجديد");
     return;
   }
 
   if (!extractedPayloadBlob) {
-    alert("نفّذ أولًا فصل بَ عن صْ");
+    alert("نفّذ أولًا فصل المقطع الأصلي");
     return;
   }
 
   try {
-    let replacementBuffer =
-      await blobToAudioBuffer(replacementBlob);
+    let replacementBuffer = await blobToAudioBuffer(replacementBlob);
+    const payloadBuffer = await blobToAudioBuffer(extractedPayloadBlob);
 
-    const payloadBuffer =
-      await blobToAudioBuffer(extractedPayloadBlob);
+    replacementBuffer = trimReplacementForMerge(replacementBuffer);
 
-    replacementBuffer =
-  trimReplacementForMerge(replacementBuffer);
+    const mergedBuffer = crossfadeAudioBuffers(
+      replacementBuffer,
+      payloadBuffer,
+      0.10
+    );
 
-const mergedBuffer =
-  crossfadeAudioBuffers(
-    replacementBuffer,
-    payloadBuffer,
-    0.10
-  );
+    mergedSegmentBlob = audioBufferToWavBlob(mergedBuffer);
 
-    mergedSegmentBlob =
-      audioBufferToWavBlob(mergedBuffer);
+    const repInput = document.getElementById("merge-carrier-input");
+    const repText = repInput && repInput.value.trim() ? repInput.value.trim() : "قَ";
+    
+    const baseInput = document.getElementById("merge-base-input");
+    const baseText = baseInput ? baseInput.value.trim() : "بص";
+    const normBaseText = normalizeArabic(baseText);
+    const chars = normBaseText.split('');
+    const payloadText = chars.length >= 2 ? chars[1] + "ْ" : "صْ";
+
+    const cleanRep = normalizeArabic(repText);
 
     updateMergeSplitStatus(
       "🧩 تم الدمج الحي:<br>" +
-      "<b>قَ</b> + <b>صْ</b> = <b>قَصْ</b><br>" +
+      "<b>" + repText + "</b> + <b>" + payloadText + "</b> = <b>" + cleanRep + "َ" + payloadText + "</b><br>" +
       "تم استخدام Crossfade لتداخل حي بين الحامل والمحمول.<br>" +
-      "يمكنك الآن تجربة: ▶️ سماع قَصْ"
+      "يمكنك الآن تجربة: ▶️ سماع الناتج المدموج"
     );
 
-    alert("✅ تم دمج قَ + صْ بدمج حي");
+    alert("✅ تم دمج " + repText + " + " + payloadText + " بدمج حي");
 
   } catch (err) {
     console.error("❌ mergeReplacementWithPayload error:", err);
-    alert("فشل دمج قَ + صْ");
+    alert("فشل الدمج");
   }
 }
 
 
 // ======================================
-// واجهات عامة
+// إتاحة الدوال للواجهة
 // ======================================
 
-window.recordBaseSegment =
-  recordBaseSegment;
+window.normalizeArabic = normalizeArabic;
+window.fetchSegmentSafely = fetchSegmentSafely;
+window.fetchDynamicBaseSegment = fetchDynamicBaseSegment;
+window.fetchDynamicCarrierReplacement = fetchDynamicCarrierReplacement;
 
-window.recordCarrierReplacement =
-  recordCarrierReplacement;
+window.recordBaseSegment = recordBaseSegment;
+window.recordCarrierReplacement = recordCarrierReplacement;
+window.splitBaseSegment = splitBaseSegment;
+window.mergeReplacementWithPayload = mergeReplacementWithPayload;
 
-window.splitBaseSegment =
-  splitBaseSegment;
+window.playMergedSegment = playMergedSegment;
+window.playBaseSegment = playBaseSegment;
+window.playReplacementSegment = playReplacementSegment;
+window.playPayloadSegment = playPayloadSegment;
 
-window.mergeReplacementWithPayload =
-  mergeReplacementWithPayload;
-
-window.playMergedSegment =
-  playMergedSegment;
-
-window.playBaseSegment =
-  playBaseSegment;
-
-window.playReplacementSegment =
-  playReplacementSegment;
-
-window.playPayloadSegment =
-  playPayloadSegment;
-
-console.log("🧩 محرك الفصل والدمج الصوتي جاهز V1.4");
+console.log("🧩 محرك الفصل والدمج الصوتي جاهز V1.7");
