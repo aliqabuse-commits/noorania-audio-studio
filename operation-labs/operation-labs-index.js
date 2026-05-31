@@ -9,6 +9,10 @@ console.log("🧪 operation-labs-index.js جاهز — الفهرس الفرعي
 
 (function () {
 
+  // ======================================
+  // 1️⃣ تعريف المختبرات داخل operation-labs
+  // ======================================
+
   const OPERATION_LABS = [
     {
       id: "merge-split",
@@ -26,9 +30,15 @@ console.log("🧪 operation-labs-index.js جاهز — الفهرس الفرعي
     }
   ];
 
+
+  // ======================================
+  // 2️⃣ تحميل ملف مختبر واحد دون تكرار
+  // ======================================
+
   function loadOperationLabScript(src) {
     return new Promise(function (resolve, reject) {
       if (document.querySelector('script[src="' + src + '"]')) {
+        console.log("ℹ️ الملف محمّل مسبقًا:", src);
         resolve();
         return;
       }
@@ -49,15 +59,52 @@ console.log("🧪 operation-labs-index.js جاهز — الفهرس الفرعي
     });
   }
 
+
+  // ======================================
+  // 3️⃣ تحميل ملفات المختبرات بالترتيب
+  // المختبر المرجعي أولًا، ثم المختبرات المطوّرة
+  // ======================================
+
   async function loadOperationLabsScripts() {
     for (const lab of OPERATION_LABS) {
       await loadOperationLabScript(lab.script);
     }
   }
 
+
+  // ======================================
+  // 4️⃣ فتح مختبر عبر اسم دالة الفتح
+  // لا يحتوي الفهرس منطق أي مختبر
+  // ======================================
+
+  function openOperationLab(lab) {
+    const fn = window[lab.openFunction];
+
+    if (typeof fn === "function") {
+      fn();
+      return;
+    }
+
+    alert(
+      "لم يتم العثور على دالة فتح المختبر:\n" +
+      lab.openFunction +
+      "\n\nتأكد أن ملف المختبر تم تحميله وأنه يصدّر دالة الفتح."
+    );
+  }
+
+
+  // ======================================
+  // 5️⃣ بناء أزرار غرفة التجارب الإدراكية
+  // داخل operation-labs-grid فقط
+  // ======================================
+
   function renderOperationLabsRoom() {
     const grid = document.getElementById("operation-labs-grid");
-    if (!grid) return;
+
+    if (!grid) {
+      console.warn("⚠️ لم يتم العثور على operation-labs-grid داخل index.html");
+      return;
+    }
 
     grid.innerHTML = "";
 
@@ -88,27 +135,32 @@ console.log("🧪 operation-labs-index.js جاهز — الفهرس الفرعي
           width:100%;
           font-weight:bold;
         ">
-          فتح ${lab.title}
+          فتح المختبر
         </button>
       `;
 
       const btn = card.querySelector("button");
 
       btn.onclick = function () {
-        const fn = window[lab.openFunction];
-
-        if (typeof fn === "function") {
-          fn();
-        } else {
-          alert("لم يتم العثور على دالة فتح المختبر:\n" + lab.openFunction);
-        }
+        openOperationLab(lab);
       };
 
       grid.appendChild(card);
     });
   }
 
+
+  // ======================================
+  // 6️⃣ تصدير دالة بناء الغرفة
+  // يستدعيها index.html عند فتح غرفة التجارب
+  // ======================================
+
   window.renderOperationLabsRoom = renderOperationLabsRoom;
+
+
+  // ======================================
+  // 7️⃣ التشغيل الأول
+  // ======================================
 
   document.addEventListener("DOMContentLoaded", async function () {
     try {
