@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html><html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,168 +23,184 @@
     <button onclick="document.getElementById('report-modal').style.display='none'; document.getElementById('report-modal-overlay').style.display='none';" style="display:block; width:100%; background:transparent; color:#94a3b8; border:1px solid #64748b; padding:12px; border-radius:8px;">
       ❌ إلغاء
     </button>
-  </div>
-  
-  <div id="check-version" style="background:#14532d; color:white; text-align:center; padding:14px; font-size:20px; font-weight:bold; border-bottom:5px solid #facc15;">
+  </div>  <div id="check-version" style="background:#14532d; color:white; text-align:center; padding:14px; font-size:20px; font-weight:bold; border-bottom:5px solid #facc15;">
     🧠 Noorani Cognitive Phoneme Lab
-  </div>
-  
-  <header class="app-header">
+  </div>  <header class="app-header">
     <h1>🔬 غرفة العمليات الصوتية</h1>
     <p>النورانية العالمية — مختبر الحقائب الإدراكية والجينوم المركزي</p>
-  </header>
-  
-  <main>
+  </header>  <main>
     <section id="homeView" class="panel">
       <h2>القوائم الرئيسية</h2>
       <button onclick="openPerceptualTrainingView()" style="display:block; margin:10px auto; width:90%;">
         🧠 مختبر الحقائب الإدراكية
+      </button><!-- الزر الجديد: الدخول إلى غرفة التجارب الإدراكية بدل فتح مختبر الفصل والدمج مباشرة -->
+  <button onclick="openCognitiveExperimentsRoom()" style="display:block; margin:10px auto; width:90%; background:#0f172a; color:#a3e635; border:1px solid #a3e635; padding:12px; border-radius:12px; cursor:pointer; font-weight:bold;">
+    🧪 غرفة التجارب الإدراكية
+  </button>
+
+  <div id="categoryList"></div>
+</section>
+
+<section id="perceptualTrainingView" class="panel" style="display:none;">
+  <h2>🧠 مختبر الحقائب الإدراكية</h2>
+  <p>تدريب الحروف، بناء الذاكرة، بناء الجينوم، واختبار الفصل الجماعي.</p>
+  <button onclick="openCognitiveStatisticsView()" style="display:block; margin:12px auto; width:90%; background:#0f172a; color:#38bdf8; border:1px solid #38bdf8; padding:12px; border-radius:12px; cursor:pointer;">
+    📊 التحليل الذاتي العام
+  </button>
+  <div id="phonemeCardsGrid"></div>
+  <div id="training-rec-status" style="margin-top:12px; background:#111827; color:#00F2FF; padding:10px; border-radius:10px; font-size:14px; display:none; text-align:center; line-height:1.7;"></div>
+  <div id="training-success-message" style="display:none; background:#111827; color:#22c55e; padding:10px; border-radius:10px; margin:12px 0; line-height:1.8; text-align:center;"></div>
+  <button onclick="closePerceptualTrainingView()">🏠 العودة للرئيسية</button>
+</section>
+
+<section id="recordView" class="panel" style="display:none;">
+  <div class="unit-card">
+    <div id="unit">بَ</div>
+    <p id="filename">ba_fatha.wav</p>
+    <div id="analysis-shell" style="background:#000; border-radius:14px; margin:12px 0; padding:10px; border:1px solid #374151;">
+      <div id="waveform-container" style="background:#050505; border-radius:10px; border:1px solid #111827; overflow:auto; min-height:140px;">
+        <div id="waveform" style="min-height:140px;"></div>
+      </div>
+      <div id="spectrogram-container" style="background:#050505; border-radius:10px; border:1px solid #111827; margin-top:8px; overflow:auto; min-height:220px;">
+        <div id="spectrogram" style="min-height:220px;"></div>
+      </div>
+    </div>
+    <p id="counter">1 / 6</p>
+  </div>
+  <div class="controls" style="gap:6px;">
+    <button id="recordBtn" onclick="toggleRecording()">🎙 تسجيل</button>
+    <button onclick="playRaw()">▶ استماع التسجيل</button>
+    <button onclick="approveAndNext()">✅ اعتماد وحفظ</button>
+    <button onclick="prevUnit()">⬅ السابق</button>
+    <button onclick="nextUnit()">➡ اللاحق</button>
+  </div>
+  <div class="secondary-controls">
+    <button onclick="goHome()">🏠 الرئيسية</button>
+    <button onclick="exportApproved()">📦 تصدير</button>
+  </div>
+  <hr>
+  <h3>قائمة الوحدات</h3>
+  <div id="unitList"></div>
+</section>
+
+<section id="cognitiveStatisticsView" class="panel" style="display:none;">
+  <h2>📊 التحليل الإحصائي الذاتي</h2>
+  <p>تحليل الجينومات، الالتباسات، الهيمنة الإدراكية، ومصفوفة الالتباس.</p>
+  <div id="cognitive-statistics-page-content"></div>
+  <button onclick="closeCognitiveStatisticsView()">🔙 العودة لمختبر الحقائب</button>
+</section>
+
+<!-- الصفحة الجديدة: غرفة التجارب الإدراكية -->
+<section id="cognitiveExperimentsRoomView" class="panel" style="display:none;">
+  <h2>🧪 غرفة التجارب الإدراكية</h2>
+  <p style="line-height:1.8;">
+    هذه الصفحة تجمع مختبرات مجلد <b>operation-labs</b>.
+    مختبر الفصل والدمج يبقى كما هو بمنطقه وحالته ونتائجه، وكل مختبر جديد يضاف لاحقًا يظهر هنا كزر مستقل.
+  </p>
+
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin:18px 0;">
+    <div style="background:#08111f; border:1px solid #38bdf8; border-radius:14px; padding:16px;">
+      <h3 style="color:#38bdf8;margin-top:0;">🧩 مختبر الفصل والدمج</h3>
+      <p style="line-height:1.8;">
+        المختبر المرجعي الحالي كما هو: تسجيل مقطعين، فصل الحامل والمحمول، ثم الدمج التبادلي.
+      </p>
+      <button onclick="openMergeSplitView()" style="background:#0ea5e9; color:white; border:none; padding:12px; border-radius:10px; cursor:pointer; width:100%; font-weight:bold;">
+        فتح مختبر الفصل والدمج
       </button>
-      <button onclick="openMergeSplitView()" style="display:block; margin:10px auto; width:90%; background:#0f172a; color:#facc15; border:1px solid #facc15; padding:12px; border-radius:12px; cursor:pointer;">
-        🧩 مختبر الفصل والدمج
+    </div>
+
+    <div style="background:#111827; border:1px solid #a3e635; border-radius:14px; padding:16px;">
+      <h3 style="color:#a3e635;margin-top:0;">⚖️ مختبر منطقة الاشتباك الموزونة</h3>
+      <p style="line-height:1.8;">
+        مختبر جديد سيُبنى في ملف مستقل لمعالجة الرنين أو الصدى عند الدمج دون المساس بالمختبر السابق.
+      </p>
+      <button onclick="openWeightedJoinZoneLabFromRoom()" style="background:#365314; color:white; border:1px solid #a3e635; padding:12px; border-radius:10px; cursor:pointer; width:100%; font-weight:bold;">
+        فتح المختبر الجديد
       </button>
-      <div id="categoryList"></div>
-    </section>
+    </div>
+  </div>
 
-    <section id="perceptualTrainingView" class="panel" style="display:none;">
-      <h2>🧠 مختبر الحقائب الإدراكية</h2>
-      <p>تدريب الحروف، بناء الذاكرة، بناء الجينوم، واختبار الفصل الجماعي.</p>
-      <button onclick="openCognitiveStatisticsView()" style="display:block; margin:12px auto; width:90%; background:#0f172a; color:#38bdf8; border:1px solid #38bdf8; padding:12px; border-radius:12px; cursor:pointer;">
-        📊 التحليل الذاتي العام
+  <button onclick="closeCognitiveExperimentsRoom()">🏠 العودة للرئيسية</button>
+</section>
+
+<!-- صفحة فارغة للمختبر الجديد، يبني محتواها ملف weighted-join-zone.js -->
+<section id="weightedJoinZoneView" class="panel" style="display:none;">
+  <div id="weighted-join-zone-root">
+    جاري تجهيز مختبر منطقة الاشتباك الموزونة...
+  </div>
+</section>
+
+<!-- مختبر الفصل والدمج كما هو، لم يتم تغيير منطق أزراره ولا معرفاته ولا دواله -->
+<section id="mergeSplitView" class="panel" style="display:none;">
+  <h2>🧩 مختبر الفصل والدمج (اكتشاف محرك الدمج الإدراكي)</h2>
+  <p>تجربة استخراج الحامل والمحمول من مقاطع حقيقية ودمجهما بشكل تبادلي لاختبار كفاءة الحامل المستخرج.</p>
+
+  <div style="background:#08111f; border:1px solid #38bdf8; border-radius:14px; padding:20px; margin:12px 0;">
+    <h3 style="color:#38bdf8; margin-top:0;">1️⃣ قسم المقطع الأول</h3>
+    <div style="display:flex; gap:10px; flex-wrap: wrap; margin-bottom: 15px;">
+      <input type="text" id="merge-seg1-input" value="" placeholder="اكتب المقطع الأول مثل: بص" style="flex:1; min-width:150px; padding:10px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:white; font-size:16px;">
+      <button onclick="fetchExperimentSegment(1)" style="background:#0ea5e9; color:white; border:none; padding:10px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">📥 استدعاء</button>
+      <button onclick="recordExperimentSegment(1)" style="background:#ef4444; color:white; border:none; padding:10px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">🎙 تسجيل</button>
+      <button onclick="splitExperimentSegment(1)" style="background:#3b82f6; color:white; border:1px solid #2563eb; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">✂️ فصل</button>
+    </div>
+    
+    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+      <button onclick="playExperimentAudio('seg1')" style="background:#1e293b; color:white; border:1px solid #475569; border-radius:8px; cursor:pointer;">▶ تشغيل المقطع 1</button>
+      <button onclick="playExperimentAudio('carrier1')" style="background:#1e293b; color:#a3e635; border:1px solid #475569; border-radius:8px; cursor:pointer;">▶ تشغيل الحامل الخام 1</button>
+      <button onclick="playExperimentAudio('payload1')" style="background:#1e293b; color:#facc15; border:1px solid #475569; border-radius:8px; cursor:pointer;">▶ تشغيل المحمول الخام 1</button>
+    </div>
+  </div>
+
+  <div style="background:#08111f; border:1px solid #a3e635; border-radius:14px; padding:20px; margin:12px 0;">
+    <h3 style="color:#a3e635; margin-top:0;">2️⃣ قسم المقطع الثاني</h3>
+    <div style="display:flex; gap:10px; flex-wrap: wrap; margin-bottom: 15px;">
+      <input type="text" id="merge-seg2-input" value="" placeholder="اكتب المقطع الثاني مثل: قد" style="flex:1; min-width:150px; padding:10px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:white; font-size:16px;">
+      <button onclick="fetchExperimentSegment(2)" style="background:#0ea5e9; color:white; border:none; padding:10px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">📥 استدعاء</button>
+      <button onclick="recordExperimentSegment(2)" style="background:#ef4444; color:white; border:none; padding:10px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">🎙 تسجيل</button>
+      <button onclick="splitExperimentSegment(2)" style="background:#3b82f6; color:white; border:1px solid #2563eb; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">✂️ فصل</button>
+    </div>
+    
+    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+      <button onclick="playExperimentAudio('seg2')" style="background:#1e293b; color:white; border:1px solid #475569; border-radius:8px; cursor:pointer;">▶ تشغيل المقطع 2</button>
+      <button onclick="playExperimentAudio('carrier2')" style="background:#1e293b; color:#a3e635; border:1px solid #475569; border-radius:8px; cursor:pointer;">▶ تشغيل الحامل الخام 2</button>
+      <button onclick="playExperimentAudio('payload2')" style="background:#1e293b; color:#facc15; border:1px solid #475569; border-radius:8px; cursor:pointer;">▶ تشغيل المحمول الخام 2</button>
+    </div>
+  </div>
+
+  <div style="background:#1e293b; border:1px solid #facc15; border-radius:14px; padding:20px; margin:12px 0;">
+    <h3 style="color:#facc15; margin-top:0; text-align:center;">🧪 قسم التجارب الإدراكية</h3>
+    
+    <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:18px; margin-bottom: 18px;">
+      <button onclick="experimentMerge(1, 2)" style="background:#8b5cf6; color:white; border:1px solid #7c3aed; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">
+        🧩 دمج: حامل 1 + محمول 2
       </button>
-      <div id="phonemeCardsGrid"></div>
-      <div id="training-rec-status" style="margin-top:12px; background:#111827; color:#00F2FF; padding:10px; border-radius:10px; font-size:14px; display:none; text-align:center; line-height:1.7;"></div>
-      <div id="training-success-message" style="display:none; background:#111827; color:#22c55e; padding:10px; border-radius:10px; margin:12px 0; line-height:1.8; text-align:center;"></div>
-      <button onclick="closePerceptualTrainingView()">🏠 العودة للرئيسية</button>
-    </section>
+      <button onclick="experimentMerge(2, 1)" style="background:#d946ef; color:white; border:1px solid #c026d3; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">
+        🧩 دمج: حامل 2 + محمول 1
+      </button>
+    </div>
 
-    <section id="recordView" class="panel" style="display:none;">
-      <div class="unit-card">
-        <div id="unit">بَ</div>
-        <p id="filename">ba_fatha.wav</p>
-        <div id="analysis-shell" style="background:#000; border-radius:14px; margin:12px 0; padding:10px; border:1px solid #374151;">
-          <div id="waveform-container" style="background:#050505; border-radius:10px; border:1px solid #111827; overflow:auto; min-height:140px;">
-            <div id="waveform" style="min-height:140px;"></div>
-          </div>
-          <div id="spectrogram-container" style="background:#050505; border-radius:10px; border:1px solid #111827; margin-top:8px; overflow:auto; min-height:220px;">
-            <div id="spectrogram" style="min-height:220px;"></div>
-          </div>
-        </div>
-        <p id="counter">1 / 6</p>
-      </div>
-      <div class="controls" style="gap:6px;">
-        <button id="recordBtn" onclick="toggleRecording()">🎙 تسجيل</button>
-        <button onclick="playRaw()">▶ استماع التسجيل</button>
-        <button onclick="approveAndNext()">✅ اعتماد وحفظ</button>
-        <button onclick="prevUnit()">⬅ السابق</button>
-        <button onclick="nextUnit()">➡ اللاحق</button>
-      </div>
-      <div class="secondary-controls">
-        <button onclick="goHome()">🏠 الرئيسية</button>
-        <button onclick="exportApproved()">📦 تصدير</button>
-      </div>
-      <hr>
-      <h3>قائمة الوحدات</h3>
-      <div id="unitList"></div>
-    </section>
+    <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
+      <button onclick="playExperimentAudio('result1_2')" style="background:#14532d; color:#a3e635; border:1px solid #166534; border-radius:8px; padding:10px; cursor:pointer; font-weight:bold;">▶ تشغيل الناتج (ح1 + م2)</button>
+      <button onclick="playExperimentAudio('result2_1')" style="background:#14532d; color:#a3e635; border:1px solid #166534; border-radius:8px; padding:10px; cursor:pointer; font-weight:bold;">▶ تشغيل الناتج (ح2 + م1)</button>
+    </div>
+  </div>
 
-    <section id="cognitiveStatisticsView" class="panel" style="display:none;">
-      <h2>📊 التحليل الإحصائي الذاتي</h2>
-      <p>تحليل الجينومات، الالتباسات، الهيمنة الإدراكية، ومصفوفة الالتباس.</p>
-      <div id="cognitive-statistics-page-content"></div>
-      <button onclick="closeCognitiveStatisticsView()">🔙 العودة لمختبر الحقائب</button>
-    </section>
+  <div id="merge-split-status" style="background:#111827; color:#e5e7eb; border-radius:12px; border:1px solid #1f2937; padding:16px; margin:20px 0; line-height:1.8; min-height:60px;">
+    مستعد لبدء التجربة. يرجى استدعاء أو تسجيل المقاطع لبدء الفصل والدمج.
+  </div>
 
-    <section id="mergeSplitView" class="panel" style="display:none;">
-      <h2>🧩 مختبر الفصل والدمج (اكتشاف محرك الدمج الإدراكي)</h2>
-      <p>تجربة استخراج الحامل والمحمول من مقاطع حقيقية ودمجهما بشكل تبادلي لاختبار كفاءة الحامل المستخرج.</p>
+  <button onclick="closeMergeSplitView()">🔙 العودة لغرفة التجارب الإدراكية</button>
+</section>
 
-      <div style="background:#08111f; border:1px solid #38bdf8; border-radius:14px; padding:20px; margin:12px 0;">
-        <h3 style="color:#38bdf8; margin-top:0;">1️⃣ قسم المقطع الأول</h3>
-        <div style="display:flex; gap:10px; flex-wrap: wrap; margin-bottom: 15px;">
-          <input type="text" id="merge-seg1-input" value="" placeholder="اكتب المقطع الأول مثل: بص" style="flex:1; min-width:150px; padding:10px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:white; font-size:16px;">
-          <button onclick="fetchExperimentSegment(1)" style="background:#0ea5e9; color:white; border:none; padding:10px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">📥 استدعاء</button>
-          <button onclick="recordExperimentSegment(1)" style="background:#ef4444; color:white; border:none; padding:10px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">🎙 تسجيل</button>
-          <button onclick="splitExperimentSegment(1)" style="background:#3b82f6; color:white; border:1px solid #2563eb; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">✂️ فصل</button>
-        </div>
-        
-        <div style="display:flex; flex-wrap:wrap; gap:8px;">
-          <button onclick="playExperimentAudio('seg1')" style="background:#1e293b; color:white; border:1px solid #475569; border-radius:8px; cursor:pointer;">▶ تشغيل المقطع 1</button>
-          <button onclick="playExperimentAudio('carrier1')" style="background:#1e293b; color:#a3e635; border:1px solid #475569; border-radius:8px; cursor:pointer;">▶ تشغيل الحامل الخام 1</button>
-          <button onclick="playExperimentAudio('payload1')" style="background:#1e293b; color:#facc15; border:1px solid #475569; border-radius:8px; cursor:pointer;">▶ تشغيل المحمول الخام 1</button>
-        </div>
-      </div>
-
-      <div style="background:#08111f; border:1px solid #a3e635; border-radius:14px; padding:20px; margin:12px 0;">
-        <h3 style="color:#a3e635; margin-top:0;">2️⃣ قسم المقطع الثاني</h3>
-        <div style="display:flex; gap:10px; flex-wrap: wrap; margin-bottom: 15px;">
-          <input type="text" id="merge-seg2-input" value="" placeholder="اكتب المقطع الثاني مثل: قد" style="flex:1; min-width:150px; padding:10px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:white; font-size:16px;">
-          <button onclick="fetchExperimentSegment(2)" style="background:#0ea5e9; color:white; border:none; padding:10px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">📥 استدعاء</button>
-          <button onclick="recordExperimentSegment(2)" style="background:#ef4444; color:white; border:none; padding:10px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">🎙 تسجيل</button>
-          <button onclick="splitExperimentSegment(2)" style="background:#3b82f6; color:white; border:1px solid #2563eb; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">✂️ فصل</button>
-        </div>
-        
-        <div style="display:flex; flex-wrap:wrap; gap:8px;">
-          <button onclick="playExperimentAudio('seg2')" style="background:#1e293b; color:white; border:1px solid #475569; border-radius:8px; cursor:pointer;">▶ تشغيل المقطع 2</button>
-          <button onclick="playExperimentAudio('carrier2')" style="background:#1e293b; color:#a3e635; border:1px solid #475569; border-radius:8px; cursor:pointer;">▶ تشغيل الحامل الخام 2</button>
-          <button onclick="playExperimentAudio('payload2')" style="background:#1e293b; color:#facc15; border:1px solid #475569; border-radius:8px; cursor:pointer;">▶ تشغيل المحمول الخام 2</button>
-        </div>
-      </div>
-
-      <div style="background:#1e293b; border:1px solid #facc15; border-radius:14px; padding:20px; margin:12px 0;">
-        <h3 style="color:#facc15; margin-top:0; text-align:center;">🧪 قسم التجارب الإدراكية</h3>
-        
-        <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:18px; margin-bottom: 18px;">
-          <button onclick="experimentMerge(1, 2)" style="background:#8b5cf6; color:white; border:1px solid #7c3aed; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">
-            🧩 دمج: حامل 1 + محمول 2
-          </button>
-          <button onclick="experimentMerge(2, 1)" style="background:#d946ef; color:white; border:1px solid #c026d3; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">
-            🧩 دمج: حامل 2 + محمول 1
-          </button>
-        </div>
-
-        <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;">
-          <button onclick="playExperimentAudio('result1_2')" style="background:#14532d; color:#a3e635; border:1px solid #166534; border-radius:8px; padding:10px; cursor:pointer; font-weight:bold;">▶ تشغيل الناتج (ح1 + م2)</button>
-          <button onclick="playExperimentAudio('result2_1')" style="background:#14532d; color:#a3e635; border:1px solid #166534; border-radius:8px; padding:10px; cursor:pointer; font-weight:bold;">▶ تشغيل الناتج (ح2 + م1)</button>
-        </div>
-      </div>
-
-      <div id="merge-split-status" style="background:#111827; color:#e5e7eb; border-radius:12px; border:1px solid #1f2937; padding:16px; margin:20px 0; line-height:1.8; min-height:60px;">
-        مستعد لبدء التجربة. يرجى استدعاء أو تسجيل المقاطع لبدء الفصل والدمج.
-      </div>
-
-      <button onclick="closeMergeSplitView()">🏠 العودة للرئيسية</button>
-    </section>
-  </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="recording-manifest.js"></script>
-  <script src="storage.js"></script>
-  <script src="audio-lab.js"></script>
-  <script src="phoneme-colors.js"></script>
-  <script src="phoneme-training-pack.js"></script>
-  <script src="phoneme-color-memory.js"></script>
-  <script src="training-recorder.js"></script>
-  <script src="phoneme-signal-validator.js"></script>
-  <script src="phoneme-memory-trainer.js"></script>
-  <script src="phoneme-cognitive-engine.js"></script>
-  <script src="phoneme-match-engine.js"></script>
-  <script src="phoneme-timeline-engine.js"></script>
-  <script src="report-manager.js"></script>
-  <script src="phoneme-boundary-engine.js"></script>
-  <script src="operation-labs/phoneme-merge-split-engine.js"></script>
-  <script src="operation-labs/operation-labs-index.js"></script>
-  <script src="cognitive-statistics-engine.js"></script>
-  <script src="cognitive-confusion-matrix.js"></script>
-  <script src="app.js"></script>
-
-  <script>
+  </main>  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>  <script src="recording-manifest.js"></script>  <script src="storage.js"></script>  <script src="audio-lab.js"></script>  <script src="phoneme-colors.js"></script>  <script src="phoneme-training-pack.js"></script>  <script src="phoneme-color-memory.js"></script>  <script src="training-recorder.js"></script>  <script src="phoneme-signal-validator.js"></script>  <script src="phoneme-memory-trainer.js"></script>  <script src="phoneme-cognitive-engine.js"></script>  <script src="phoneme-match-engine.js"></script>  <script src="phoneme-timeline-engine.js"></script>  <script src="report-manager.js"></script>  <script src="phoneme-boundary-engine.js"></script>  <!-- الربط الوحيد مع مجلد operation-labs -->  <script src="operation-labs/operation-labs-index.js"></script>  <script src="cognitive-statistics-engine.js"></script>  <script src="cognitive-confusion-matrix.js"></script>  <script src="app.js"></script>  <script>
     function hideAllViews() {
       document.getElementById("homeView").style.display = "none";
       document.getElementById("perceptualTrainingView").style.display = "none";
       document.getElementById("recordView").style.display = "none";
       document.getElementById("cognitiveStatisticsView").style.display = "none";
       document.getElementById("mergeSplitView").style.display = "none";
+      document.getElementById("cognitiveExperimentsRoomView").style.display = "none";
+      document.getElementById("weightedJoinZoneView").style.display = "none";
     }
 
     function openPerceptualTrainingView() {
@@ -197,6 +212,35 @@
     function closePerceptualTrainingView() {
       hideAllViews();
       document.getElementById("homeView").style.display = "block";
+    }
+
+    function openCognitiveExperimentsRoom() {
+      hideAllViews();
+      document.getElementById("cognitiveExperimentsRoomView").style.display = "block";
+    }
+
+    function closeCognitiveExperimentsRoom() {
+      hideAllViews();
+      document.getElementById("homeView").style.display = "block";
+    }
+
+    function openWeightedJoinZoneLabFromRoom() {
+      hideAllViews();
+      document.getElementById("weightedJoinZoneView").style.display = "block";
+
+      if (typeof renderWeightedJoinZoneLab === "function") {
+        renderWeightedJoinZoneLab();
+      } else {
+        const root = document.getElementById("weighted-join-zone-root");
+        if (root) {
+          root.innerHTML = "⚠️ لم يتم تحميل مختبر منطقة الاشتباك الموزونة بعد.";
+        }
+      }
+    }
+
+    function closeWeightedJoinZoneView() {
+      hideAllViews();
+      document.getElementById("cognitiveExperimentsRoomView").style.display = "block";
     }
 
     function openMergeSplitView() {
@@ -211,7 +255,7 @@
 
     function closeMergeSplitView() {
       hideAllViews();
-      document.getElementById("homeView").style.display = "block";
+      document.getElementById("cognitiveExperimentsRoomView").style.display = "block";
     }
 
     function testPhonemeColorBinding(phonemeKey) {
@@ -364,6 +408,5 @@
         box.style.display = "none";
       }
     }
-  </script>
-</body>
+  </script></body>
 </html>
