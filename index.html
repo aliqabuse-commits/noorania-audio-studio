@@ -8,7 +8,8 @@
   <script src="https://unpkg.com/wavesurfer.js@7"></script>
   <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
   <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/spectrogram.min.js"></script>
-</head><body>  <div id="report-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:999;"></div>  <div id="report-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#1e293b; padding:24px; border:2px solid #38bdf8; border-radius:14px; z-index:1000; text-align:center; min-width:300px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+</head>
+<body>  <div id="report-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:999;"></div>  <div id="report-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:#1e293b; padding:24px; border:2px solid #38bdf8; border-radius:14px; z-index:1000; text-align:center; min-width:300px; box-shadow:0 10px 25px rgba(0,0,0,0.5);">
     <h3 id="report-modal-title" style="color:white; margin-top:0;">خيارات التقرير</h3>
     <p style="color:#cbd5e1; font-size:14px; margin-bottom:20px;">الرجاء تحديد الإجراء المطلوب:</p><button id="btn-view-report" style="display:block; width:100%; margin-bottom:12px; background:#0ea5e9; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; font-size:16px;">
   📊 عرض التقرير
@@ -117,8 +118,8 @@
 
 <!-- ================================ -->
 <!-- غرفة التجارب الإدراكية -->
-<!-- لا تحتوي أسماء المختبرات المستقبلية -->
-<!-- operation-labs-index.js هو المسؤول عن بناء الأزرار داخل operation-labs-grid -->
+<!-- index.html لا يعرف أسماء مختبرات operation-labs -->
+<!-- operation-labs-index.js يبني الأزرار داخل operation-labs-grid -->
 <!-- ================================ -->
 <section id="cognitiveExperimentsRoomView" class="panel" style="display:none;">
   <h2>🧪 غرفة التجارب الإدراكية</h2>
@@ -140,7 +141,7 @@
 
 <!-- ================================ -->
 <!-- حاوية عامة للمختبرات الجديدة -->
-<!-- أي مختبر جديد يستطيع استخدام هذه الصفحة أو إنشاء صفحة خاصة به عبر operation-labs-index.js -->
+<!-- أي مختبر جديد داخل operation-labs يمكنه استعمال هذه الحاوية -->
 <!-- ================================ -->
 <section id="operationLabDynamicView" class="panel" style="display:none;">
   <div id="operation-lab-dynamic-root">
@@ -161,7 +162,7 @@
   <div style="background:#08111f; border:1px solid #38bdf8; border-radius:14px; padding:20px; margin:12px 0;">
     <h3 style="color:#38bdf8; margin-top:0;">1️⃣ قسم المقطع الأول</h3>
 
-    <div style="display:flex; gap:10px; flex-wrap: wrap; margin-bottom: 15px;">
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
       <input type="text" id="merge-seg1-input" value="" placeholder="اكتب المقطع الأول مثل: بص" style="flex:1; min-width:150px; padding:10px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:white; font-size:16px;">
       <button onclick="fetchExperimentSegment(1)" style="background:#0ea5e9; color:white; border:none; padding:10px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">📥 استدعاء</button>
       <button onclick="recordExperimentSegment(1)" style="background:#ef4444; color:white; border:none; padding:10px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">🎙 تسجيل</button>
@@ -178,7 +179,7 @@
   <div style="background:#08111f; border:1px solid #a3e635; border-radius:14px; padding:20px; margin:12px 0;">
     <h3 style="color:#a3e635; margin-top:0;">2️⃣ قسم المقطع الثاني</h3>
 
-    <div style="display:flex; gap:10px; flex-wrap: wrap; margin-bottom: 15px;">
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
       <input type="text" id="merge-seg2-input" value="" placeholder="اكتب المقطع الثاني مثل: قد" style="flex:1; min-width:150px; padding:10px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:white; font-size:16px;">
       <button onclick="fetchExperimentSegment(2)" style="background:#0ea5e9; color:white; border:none; padding:10px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">📥 استدعاء</button>
       <button onclick="recordExperimentSegment(2)" style="background:#ef4444; color:white; border:none; padding:10px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">🎙 تسجيل</button>
@@ -195,7 +196,7 @@
   <div style="background:#1e293b; border:1px solid #facc15; border-radius:14px; padding:20px; margin:12px 0;">
     <h3 style="color:#facc15; margin-top:0; text-align:center;">🧪 قسم التجارب الإدراكية</h3>
 
-    <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:18px; margin-bottom: 18px;">
+    <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:18px; margin-bottom:18px;">
       <button onclick="experimentMerge(1, 2)" style="background:#8b5cf6; color:white; border:1px solid #7c3aed; padding:12px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">
         🧩 دمج: حامل 1 + محمول 2
       </button>
@@ -220,8 +221,7 @@
 
   </main>  <!-- ================================ -->  <!-- تحميل الملفات العامة -->  <!-- ================================ -->  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>  <script src="recording-manifest.js"></script>  <script src="storage.js"></script>  <script src="audio-lab.js"></script>  <script src="phoneme-colors.js"></script>  <script src="phoneme-training-pack.js"></script>  <script src="phoneme-color-memory.js"></script>  <script src="training-recorder.js"></script>  <script src="phoneme-signal-validator.js"></script>  <script src="phoneme-memory-trainer.js"></script>  <script src="phoneme-cognitive-engine.js"></script>  <script src="phoneme-match-engine.js"></script>  <script src="phoneme-timeline-engine.js"></script>  <script src="report-manager.js"></script>  <script src="phoneme-boundary-engine.js"></script>  <!-- الربط الوحيد مع مجلد operation-labs -->  <script src="operation-labs/operation-labs-index.js"></script>  <script src="cognitive-statistics-engine.js"></script>  <script src="cognitive-confusion-matrix.js"></script>  <script src="app.js"></script>  <script>
     // ======================================
-    // إخفاء كل الصفحات
-    // أضف أي صفحة عامة جديدة هنا فقط إذا كانت خارج إدارة operation-labs
+    // إخفاء كل الصفحات العامة
     // ======================================
     function hideAllViews() {
       const ids = [
@@ -258,6 +258,7 @@
 
     // ======================================
     // غرفة التجارب الإدراكية
+    // operation-labs-index.js يبني أزرار المختبرات
     // ======================================
     function openCognitiveExperimentsRoom() {
       hideAllViews();
@@ -265,7 +266,6 @@
       const view = document.getElementById("cognitiveExperimentsRoomView");
       if (view) view.style.display = "block";
 
-      // operation-labs-index.js هو المسؤول عن بناء أزرار المختبرات
       if (typeof renderOperationLabsRoom === "function") {
         renderOperationLabsRoom();
       }
@@ -278,8 +278,7 @@
 
 
     // ======================================
-    // صفحة المختبرات الجديدة الديناميكية
-    // أي مختبر جديد داخل operation-labs يمكنه استعمال هذه الحاوية
+    // صفحة المختبرات الديناميكية
     // ======================================
     function openOperationLabDynamicView() {
       hideAllViews();
@@ -290,6 +289,10 @@
     function closeOperationLabDynamicView() {
       hideAllViews();
       document.getElementById("cognitiveExperimentsRoomView").style.display = "block";
+
+      if (typeof renderOperationLabsRoom === "function") {
+        renderOperationLabsRoom();
+      }
     }
 
 
@@ -330,9 +333,13 @@
         return;
       }
 
-      alert("الحرف: " + result.letter + "
-اللون: " + result.colorName + "
-HEX: " + result.hex);
+      alert(
+        "الحرف: " + result.letter +
+        "
+اللون: " + result.colorName +
+        "
+HEX: " + result.hex
+      );
     }
 
 
@@ -348,7 +355,7 @@ HEX: " + result.hex);
 
       if (typeof getAllPhonemeTrainingPacks !== "function") {
         grid.innerHTML = `
-          <div style="background:#7f1d1d; color:white; padding:14px; border-radius:12px; line-height:1.8; grid-column: 1 / -1;">
+          <div style="background:#7f1d1d; color:white; padding:14px; border-radius:12px; line-height:1.8; grid-column:1 / -1;">
             ⚠️ لم يتم العثور على دالة getAllPhonemeTrainingPacks
           </div>
         `;
@@ -358,14 +365,14 @@ HEX: " + result.hex);
       const packs = getAllPhonemeTrainingPacks();
       if (!packs || !Object.keys(packs).length) {
         grid.innerHTML = `
-          <div style="background:#7f1d1d; color:white; padding:14px; border-radius:12px; line-height:1.8; grid-column: 1 / -1;">
+          <div style="background:#7f1d1d; color:white; padding:14px; border-radius:12px; line-height:1.8; grid-column:1 / -1;">
             ⚠️ لا توجد حقائب إدراكية جاهزة
           </div>
         `;
         return;
       }
 
-      grid.innerHTML = `<h3 style="text-align:center; margin:10px 0 18px; grid-column: 1 / -1;">اختر الحقيبة الإدراكية</h3>`;
+      grid.innerHTML = `<h3 style="text-align:center; margin:10px 0 18px; grid-column:1 / -1;">اختر الحقيبة الإدراكية</h3>`;
 
       Object.keys(packs).forEach(function (key) {
         const pack = packs[key];
@@ -401,12 +408,12 @@ HEX: " + result.hex);
       if (!grid) return;
 
       grid.innerHTML = `
-        <div style="background:#08111f; color:white; border:2px solid ${pack.colorHex || "#334155"}; border-radius:18px; padding:18px; margin:12px 0; text-align:center; grid-column: 1 / -1;">
+        <div style="background:#08111f; color:white; border:2px solid ${pack.colorHex || "#334155"}; border-radius:18px; padding:18px; margin:12px 0; text-align:center; grid-column:1 / -1;">
           <h2 style="color:${pack.colorHex || "#38bdf8"}; margin-top:0; margin-bottom:12px;">
             ${pack.letter} — حقيبة ${pack.name}
           </h2>
 
-          <button onclick="renderPhonemeCards()" style="margin-bottom: 20px; background: #1e293b; color: #f8fafc; border: 1px solid #334155;">
+          <button onclick="renderPhonemeCards()" style="margin-bottom:20px; background:#1e293b; color:#f8fafc; border:1px solid #334155;">
             🔙 العودة إلى الحقائب
           </button>
 
@@ -444,7 +451,7 @@ HEX: " + result.hex);
             📊 إظهار سجل الاختبارات
           </button>
 
-          <div id="match-results-log-box" style="display:none; margin-top: 15px;"></div>
+          <div id="match-results-log-box" style="display:none; margin-top:15px;"></div>
         </div>
       `;
     }
