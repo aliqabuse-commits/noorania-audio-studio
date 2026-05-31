@@ -918,6 +918,7 @@ window.playMergedSegment = playMergedSegment;
 window.playBaseSegment = playBaseSegment;
 window.playReplacementSegment = playReplacementSegment;
 window.playPayloadSegment = playPayloadSegment;
-
+window.detectPayloadBoundaryByIdentity =
+  detectPayloadBoundaryByIdentity;
 
 console.log("🧩 محرك الفصل والدمج الإدراكي جاهز V1.9 — متوافق مع operation-labs-index.js دون تغيير المنطق");
