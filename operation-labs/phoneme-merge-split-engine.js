@@ -861,18 +861,63 @@ async function mergeReplacementWithPayload() {
   } catch (err) { console.error(err); }
 }
 
+// ======================================
+// تصدير دوال الواجهة — مختبر الفصل والدمج الحالي
+// لا يغير هذا منطق المختبر، فقط يجعله متاحًا بعد تحميله من operation-labs-index.js
+// ======================================
+
+window.fetchExperimentSegment = fetchExperimentSegment;
+window.recordExperimentSegment = recordExperimentSegment;
+window.splitExperimentSegment = splitExperimentSegment;
+window.experimentMerge = experimentMerge;
+window.playExperimentAudio = playExperimentAudio;
+
+window.saveMergeExperimentState = window.saveMergeExperimentState;
+window.restoreMergeExperimentState = window.restoreMergeExperimentState;
+
+
+// ======================================
+// تصدير أدوات مشتركة للمختبرات الجديدة داخل operation-labs
+// هذه ليست تغييرًا في منطق مختبر الفصل والدمج
+// بل إتاحة للأدوات حتى يستخدمها weighted-join-zone.js وغيره لاحقًا
+// ======================================
+
 window.normalizeArabic = normalizeArabic;
+window.resolveDynamicKeys = resolveDynamicKeys;
+window.findAuthorizedFileInPacks = findAuthorizedFileInPacks;
+window.searchAudioBlobSafely = searchAudioBlobSafely;
+window.saveTempAudioToStorage = saveTempAudioToStorage;
+
+window.recordMergeSample = recordMergeSample;
+window.playBlob = playBlob;
+
+window.blobToAudioBuffer = blobToAudioBuffer;
+window.audioBufferToWavBlob = audioBufferToWavBlob;
+window.sliceAudioBuffer = sliceAudioBuffer;
+window.concatAudioBuffers = concatAudioBuffers;
+window.overlapAddAudioBuffers = overlapAddAudioBuffers;
+window.extractCognitiveJoinUnits = extractCognitiveJoinUnits;
+
+
+// ======================================
+// تصدير دوال الطبقة التوافقية القديمة V1.7
+// تبقى كما هي لضمان عدم الكسر
+// ======================================
+
 window.fetchSegmentSafely = fetchSegmentSafely;
 window.fetchDynamicBaseSegment = fetchDynamicBaseSegment;
 window.fetchDynamicCarrierReplacement = fetchDynamicCarrierReplacement;
+
 window.recordBaseSegment = recordBaseSegment;
 window.recordCarrierReplacement = recordCarrierReplacement;
+
 window.splitBaseSegment = splitBaseSegment;
 window.mergeReplacementWithPayload = mergeReplacementWithPayload;
+
 window.playMergedSegment = playMergedSegment;
 window.playBaseSegment = playBaseSegment;
 window.playReplacementSegment = playReplacementSegment;
 window.playPayloadSegment = playPayloadSegment;
-window.extractCognitiveJoinUnits = extractCognitiveJoinUnits;
 
-console.log("🧩 محرك الفصل والدمج الإدراكي التجريبي جاهز V1.9 مصحح مع تحديث التسجيل والمؤقت");
+
+console.log("🧩 محرك الفصل والدمج الإدراكي جاهز V1.9 — متوافق مع operation-labs-index.js دون تغيير المنطق");
