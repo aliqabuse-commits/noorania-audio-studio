@@ -1,10 +1,10 @@
 // ================================
 // phoneme-merge-split-engine.js
-// محرك الفصل والدمج الصوتي — V1.8 مصحح (اكتشاف محرك الدمج الإدراكي)
-// مختبر الفصل والدمج الديناميكي مع دعم الاسترجاع السيادي واستخراج الحامل والمحمول الخام
+// محرك الفصل والدمج الصوتي — V1.9 (محرك الدمج الإدراكي الموزون)
+// مختبر استخراج وحدات الاشتباك (Join Units) والدمج بالتداخل الموزون
 // ================================
 
-console.log("🧩 phoneme-merge-split-engine.js جاهز V1.8");
+console.log("🧩 phoneme-merge-split-engine.js جاهز V1.9");
 
 // ======================================
 // متغيرات الطبقة التوافقية (النظام القديم V1.7)
@@ -16,15 +16,19 @@ let mergedSegmentBlob = null;
 
 
 // ======================================
-// متغيرات النظام الجديد V1.8 (المسار المزدوج)
+// متغيرات النظام الجديد V1.9 (المسار المزدوج الموزون)
 // ======================================
 let segment1Blob = null;
 let carrier1RawBlob = null;
 let payload1RawBlob = null;
+let carrier1ReadyBlob = null;
+let payload1ReadyBlob = null;
 
 let segment2Blob = null;
 let carrier2RawBlob = null;
 let payload2RawBlob = null;
+let carrier2ReadyBlob = null;
+let payload2ReadyBlob = null;
 
 let result1_2_Blob = null; // حامل 1 + محمول 2
 let result2_1_Blob = null; // حامل 2 + محمول 1
@@ -145,7 +149,7 @@ function saveTempAudioToStorage(fileName, blob) {
 }
 
 // ======================================
-// 2️⃣ نظام إدارة الحالة وحفظ الذاكرة لـ V1.8
+// 2️⃣ نظام إدارة الحالة وحفظ الذاكرة لـ V1.9
 // ======================================
 
 window.saveMergeExperimentState = function() {
@@ -183,7 +187,6 @@ window.restoreMergeExperimentState = async function() {
   const split1 = localStorage.getItem('merge_experiment_seg1_split') === 'true';
   const split2 = localStorage.getItem('merge_experiment_seg2_split') === 'true';
 
-  // محاولة استعادة المقاطع وعمليات الفصل في الخلفية بصمت (بدون تخمين أسماء ملفات)
   if (ready1 && seg1Text) {
     const keys = resolveDynamicKeys(seg1Text);
     const authFile = findAuthorizedFileInPacks(seg1Text, keys);
@@ -194,13 +197,11 @@ window.restoreMergeExperimentState = async function() {
         if (split1) {
            try {
              const sData = await performCoreCognitiveSplit(blob, seg1Text);
-             carrier1RawBlob = sData.carrierRawBlob;
-             payload1RawBlob = sData.payloadRawBlob;
+             carrier1RawBlob = sData.carrierRawBlob; payload1RawBlob = sData.payloadRawBlob;
+             carrier1ReadyBlob = sData.carrierReadyBlob; payload1ReadyBlob = sData.payloadReadyBlob;
            } catch(e) { console.warn("Background split 1 failed", e); }
         }
       }
-    } else {
-      console.warn("استرجاع: لا يوجد ملف معتمد للمقطع الأول في الحقيبة. يتطلب إعادة تسجيل/استدعاء.");
     }
   }
 
@@ -214,19 +215,17 @@ window.restoreMergeExperimentState = async function() {
         if (split2) {
            try {
              const sData = await performCoreCognitiveSplit(blob, seg2Text);
-             carrier2RawBlob = sData.carrierRawBlob;
-             payload2RawBlob = sData.payloadRawBlob;
+             carrier2RawBlob = sData.carrierRawBlob; payload2RawBlob = sData.payloadRawBlob;
+             carrier2ReadyBlob = sData.carrierReadyBlob; payload2ReadyBlob = sData.payloadReadyBlob;
            } catch(e) { console.warn("Background split 2 failed", e); }
         }
       }
-    } else {
-      console.warn("استرجاع: لا يوجد ملف معتمد للمقطع الثاني في الحقيبة. يتطلب إعادة تسجيل/استدعاء.");
     }
   }
 };
 
 // ======================================
-// 3️⃣ النظام الجديد: استدعاء وتسجيل V1.8
+// 3️⃣ النظام الجديد: استدعاء وتسجيل V1.9
 // ======================================
 
 async function fetchExperimentSegment(segNum) {
@@ -245,9 +244,9 @@ async function fetchExperimentSegment(segNum) {
 
   if (blob) {
     if (segNum === 1) {
-      segment1Blob = blob; carrier1RawBlob = null; payload1RawBlob = null; result1_2_Blob = null; result2_1_Blob = null;
+      segment1Blob = blob; carrier1RawBlob = null; payload1RawBlob = null; carrier1ReadyBlob = null; payload1ReadyBlob = null; result1_2_Blob = null; result2_1_Blob = null;
     } else {
-      segment2Blob = blob; carrier2RawBlob = null; payload2RawBlob = null; result1_2_Blob = null; result2_1_Blob = null;
+      segment2Blob = blob; carrier2RawBlob = null; payload2RawBlob = null; carrier2ReadyBlob = null; payload2ReadyBlob = null; result1_2_Blob = null; result2_1_Blob = null;
     }
     updateMergeSplitStatus("✅ تم استدعاء المقطع " + segNum + ": <b>" + text + "</b> بنجاح.");
     return true;
@@ -269,20 +268,118 @@ async function recordExperimentSegment(segNum) {
   if (!blob) { alert("فشل التسجيل"); return; }
 
   if (segNum === 1) {
-    segment1Blob = blob; carrier1RawBlob = null; payload1RawBlob = null;
+    segment1Blob = blob; carrier1RawBlob = null; payload1RawBlob = null; carrier1ReadyBlob = null; payload1ReadyBlob = null;
   } else {
-    segment2Blob = blob; carrier2RawBlob = null; payload2RawBlob = null;
+    segment2Blob = blob; carrier2RawBlob = null; payload2RawBlob = null; carrier2ReadyBlob = null; payload2ReadyBlob = null;
   }
 
   saveTempAudioToStorage(text + ".wav", blob);
   updateMergeSplitStatus("✅ تم تسجيل المقطع " + segNum + ": <b>" + text + "</b> بنجاح.");
 }
 
+
 // ======================================
-// 4️⃣ النظام الجديد: محرك الفصل الإدراكي الأساسي V1.8
+// 4️⃣ دوال الهندسة الصوتية لوحدات الاشتباك (Cognitive Join Units)
 // ======================================
 
-// دالة محورية لفصل الحامل والمحمول الخام بدون طمس
+// لصق مقطعين صوتيين بشكل مباشر (Concat)
+function concatAudioBuffers(bufferA, bufferB) {
+  const numberOfChannels = Math.min(bufferA.numberOfChannels, bufferB.numberOfChannels);
+  const sampleRate = bufferA.sampleRate;
+  const outputLength = bufferA.length + bufferB.length;
+  const outputBuffer = new AudioBuffer({ length: outputLength, numberOfChannels, sampleRate });
+
+  for (let ch = 0; ch < numberOfChannels; ch++) {
+    const a = bufferA.getChannelData(ch);
+    const b = bufferB.getChannelData(ch);
+    const out = outputBuffer.getChannelData(ch);
+    out.set(a, 0);
+    out.set(b, bufferA.length);
+  }
+  return outputBuffer;
+}
+
+// تطبيق مغلف تلاشي أو تصعيد (Envelope)
+function applyEnvelope(buffer, startVal, endVal) {
+  const newBuffer = new AudioBuffer({
+    length: buffer.length,
+    numberOfChannels: buffer.numberOfChannels,
+    sampleRate: buffer.sampleRate
+  });
+  
+  for (let ch = 0; ch < buffer.numberOfChannels; ch++) {
+    const src = buffer.getChannelData(ch);
+    const dst = newBuffer.getChannelData(ch);
+    for (let i = 0; i < buffer.length; i++) {
+      const t = i / Math.max(1, buffer.length - 1);
+      const mult = startVal + (endVal - startVal) * t;
+      dst[i] = src[i] * mult;
+    }
+  }
+  return newBuffer;
+}
+
+// دمج بتداخل محسوب (Overlap-Add)
+function overlapAddAudioBuffers(bufferA, bufferB, overlapSeconds) {
+  const sampleRate = bufferA.sampleRate;
+  const numberOfChannels = Math.min(bufferA.numberOfChannels, bufferB.numberOfChannels);
+  
+  const overlapSamples = Math.floor(overlapSeconds * sampleRate);
+  const actualOverlap = Math.min(overlapSamples, bufferA.length, bufferB.length);
+  
+  const outputLength = bufferA.length + bufferB.length - actualOverlap;
+  const outputBuffer = new AudioBuffer({ length: outputLength, numberOfChannels, sampleRate });
+
+  for (let ch = 0; ch < numberOfChannels; ch++) {
+    const a = bufferA.getChannelData(ch);
+    const b = bufferB.getChannelData(ch);
+    const out = outputBuffer.getChannelData(ch);
+
+    const aKeep = bufferA.length - actualOverlap;
+    
+    for(let i = 0; i < aKeep; i++) out[i] = a[i];
+    
+    for(let i = 0; i < actualOverlap; i++) {
+      out[aKeep + i] = (a[aKeep + i] || 0) + (b[i] || 0);
+    }
+    
+    for(let i = actualOverlap; i < bufferB.length; i++) {
+      out[aKeep + i] = b[i];
+    }
+  }
+  return outputBuffer;
+}
+
+// استخراج الوحدات الإدراكية الجاهزة (الموزونة حول cutPoint)
+function extractCognitiveJoinUnits(buffer, cutPoint) {
+  const transitionBefore = 0.045;
+  const transitionAfter = 0.045;
+
+  const transStart = Math.max(0, cutPoint - transitionBefore);
+  const transEnd = Math.min(buffer.duration, cutPoint + transitionAfter);
+
+  const carrierCore = sliceAudioBuffer(buffer, 0, transStart);
+  const joinZone = sliceAudioBuffer(buffer, transStart, transEnd);
+  const payloadCore = sliceAudioBuffer(buffer, transEnd, buffer.duration);
+
+  // الحامل في منطقة التداخل: يبدأ بـ 1.0 (أعلى أثر) ويتلاشى إلى 0.0
+  const carrierJoin = applyEnvelope(joinZone, 1.0, 0.0);
+  
+  // المحمول في منطقة التداخل: يبدأ بـ 0.0 ويتصاعد إلى 1.0 (أعلى أثر)
+  const payloadJoin = applyEnvelope(joinZone, 0.0, 1.0);
+
+  // بناء الوحدات الجاهزة (Ready)
+  const carrierReady = concatAudioBuffers(carrierCore, carrierJoin);
+  const payloadReady = concatAudioBuffers(payloadJoin, payloadCore);
+
+  return { carrierReady, payloadReady };
+}
+
+
+// ======================================
+// 5️⃣ النظام الجديد: محرك الفصل الإدراكي (الخام + الجاهز) V1.9
+// ======================================
+
 async function performCoreCognitiveSplit(blob, text) {
   const normText = normalizeArabic(text);
   
@@ -315,15 +412,18 @@ async function performCoreCognitiveSplit(blob, text) {
   const cutPoint = result.boundary;
   if (!cutPoint) throw new Error("لم يستطع النظام تحديد نقطة الفصل إدراكياً.");
 
-  // الحامل الخام: من البداية وحتى نقطة القطع
+  // 1- الاستخراج الخام القديم (حفظاً على السيادة السابقة)
   const carrierRawBuffer = sliceAudioBuffer(buffer, 0, cutPoint);
-  
-  // المحمول الخام: من نقطة القطع وحتى النهاية
   const payloadRawBuffer = sliceAudioBuffer(buffer, cutPoint, buffer.duration);
+
+  // 2- الاستخراج الإدراكي الموزون (Ready Units)
+  const { carrierReady, payloadReady } = extractCognitiveJoinUnits(buffer, cutPoint);
 
   return {
     carrierRawBlob: audioBufferToWavBlob(carrierRawBuffer),
     payloadRawBlob: audioBufferToWavBlob(payloadRawBuffer),
+    carrierReadyBlob: audioBufferToWavBlob(carrierReady),
+    payloadReadyBlob: audioBufferToWavBlob(payloadReady),
     cutPoint: cutPoint
   };
 }
@@ -339,17 +439,18 @@ async function splitExperimentSegment(segNum) {
     const splitData = await performCoreCognitiveSplit(blob, text);
     
     if (segNum === 1) {
-      carrier1RawBlob = splitData.carrierRawBlob;
-      payload1RawBlob = splitData.payloadRawBlob;
+      carrier1RawBlob = splitData.carrierRawBlob; payload1RawBlob = splitData.payloadRawBlob;
+      carrier1ReadyBlob = splitData.carrierReadyBlob; payload1ReadyBlob = splitData.payloadReadyBlob;
     } else {
-      carrier2RawBlob = splitData.carrierRawBlob;
-      payload2RawBlob = splitData.payloadRawBlob;
+      carrier2RawBlob = splitData.carrierRawBlob; payload2RawBlob = splitData.payloadRawBlob;
+      carrier2ReadyBlob = splitData.carrierReadyBlob; payload2ReadyBlob = splitData.payloadReadyBlob;
     }
 
     updateMergeSplitStatus(
       "🧭 تم فصل المقطع " + segNum + " إدراكياً:<br>" +
       "نقطة القطع: <b>" + splitData.cutPoint.toFixed(3) + " ثانية</b><br>" +
-      "تم استخراج وحفظ الحامل الخام والمحمول الخام."
+      "✔️ تم استخراج الحامل الخام والمحمول الخام.<br>" +
+      "✔️ تم استخراج وبناء النسخ الموزونة (Ready Units) بنجاح."
     );
   } catch (err) {
     console.error(err);
@@ -358,28 +459,50 @@ async function splitExperimentSegment(segNum) {
 }
 
 // ======================================
-// 5️⃣ النظام الجديد: دمج حامل ومحمول التجربة V1.8
+// 6️⃣ النظام الجديد: الدمج الإدراكي الموزون V1.9
 // ======================================
 
 async function experimentMerge(carrierNum, payloadNum) {
-  const carrierBlob = carrierNum === 1 ? carrier1RawBlob : carrier2RawBlob;
-  const payloadBlob = payloadNum === 1 ? payload1RawBlob : payload2RawBlob;
+  let carrierBlob = null;
+  let payloadBlob = null;
+  let isReadyUnits = false;
+
+  // تحديد ما إذا كانت الوحدات الجاهزة متوفرة، وإلا فالرجوع للخام
+  if (carrierNum === 1 && payloadNum === 2) {
+    if (carrier1ReadyBlob && payload2ReadyBlob) {
+      carrierBlob = carrier1ReadyBlob; payloadBlob = payload2ReadyBlob; isReadyUnits = true;
+    } else {
+      carrierBlob = carrier1RawBlob; payloadBlob = payload2RawBlob;
+    }
+  } else {
+    if (carrier2ReadyBlob && payload1ReadyBlob) {
+      carrierBlob = carrier2ReadyBlob; payloadBlob = payload1ReadyBlob; isReadyUnits = true;
+    } else {
+      carrierBlob = carrier2RawBlob; payloadBlob = payload1RawBlob;
+    }
+  }
 
   if (!carrierBlob || !payloadBlob) {
-    alert("تأكد من إتمام عملية الفصل للمقطعين أولاً لاستخراج الحوامل والمحمولات.");
+    alert("تأكد من إتمام عملية الفصل للمقطعين أولاً.");
     return;
   }
 
   try {
     let carrierBuffer = await blobToAudioBuffer(carrierBlob);
     let payloadBuffer = await blobToAudioBuffer(payloadBlob);
+    let mergedBuffer;
 
-    // عمليات التنظيف تُجرى على النُسخ الحية فقط أثناء عملية الدمج للحفاظ على الكيانات الخام
-    carrierBuffer = trimReplacementForMerge(carrierBuffer);
-    const trimResult = trimPayloadStart(payloadBuffer);
-    payloadBuffer = trimResult.buffer;
+    if (isReadyUnits) {
+      // دمج الوحدات الجاهزة عبر التداخل (Overlap) بنفس مساحة الـ transition (0.045 + 0.045 = 0.09s)
+      mergedBuffer = overlapAddAudioBuffers(carrierBuffer, payloadBuffer, 0.09);
+    } else {
+      // تراجع (Fallback) للطريقة الخام إذا لم تكن الوحدات الجاهزة متاحة
+      carrierBuffer = trimReplacementForMerge(carrierBuffer);
+      const trimResult = trimPayloadStart(payloadBuffer);
+      payloadBuffer = trimResult.buffer;
+      mergedBuffer = crossfadeAudioBuffers(carrierBuffer, payloadBuffer, 0.10);
+    }
 
-    const mergedBuffer = crossfadeAudioBuffers(carrierBuffer, payloadBuffer, 0.10);
     const resultBlob = audioBufferToWavBlob(mergedBuffer);
 
     if (carrierNum === 1 && payloadNum === 2) {
@@ -391,6 +514,7 @@ async function experimentMerge(carrierNum, payloadNum) {
     updateMergeSplitStatus(
       "🧩 تم الدمج بنجاح:<br>" +
       "حامل المقطع " + carrierNum + " + محمول المقطع " + payloadNum + "<br>" +
+      (isReadyUnits ? "✨ <b style='color:#a3e635;'>تم الدمج الموزون بدقة ضمن منطقة الاشتباك (Ready Units).</b>" : "⚠️ تم استخدام الدمج الخام القديم.") + "<br>" +
       "استخدم أزرار التشغيل للاستماع للنتيجة."
     );
 
@@ -408,9 +532,15 @@ function playExperimentAudio(target) {
     case 'seg1': blob = segment1Blob; label = "المقطع 1"; break;
     case 'carrier1': blob = carrier1RawBlob; label = "الحامل الخام 1"; break;
     case 'payload1': blob = payload1RawBlob; label = "المحمول الخام 1"; break;
+    case 'carrier1Ready': blob = carrier1ReadyBlob; label = "الحامل الجاهز 1"; break;
+    case 'payload1Ready': blob = payload1ReadyBlob; label = "المحمول الجاهز 1"; break;
+
     case 'seg2': blob = segment2Blob; label = "المقطع 2"; break;
     case 'carrier2': blob = carrier2RawBlob; label = "الحامل الخام 2"; break;
     case 'payload2': blob = payload2RawBlob; label = "المحمول الخام 2"; break;
+    case 'carrier2Ready': blob = carrier2ReadyBlob; label = "الحامل الجاهز 2"; break;
+    case 'payload2Ready': blob = payload2ReadyBlob; label = "المحمول الجاهز 2"; break;
+
     case 'result1_2': blob = result1_2_Blob; label = "الناتج: حامل 1 + محمول 2"; break;
     case 'result2_1': blob = result2_1_Blob; label = "الناتج: حامل 2 + محمول 1"; break;
   }
@@ -697,5 +827,6 @@ window.playMergedSegment = playMergedSegment;
 window.playBaseSegment = playBaseSegment;
 window.playReplacementSegment = playReplacementSegment;
 window.playPayloadSegment = playPayloadSegment;
+window.extractCognitiveJoinUnits = extractCognitiveJoinUnits;
 
-console.log("🧩 محرك الفصل والدمج الإدراكي التجريبي جاهز V1.8 مصحح");
+console.log("🧩 محرك الفصل والدمج الإدراكي التجريبي جاهز V1.9 مصحح وموزون");
