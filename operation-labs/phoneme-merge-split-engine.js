@@ -1,10 +1,10 @@
 // ================================
 // phoneme-merge-split-engine.js
-// محرك الفصل والدمج الصوتي — V1.9 (محرك الدمج الإدراكي الموزون)
+// محرك الفصل والدمج الصوتي — V1.9 (تحديث دقة المؤقت والتسجيل)
 // مختبر استخراج وحدات الاشتباك (Join Units) والدمج بالتداخل الموزون
 // ================================
 
-console.log("🧩 phoneme-merge-split-engine.js جاهز V1.9");
+console.log("🧩 phoneme-merge-split-engine.js جاهز V1.9 (تحديث التسجيل والمؤقت)");
 
 // ======================================
 // متغيرات الطبقة التوافقية (النظام القديم V1.7)
@@ -260,12 +260,41 @@ async function recordExperimentSegment(segNum) {
   const inputId = segNum === 1 ? 'merge-seg1-input' : 'merge-seg2-input';
   const inputEl = document.getElementById(inputId);
   const text = inputEl ? inputEl.value.trim() : '';
-  if(!text) { alert("اكتب النص أولاً."); return; }
+  
+  if(!text) { 
+    alert("اكتب النص أولاً."); 
+    return; 
+  }
 
-  alert("اضغط حسنًا، ثم سجّل الآن المقطع: " + text);
-  const blob = await recordMergeSample(1000);
+  alert(`اضغط حسنًا، ثم سجّل الآن المقطع: ${text}\n(التسجيل سيستمر لمدة ثانية واحدة تماماً)`);
 
-  if (!blob) { alert("فشل التسجيل"); return; }
+  updateMergeSplitStatus("🎙 تجهيز الميكروفون...", false);
+
+  let timerInterval = null;
+
+  const onStart = () => {
+    let timeLeft = 1.0;
+    const timerHtml = (time) => `🎙 بدأ التسجيل الآن...<br><span style="font-size:26px; color:#facc15; font-weight:bold; display:block; margin-top:8px; font-family:monospace;">${time.toFixed(1)} ثانية</span>`;
+    
+    updateMergeSplitStatus(timerHtml(timeLeft), false);
+    
+    timerInterval = setInterval(() => {
+      timeLeft -= 0.1;
+      if (timeLeft < 0) timeLeft = 0;
+      updateMergeSplitStatus(timerHtml(timeLeft), false);
+    }, 100);
+  };
+
+  // بدء التسجيل لمدة 1000 ملي ثانية مع تمرير callback البدء
+  const blob = await recordMergeSample(1000, null, onStart);
+  
+  // إيقاف المؤقت فور انتهاء التسجيل
+  if (timerInterval) clearInterval(timerInterval);
+
+  if (!blob) { 
+    updateMergeSplitStatus("❌ فشل التسجيل، يرجى التأكد من صلاحيات الميكروفون."); 
+    return; 
+  }
 
   if (segNum === 1) {
     segment1Blob = blob; carrier1RawBlob = null; payload1RawBlob = null; carrier1ReadyBlob = null; payload1ReadyBlob = null;
@@ -274,7 +303,12 @@ async function recordExperimentSegment(segNum) {
   }
 
   saveTempAudioToStorage(text + ".wav", blob);
-  updateMergeSplitStatus("✅ تم تسجيل المقطع " + segNum + ": <b>" + text + "</b> بنجاح.");
+  
+  updateMergeSplitStatus(
+    `✅ انتهى التسجيل وتم حفظ المقطع ${segNum}: <b>${text}</b><br>` +
+    `الحجم: ${blob.size} bytes<br>` +
+    `النوع: ${blob.type}`
+  );
 }
 
 
@@ -282,7 +316,6 @@ async function recordExperimentSegment(segNum) {
 // 4️⃣ دوال الهندسة الصوتية لوحدات الاشتباك (Cognitive Join Units)
 // ======================================
 
-// لصق مقطعين صوتيين بشكل مباشر (Concat)
 function concatAudioBuffers(bufferA, bufferB) {
   const numberOfChannels = Math.min(bufferA.numberOfChannels, bufferB.numberOfChannels);
   const sampleRate = bufferA.sampleRate;
@@ -299,7 +332,6 @@ function concatAudioBuffers(bufferA, bufferB) {
   return outputBuffer;
 }
 
-// تطبيق مغلف تلاشي أو تصعيد (Envelope)
 function applyEnvelope(buffer, startVal, endVal) {
   const newBuffer = new AudioBuffer({
     length: buffer.length,
@@ -319,7 +351,6 @@ function applyEnvelope(buffer, startVal, endVal) {
   return newBuffer;
 }
 
-// دمج بتداخل محسوب (Overlap-Add)
 function overlapAddAudioBuffers(bufferA, bufferB, overlapSeconds) {
   const sampleRate = bufferA.sampleRate;
   const numberOfChannels = Math.min(bufferA.numberOfChannels, bufferB.numberOfChannels);
@@ -350,7 +381,6 @@ function overlapAddAudioBuffers(bufferA, bufferB, overlapSeconds) {
   return outputBuffer;
 }
 
-// استخراج الوحدات الإدراكية الجاهزة (الموزونة حول cutPoint)
 function extractCognitiveJoinUnits(buffer, cutPoint) {
   const transitionBefore = 0.045;
   const transitionAfter = 0.045;
@@ -613,7 +643,8 @@ async function recordCarrierReplacement() {
   saveTempAudioToStorage(text + ".wav", replacementBlob);
 }
 
-async function recordMergeSample(durationMs) {
+// دالة التسجيل الأساسية (معدلة لقبول callbacks لضمان التزامن)
+async function recordMergeSample(durationMs = 1000, onTick = null, onStart = null) {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
     return await new Promise(function (resolve) {
@@ -629,10 +660,25 @@ async function recordMergeSample(durationMs) {
         if (!chunks.length) { resolve(null); return; }
         resolve(new Blob(chunks, { type: recorder.mimeType || "audio/webm" }));
       };
+      
       recorder.start();
-      setTimeout(function () { if (recorder.state !== "inactive") { recorder.requestData(); recorder.stop(); } }, durationMs || 3000);
+      
+      // استدعاء onStart فور بدء التسجيل فعلياً
+      if (typeof onStart === "function") {
+        onStart();
+      }
+      
+      setTimeout(function () { 
+        if (recorder.state !== "inactive") { 
+          recorder.requestData(); 
+          recorder.stop(); 
+        } 
+      }, durationMs);
     });
-  } catch (err) { return null; }
+  } catch (err) { 
+    console.error("فشل الوصول إلى الميكروفون:", err);
+    return null; 
+  }
 }
 
 function playBlob(blob, label) {
@@ -829,4 +875,4 @@ window.playReplacementSegment = playReplacementSegment;
 window.playPayloadSegment = playPayloadSegment;
 window.extractCognitiveJoinUnits = extractCognitiveJoinUnits;
 
-console.log("🧩 محرك الفصل والدمج الإدراكي التجريبي جاهز V1.9 مصحح وموزون");
+console.log("🧩 محرك الفصل والدمج الإدراكي التجريبي جاهز V1.9 مصحح مع تحديث التسجيل والمؤقت");
