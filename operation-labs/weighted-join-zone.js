@@ -370,13 +370,13 @@ async function wjzRecordSegment(num) {
     return;
   }
 
-  alert("سجّل الآن: " + text + "\nسيتم الإيقاف بعد ثانية واحدة.");
+  wjzStatus("🟢 ابدأ الآن");
 
-  wjzStatus("🎙 جاري تسجيل المقطع " + num + "...");
+await new Promise(resolve => setTimeout(resolve, 150));
 
-  const blob =
-    await recordMergeSample(1000);
+const blob = await recordMergeSample(1000);
 
+wjzStatus("🔴 تم");
   if (!blob) {
     wjzStatus("❌ فشل التسجيل.");
     return;
