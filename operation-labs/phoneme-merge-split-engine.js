@@ -379,13 +379,9 @@ async function recordExperimentSegment(segNum) {
 
   updateMergeSplitStatus("🎙 تجهيز الميكروفون...", false);
 
+  const blob = await recordMergeSample(1000, null, function () {
   updateMergeSplitStatus("🟢 ابدأ الآن — مدة التسجيل ثانية واحدة", false);
-
-await new Promise(function (resolve) {
-  setTimeout(resolve, 150);
 });
-
-const blob = await recordMergeSample(1000);
 
 updateMergeSplitStatus("🔴 تم", false);
   if (!blob) {
