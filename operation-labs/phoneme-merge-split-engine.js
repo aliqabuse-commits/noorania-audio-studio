@@ -379,33 +379,15 @@ async function recordExperimentSegment(segNum) {
 
   updateMergeSplitStatus("🎙 تجهيز الميكروفون...", false);
 
-  let timerInterval = null;
+  updateMergeSplitStatus("🟢 ابدأ الآن — مدة التسجيل ثانية واحدة", false);
 
-  const onStart = function () {
-    let timeLeft = 1.0;
+await new Promise(function (resolve) {
+  setTimeout(resolve, 150);
+});
 
-    const timerHtml = function (time) {
-      return (
-        "🎙 بدأ التسجيل الآن...<br>" +
-        "<span style='font-size:26px; color:#facc15; font-weight:bold; display:block; margin-top:8px; font-family:monospace;'>" +
-        time.toFixed(1) +
-        " ثانية</span>"
-      );
-    };
+const blob = await recordMergeSample(1000);
 
-    updateMergeSplitStatus(timerHtml(timeLeft), false);
-
-    timerInterval = setInterval(function () {
-      timeLeft -= 0.1;
-      if (timeLeft < 0) timeLeft = 0;
-      updateMergeSplitStatus(timerHtml(timeLeft), false);
-    }, 100);
-  };
-
-  const blob = await recordMergeSample(1000, null, onStart);
-
-  if (timerInterval) clearInterval(timerInterval);
-
+updateMergeSplitStatus("🔴 تم", false);
   if (!blob) {
     updateMergeSplitStatus("❌ فشل التسجيل، يرجى التأكد من صلاحيات الميكروفون.");
     return;
