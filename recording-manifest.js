@@ -1,150 +1,238 @@
-const letters = [
-  { ar: "ا", key: "alif" },
-  { ar: "ب", key: "ba" },
-  { ar: "ت", key: "ta" },
-  { ar: "ث", key: "tha" },
-  { ar: "ج", key: "jeem" },
-  { ar: "ح", key: "ha" },
-  { ar: "خ", key: "kha" },
-  { ar: "د", key: "dal" },
-  { ar: "ذ", key: "thal" },
-  { ar: "ر", key: "ra" },
-  { ar: "ز", key: "zay" },
-  { ar: "س", key: "seen" },
-  { ar: "ش", key: "sheen" },
-  { ar: "ص", key: "sad" },
-  { ar: "ض", key: "dad" },
-  { ar: "ط", key: "taa" },
-  { ar: "ظ", key: "zaa" },
-  { ar: "ع", key: "ain" },
-  { ar: "غ", key: "ghain" },
-  { ar: "ف", key: "fa" },
-  { ar: "ق", key: "qaf" },
-  { ar: "ك", key: "kaf" },
-  { ar: "ل", key: "lam" },
-  { ar: "م", key: "meem" },
-  { ar: "ن", key: "noon" },
-  { ar: "ه", key: "ha2" },
-  { ar: "و", key: "waw" },
-  { ar: "ي", key: "ya" }
-];
+// ================================
+// training-recorder.js
+// مسجل التدريب الإدراكي للحروف — 
+// ================================
 
-function getNooraniName(key) {
-  const map = {
-    alif: "ألف",
-    ba: "باء",
-    ta: "تاء",
-    tha: "ثاء",
-    jeem: "جيم",
-    ha: "حاء",
-    kha: "خاء",
-    dal: "دال",
-    thal: "ذال",
-    ra: "راء",
-    zay: "زاي",
-    seen: "سين",
-    sheen: "شين",
-    sad: "صاد",
-    dad: "ضاد",
-    taa: "طاء",
-    zaa: "ظاء",
-    ain: "عين",
-    ghain: "غين",
-    fa: "فاء",
-    qaf: "قاف",
-    kaf: "كاف",
-    lam: "لام",
-    meem: "ميم",
-    noon: "نون",
-    ha2: "هاء",
-    waw: "واو",
-    ya: "ياء"
-  };
+console.log("🎙 training-recorder.js جاهز ");
 
-  return map[key] || key;
+let perceptualTrainingRecorder = null;
+let perceptualTrainingStream = null;
+let perceptualTrainingChunks = [];
+
+let currentTrainingKey = null;
+let currentTrainingIndex = 0;
+let currentTrainingPack = null;
+
+
+// ======================================
+// تحديث حالة التسجيل الحي
+// ======================================
+
+function updateTrainingStatus(text, color) {
+  const box = document.getElementById("training-rec-status");
+  if (!box) return;
+  box.style.display = "block";
+  box.style.color = color || "#00F2FF";
+  box.innerHTML = text;
 }
 
-const nooraniLetterNames = letters.map(function (l) {
-  return {
-    text: getNooraniName(l.key),
-    file: l.key + "_noorani_name.wav"
-  };
-});
 
-function generateHarakat(l) {
-  return [
-    { text: l.ar + "َ", file: l.key + "_fatha.wav" },
-    { text: l.ar + "ِ", file: l.key + "_kasra.wav" },
-    { text: l.ar + "ُ", file: l.key + "_damma.wav" }
-  ];
+// ======================================
+// رسالة اكتمال الحقيبة
+// ======================================
+
+function showTrainingSuccessMessage(pack) {
+  const msg = document.getElementById("training-success-message");
+  if (!msg || !pack) return;
+
+  // ======================================
+  // التوجيهات تظهر هنا في واجهة المستخدم
+  // ======================================
+  msg.innerHTML =
+    "✅ تم حفظ التسجيل بنجاح.<br><br>" +
+    "الخطوة التالية الموصى بها:<br>" +
+    "🧠 أعد بناء الذاكرة الإدراكية للحقيبة أولًا.<br><br>" +
+    "بعد اكتمال الذاكرة الإدراكية يمكن الانتقال إلى:<br>" +
+    "🧬 بناء الجينوم المركزي<br>" +
+    "ثم: ⏳ بناء المسار الزمني";
+
+  msg.style.display = "block";
 }
 
-// حقيبة الباء الساكنة — كاشف المحمول المشترك
-const baCommonPayloadBag = [
-  { text: "أَبْ", file: "ab_sukoon.wav" },
-  { text: "قَبْ", file: "qab_sukoon.wav" },
-  { text: "فَبْ", file: "fab_sukoon.wav" },
-  { text: "صَبْ", file: "sab_sukoon.wav" },
-  { text: "حابْ", file: "haab_sukoon.wav" }
-];
 
-window.allUnits = {
-  "أسماء الحروف الهجائية": letters.map(function (l) {
-    return {
-      text: l.ar,
-      file: l.key + "_name.wav"
+function hideTrainingSuccessMessage() {
+  const msg = document.getElementById("training-success-message");
+  if (msg) {
+    msg.style.display = "none";
+    msg.innerHTML = "";
+  }
+}
+
+
+// ======================================
+// بدء تدريب حرف
+// ======================================
+
+async function startPerceptualTraining(phonemeKey) {
+  try {
+    if (typeof getPhonemeTrainingPack !== "function") {
+      alert("دالة getPhonemeTrainingPack غير موجودة");
+      return;
+    }
+    const pack = getPhonemeTrainingPack(phonemeKey);
+    if (!pack) {
+      alert("لا توجد حقيبة تدريب لهذا الحرف: " + phonemeKey);
+      return;
+    }
+    if (!pack.positions || !pack.positions.length) {
+      alert("حقيبة هذا الحرف لا تحتوي وحدات تدريبية");
+      return;
+    }
+
+    currentTrainingKey = phonemeKey;
+    currentTrainingPack = pack;
+    currentTrainingIndex = 0;
+
+    hideTrainingSuccessMessage();
+    updateTrainingStatus("🧠 تم فتح حقيبة تدريب: " + pack.name + "<br>عدد الوحدات: " + pack.positions.length, "#00F2FF");
+    showTrainingStep();
+
+  } catch (err) {
+    console.error("❌ فشل بدء التدريب الإدراكي", err);
+    updateTrainingStatus("❌ فشل بدء التدريب الإدراكي: " + err.message, "#ff4d4f");
+    alert("فشل بدء التدريب الإدراكي:\n" + err.message);
+  }
+}
+
+
+// ======================================
+// عرض خطوة التدريب الحالية
+// ======================================
+
+function showTrainingStep() {
+  if (!currentTrainingPack) { alert("لا توجد حقيبة تدريب نشطة"); return; }
+  const step = currentTrainingPack.positions[currentTrainingIndex];
+
+  if (!step) {
+    showTrainingSuccessMessage(currentTrainingPack);
+    updateTrainingStatus("✅ تم إكمال تسجيلات التدريب الإدراكي لحرف " + currentTrainingPack.name, "#22c55e");
+    // تم إزالة الـ alert الزائد هنا
+    return;
+  }
+
+  updateTrainingStatus("📌 الخطوة " + (currentTrainingIndex + 1) + " من " + currentTrainingPack.positions.length + "<br>قل الآن: <b>" + step.text + "</b>", "#00F2FF");
+
+  const ok = confirm("تدريب حرف: " + currentTrainingPack.name + "\n\nالآن قل:\n" + step.text);
+  if (!ok) { updateTrainingStatus("⏸ تم إيقاف التدريب عند: " + step.text, "#facc15"); return; }
+
+  startTrainingStepRecording(step);
+}
+
+
+// ======================================
+// تسجيل خطوة واحدة
+// ======================================
+
+async function startTrainingStepRecording(step) {
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error("المتصفح لا يدعم التسجيل الصوتي");
+    perceptualTrainingChunks = [];
+    updateTrainingStatus("🎤 طلب إذن الميكروفون...", "#facc15");
+    perceptualTrainingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    perceptualTrainingRecorder = new MediaRecorder(perceptualTrainingStream);
+
+    perceptualTrainingRecorder.ondataavailable = function (event) {
+      if (event.data && event.data.size > 0) perceptualTrainingChunks.push(event.data);
     };
-  }),
 
-  "أسماء الحروف النورانية": nooraniLetterNames,
+    perceptualTrainingRecorder.onstart = function () {
+      updateTrainingStatus("🔴 REC جاري التسجيل...<br>قل: <b>" + step.text + "</b>", "#ff4d4f");
+    };
 
-  "الحروف المتحركة": letters.flatMap(generateHarakat),
+    perceptualTrainingRecorder.onstop = async function () {
+      try {
+        const blob = new Blob(perceptualTrainingChunks, { type: perceptualTrainingRecorder.mimeType || "audio/webm" });
+        if (!blob || blob.size === 0) throw new Error("لم يتم التقاط أي بيانات صوتية");
 
-  "الحروف الساكنة": letters.flatMap(function (l) {
-    return [
-      { text: "أَ" + l.ar + "ْ", file: l.key + "_sukoon_after_fatha.wav" },
-      { text: "إِ" + l.ar + "ْ", file: l.key + "_sukoon_after_kasra.wav" },
-      { text: "أُ" + l.ar + "ْ", file: l.key + "_sukoon_after_damma.wav" }
-    ];
-  }),
+        // ======================================
+        // فحص جودة التسجيل قبل الحفظ
+        // ======================================
+        if (typeof decodeCognitiveBlob === "function" && typeof validatePhonemeSignal === "function") {
+          try {
+            updateTrainingStatus("🔍 جاري فحص جودة التسجيل...", "#facc15");
+            const decoded = await decodeCognitiveBlob(blob);
+            const result = validatePhonemeSignal(decoded.samples, decoded.sampleRate);
+            if (!result.accepted) {
+              const report = typeof buildSignalValidationReport === "function" ? buildSignalValidationReport(result) : result.reason;
+              stopTrainingStream();
+              updateTrainingStatus("⚠️ التسجيل غير صالح. يرجى المحاولة مرة أخرى.", "#ff4d4f");
+              alert("❌ التسجيل ضعيف أو غير واضح:\n\n" + report + "\n\nيرجى إعادة التسجيل بصوت أوضح.");
+              setTimeout(showTrainingStep, 1000);
+              return;
+            }
+          } catch (err) { console.warn("⚠️ تعذر فحص جودة التسجيل. سيتم المتابعة:", err); }
+        }
 
-  "حقيبة الباء الساكنة": baCommonPayloadBag,
+        updateTrainingStatus("⏳ جاري حفظ التسجيل...<br>" + step.file, "#facc15");
+        await saveTrainingAudio(step.file, blob);
+        stopTrainingStream();
 
-  "التنوين": letters.flatMap(function (l) {
-    return [
-      { text: l.ar + "ً", file: l.key + "_tanween_fatha.wav" },
-      { text: l.ar + "ٍ", file: l.key + "_tanween_kasra.wav" },
-      { text: l.ar + "ٌ", file: l.key + "_tanween_damma.wav" }
-    ];
-  }),
+        currentTrainingIndex++;
+        if (currentTrainingIndex < currentTrainingPack.positions.length) { showTrainingStep(); } 
+        else {
+          showTrainingSuccessMessage(currentTrainingPack);
+          updateTrainingStatus("✅ اكتملت حقيبة التدريب الإدراكي لحرف " + currentTrainingPack.name, "#22c55e");
+          // تم إزالة الـ alert الزائد هنا
+        }
+      } catch (err) {
+        stopTrainingStream();
+        updateTrainingStatus("❌ فشل حفظ التسجيل: " + err.message, "#ff4d4f");
+        alert("فشل حفظ التسجيل:\n" + err.message);
+      }
+    };
 
-  "المد واللين": letters.flatMap(function (l) {
-    return [
-      { text: l.ar + "َا", file: l.key + "_madd_alif.wav" },
-      { text: l.ar + "ِي", file: l.key + "_madd_ya.wav" },
-      { text: l.ar + "ُو", file: l.key + "_madd_waw.wav" },
-      { text: l.ar + "َيْ", file: l.key + "_leen_ya.wav" },
-      { text: l.ar + "َوْ", file: l.key + "_leen_waw.wav" }
-    ];
-  }),
+    perceptualTrainingRecorder.start();
+    alert("بدأ التسجيل الآن.\n\nقل: " + step.text + "\n\nسيتم الإيقاف تلقائيًا بعد ثانيتين.");
+    setTimeout(function () { stopTrainingStepRecording(); }, 2000);
 
-  "الأصوات النورانية": [
-    { text: "فتحٌ", file: "fatha_name.wav" },
-    { text: "كسرٌ", file: "kasra_name.wav" },
-    { text: "ضمٌ", file: "damma_name.wav" },
-    { text: "سكونٌ", file: "sukoon_name.wav" },
+  } catch (err) {
+    stopTrainingStream();
+    updateTrainingStatus("❌ فشل تسجيل التدريب: " + err.message, "#ff4d4f");
+    alert("فشل تسجيل التدريب:\n" + err.message);
+  }
+}
 
-    { text: "ألف صغير", file: "small_alif_name.wav" },
-    { text: "واو صغير", file: "small_waw_name.wav" },
-    { text: "ياء صغير", file: "small_ya_name.wav" },
 
-    { text: "شد", file: "shadda_name.wav" },
+// ======================================
+// إيقاف تسجيل الخطوة
+// ======================================
 
-    { text: "فتحتان", file: "tanween_fatha_name.wav" },
-    { text: "كسرتان", file: "tanween_kasra_name.wav" },
-    { text: "ضمتان", file: "tanween_damma_name.wav" },
+function stopTrainingStepRecording() {
+  if (perceptualTrainingRecorder && perceptualTrainingRecorder.state !== "inactive") {
+    perceptualTrainingRecorder.stop();
+  }
+}
 
-    { text: "مد", file: "madd_name.wav" },
-    { text: "لين", file: "leen_name.wav" }
-  ]
-};
+
+// ======================================
+// حفظ صوت التدريب
+// ======================================
+
+async function saveTrainingAudio(fileName, blob) {
+  if (typeof saveAudio === "function") { await saveAudio(fileName, blob); return; }
+  if (typeof putAudio === "function") { await putAudio(fileName, blob); return; }
+  if (typeof saveBlob === "function") { await saveBlob(fileName, blob); return; }
+
+  const reader = new FileReader();
+  return new Promise(function (resolve, reject) {
+    reader.onloadend = function () {
+      try { localStorage.setItem("audio_" + fileName, reader.result); resolve(); } 
+      catch (err) { reject(err); }
+    };
+    reader.onerror = reject; reader.readAsDataURL(blob);
+  });
+}
+
+
+// ======================================
+// إيقاف الميكروفون
+// ======================================
+
+function stopTrainingStream() {
+  if (perceptualTrainingStream) {
+    perceptualTrainingStream.getTracks().forEach(function (track) { track.stop(); });
+    perceptualTrainingStream = null;
+  }
+}
+
+console.log("🎙 مسجل التدريب الإدراكي جاهز ");
