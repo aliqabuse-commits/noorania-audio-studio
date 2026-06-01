@@ -371,10 +371,10 @@ async function wjzRecordSegment(num) {
   }
 
   const blob = await recordMergeSample(1000, null, function () {
-  updateMergeSplitStatus("🟢 ابدأ الآن — مدة التسجيل ثانية واحدة", false);
+  wjzStatus("🟢 ابدأ الآن — مدة التسجيل ثانية واحدة");
 });
 
-updateMergeSplitStatus("🔴 تم", false);
+wjzStatus("🔴 تم");
   if (!blob) {
     wjzStatus("❌ فشل التسجيل.");
     return;
