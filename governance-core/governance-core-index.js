@@ -1,91 +1,52 @@
-// ======================================
-// governance-core/governance-core-index.js
-// فهرس إدارة الحوكمة
-// تحميل ملفات السلطة العليا للمشروع بالترتيب الصحيح
-// ======================================
+// ================================
+// governance-core-index.js
+// فهرس إدارة الحوكمة — تعريف فقط
+// لا يشغل شيئًا تلقائيًا
+// ================================
 
-console.log("🏛️ governance-core-index.js جاهز — فهرس إدارة الحوكمة");
+console.log("🏛️ governance-core-index.js جاهز — Frozen Index Only");
 
+window.NOORANIYA_GOVERNANCE_CORE = {
+  name: "governance-core",
+  role: "إدارة الحوكمة التي تضبط علاقة المعرفة بالقرار وتمنع الفوضى المعمارية",
+  mode: "frozen-index-only",
 
-// ======================================
-// 1) قائمة ملفات الحوكمة
-// الترتيب مهم جدًا
-// ======================================
+  files: [
+    "governance-core-index.js",
+    "department-registry.js",
+    "knowledge-decision-map.js",
+    "decision-gates.js",
+    "governance-audit-guards.js",
+    "governance-core-app.js",
+    "README.md"
+  ],
 
-const GOVERNANCE_CORE_FILES = [
-  "governance-core/governance-audit-guards.js",
-  "governance-core/department-registry.js",
-  "governance-core/knowledge-decision-map.js",
-  "governance-core/decision-gates.js",
-  "governance-core/governance-core-app.js"
-];
+  knowledge: [
+    "department-registry",
+    "knowledge-decision-map",
+    "decision-gates",
+    "audit-guards",
+    "governance-principles"
+  ],
 
+  decisions: [
+    "هل الإدارة مسجلة؟",
+    "هل المعرفة مرتبطة بقرار؟",
+    "هل القرار يراجع المعرفة المتاحة؟",
+    "هل يوجد ملف بلا أثر؟",
+    "هل يوجد تداخل مسؤوليات بين الإدارات؟",
+    "هل يجوز ترقية تجربة إلى إدارة رسمية؟"
+  ],
 
-// ======================================
-// 2) تحميل ملف JS مرة واحدة فقط
-// ======================================
+  principles: [
+    "#الحوكمة",
+    "#لا_تعطني_وصفا_اعطني_أثرا",
+    "#المعرفة_تخدم_القرار",
+    "#القرار_يراجع_المعرفة",
+    "#كل_شيء_يخدم_الوجهة"
+  ]
+};
 
-function loadGovernanceScript(src) {
-  return new Promise(function (resolve, reject) {
-    if (document.querySelector('script[src="' + src + '"]')) {
-      console.log("ℹ️ ملف الحوكمة محمّل مسبقًا:", src);
-      resolve();
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = src;
-
-    script.onload = function () {
-      console.log("✅ تم تحميل ملف الحوكمة:", src);
-      resolve();
-    };
-
-    script.onerror = function () {
-      reject(new Error("فشل تحميل ملف الحوكمة: " + src));
-    };
-
-    document.body.appendChild(script);
-  });
-}
-
-
-// ======================================
-// 3) تحميل إدارة الحوكمة كاملة
-// ======================================
-
-async function loadGovernanceCore() {
-  for (const src of GOVERNANCE_CORE_FILES) {
-    await loadGovernanceScript(src);
-  }
-
-  console.log("🏛️ تم تحميل إدارة الحوكمة كاملة.");
-
-  if (typeof runGovernanceAudit === "function") {
-    const report = runGovernanceAudit();
-    console.log("🧭 تقرير الحوكمة الأولي:", report);
-  }
-}
-
-
-// ======================================
-// 4) تشغيل تلقائي عند جاهزية الصفحة
-// ======================================
-
-document.addEventListener("DOMContentLoaded", async function () {
-  try {
-    await loadGovernanceCore();
-  } catch (err) {
-    console.error("❌ فشل تحميل إدارة الحوكمة", err);
-    alert("فشل تحميل إدارة الحوكمة:\n" + err.message);
-  }
-});
-
-
-// ======================================
-// 5) تصدير عام
-// ======================================
-
-window.GOVERNANCE_CORE_FILES = GOVERNANCE_CORE_FILES;
-window.loadGovernanceScript = loadGovernanceScript;
-window.loadGovernanceCore = loadGovernanceCore;
+window.getGovernanceCoreIndex = function () {
+  return window.NOORANIYA_GOVERNANCE_CORE;
+};
