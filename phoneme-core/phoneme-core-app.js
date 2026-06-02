@@ -141,7 +141,19 @@ window.runPhonemeCoreApp = function () {
     "buildOrderedPhonemeTimeline",
     "getAudioBlobSafely",
     "buildTimelineGenomeForPhoneme",
-    "renderTimelineGenomeReport"
+    "renderTimelineGenomeReport",
+
+    // phoneme-signal-validator.js
+    "validatePhonemeSignal",
+    "clamp01",
+    "calculateSignalEnergy",
+    "calculateSignalPeak",
+    "getActiveSignalRegion",
+    "calculateSilenceRatio",
+    "calculateSignalClarity",
+    "estimateNoiseLevel",
+    "buildSignalValidationReport",
+    "testSignalQualityForPhoneme"
   ];
 
   const result = {
