@@ -244,3 +244,24 @@ window.reviewNewDepartmentRequest = reviewNewDepartmentRequest;
 window.reviewLabAdoptionRequest = reviewLabAdoptionRequest;
 
 window.quickGovernanceQuestion = quickGovernanceQuestion;
+window.NOORANIYA_REGISTERED_DEPARTMENTS =
+  window.NOORANIYA_REGISTERED_DEPARTMENTS || {};
+
+window.registerDepartment = function (departmentIndex) {
+  if (!departmentIndex || !departmentIndex.name) {
+    console.warn("⚠️ محاولة تسجيل إدارة بلا اسم", departmentIndex);
+    return false;
+  }
+
+  window.NOORANIYA_REGISTERED_DEPARTMENTS[departmentIndex.name] = {
+    ...departmentIndex,
+    registeredAt: new Date().toISOString()
+  };
+
+  console.log("🏛️ تم تسجيل الإدارة:", departmentIndex.name);
+  return true;
+};
+
+window.getRegisteredDepartments = function () {
+  return window.NOORANIYA_REGISTERED_DEPARTMENTS;
+};
