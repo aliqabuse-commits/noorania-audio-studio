@@ -192,7 +192,14 @@ function copyAllPhonemeReports(phonemeKey) {
     alert("❌ فشل النسخ: " + err);
   });
 }
-window.openReportMenu = function (type, key) {
-  console.log("📊 openReportMenu:", type, key);
-  alert("تم استدعاء التقرير: " + type + " / " + key);
-};
+// ======================================
+// 7. تصدير عام للدوال
+// ======================================
+
+window.openReportMenu = openReportMenu;
+window.closeReportMenu = closeReportMenu;
+window.viewSavedReport = viewSavedReport;
+window.executeReportBuild = executeReportBuild;
+window.renderToUnifiedPanel = renderToUnifiedPanel;
+window.copyCurrentReport = copyCurrentReport;
+window.copyAllPhonemeReports = copyAllPhonemeReports;
