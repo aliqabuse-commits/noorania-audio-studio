@@ -1,7 +1,7 @@
 // ================================
 // segment-core/segment-core-index.js
 // فهرس إدارة المقاطع
-// تعريف + تحميل ملفات الإدارة فقط
+// تعريف + تحميل ملفات الإدارة الموجودة فعليًا فقط
 // لا يفتح صفحة
 // لا يبني أزرار
 // لا يشغل محركات
@@ -24,22 +24,22 @@ window.NOORANIYA_SEGMENT_CORE = {
     "إدارة حدود المقطع، والحامل، والمحمول، والفصل، والدمج الرسمي بما يحفظ الهوية.",
 
   files: [
-    "segment-core/phoneme-boundary-engine.js",
-    "segment-core/segment-split-engine.js",
-    "segment-core/segment-merge-engine.js",
     "segment-core/payload-extractor-engine.js",
     "segment-core/payload-lock-engine.js",
     "segment-core/payload-purifier-engine.js",
+    "segment-core/phoneme-boundary-engine.js",
+    "segment-core/segment-merge-engine.js",
+    "segment-core/segment-split-engine.js",
     "segment-core/segment-core-app.js"
   ],
 
   knowledge: [
-    "phoneme-boundary",
-    "segment-splitting",
-    "segment-merging",
     "payload-extraction",
     "payload-locking",
     "payload-purification",
+    "phoneme-boundary",
+    "segment-merging",
+    "segment-splitting",
     "carrier-payload-boundaries"
   ],
 
@@ -67,7 +67,8 @@ window.NOORANIYA_SEGMENT_CORE = {
     "الحامل ليس المحمول.",
     "منطقة الاشتباك معرفة لا ضجيج.",
     "لا قص بلا قرار إدراكي.",
-    "index الفرعي يعرف ويحمّل فقط.",
+    "index الفرعي يعرف ويحمّل الملفات الموجودة فعليًا فقط.",
+    "app يسجل ويفحص ويبني لوحة الإدارة فقط.",
     "المحركات تعمل عند الطلب فقط."
   ]
 };
@@ -107,7 +108,7 @@ window.loadSegmentCore = async function () {
     loaded: [],
     errors: [],
     note:
-      "تم تحميل ملفات إدارة المقاطع فقط دون فتح واجهة أو تشغيل app أو محركات."
+      "تم تحميل ملفات إدارة المقاطع الموجودة فعليًا فقط دون فتح واجهة أو تشغيل app أو محركات."
   };
 
   for (const src of window.NOORANIYA_SEGMENT_CORE.files) {
