@@ -21,15 +21,23 @@ window.NOORANIYA_ANALYSIS_CORE = {
   },
 
   role:
-    "إدارة استخراج المؤشرات الصوتية التي تخدم الحرف والمقطع والذاكرة دون أن تتحول إلى سلطة حكم مستقلة.",
+    "إدارة استخراج المؤشرات الصوتية والإحصائية التي تخدم الحرف والمقطع والذاكرة دون أن تتحول إلى سلطة حكم مستقلة.",
 
   files: [
     "analysis-core/burst-onset-engine.js",
+    "analysis-core/burst-signature-engine.js",
+    "analysis-core/cognitive-confusion-matrix.js",
+    "analysis-core/cognitive-statistics-engine.js",
+    "analysis-core/phoneme-signal-validator.js",
     "analysis-core/analysis-core-app.js"
   ],
 
   knowledge: [
     "burst-onset",
+    "burst-signature",
+    "signal-validation",
+    "cognitive-confusion-matrix",
+    "cognitive-statistics",
     "energy-features",
     "zcr-features",
     "spectral-indicators",
@@ -38,10 +46,13 @@ window.NOORANIYA_ANALYSIS_CORE = {
 
   decisions: [
     "هل توجد بداية انفجار؟",
+    "هل الانفجار يدعم هوية الحرف؟",
+    "هل التسجيل صالح للتحليل؟",
+    "هل توجد مؤشرات التباس؟",
+    "هل الإحصاء يخدم الحسم؟",
     "هل المؤشر يدعم المطابقة؟",
     "هل المؤشر يدعم الفصل؟",
-    "هل التحليل له أثر في القرار؟",
-    "هل التقرير التحليلي يخدم إدارة أعلى؟"
+    "هل التقرير التحليلي له أثر في قرار؟"
   ],
 
   serves: [
@@ -57,8 +68,9 @@ window.NOORANIYA_ANALYSIS_CORE = {
     "كل رقم يجب أن يخدم قرارًا.",
     "لا تقرير بلا أثر.",
     "التحليل يخدم الإدراك ولا يستبدله.",
-    "الطيف والطاقة أدلة لا وجهة.",
+    "الطيف والطاقة والإحصاء أدلة لا وجهة.",
     "index الفرعي يعرف ويحمّل فقط.",
+    "app يسجل ويفحص ويبني لوحة الإدارة فقط.",
     "المحركات تعمل عند الطلب فقط."
   ]
 };
