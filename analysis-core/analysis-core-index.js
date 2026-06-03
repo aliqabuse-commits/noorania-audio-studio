@@ -1,19 +1,14 @@
 // ================================
 // analysis-core-index.js
-// فهرس إدارة التحليل الصوتي
-// تعريف فقط
+// فهرس إدارة التحليل الصوتي — تعريف حوكمي فقط
 // لا تحميل
 // لا تشغيل
 // ================================
 
-console.log("📊 analysis-core-index.js جاهز — Frozen Index Only");
+console.log("📊 analysis-core-index.js جاهز — Sovereign Frozen Index");
 
 window.NOORANIYA_ANALYSIS_CORE = {
   name: "analysis-core",
-
-  role:
-    "إدارة التحليل الصوتي واستخراج المؤشرات التي تخدم قرارات الإدراك والفصل والمطابقة",
-
   mode: "frozen-index-only",
 
   charter: {
@@ -28,6 +23,9 @@ window.NOORANIYA_ANALYSIS_CORE = {
       "أي تقرير تحليلي لا ينتقل إلى قرار يبقى غير مكتمل."
     ]
   },
+
+  role:
+    "إدارة استخراج المؤشرات الصوتية التي تخدم قرارات الإدراك والفصل والمطابقة، دون أن تتحول إلى سلطة حكم مستقلة.",
 
   files: [
     "analysis-core-index.js",
@@ -57,6 +55,14 @@ window.NOORANIYA_ANALYSIS_CORE = {
     "segment-core",
     "memory-core",
     "training-core"
+  ],
+
+  principles: [
+    "التحليل دليل لا حاكم نهائي.",
+    "كل رقم يجب أن يخدم قرارًا.",
+    "لا قيمة لتقرير لا يغيّر حكمًا.",
+    "لا يجوز للتحليل أن يتجاوز الحرف أو المقطع أو الذاكرة.",
+    "التحليل يخدم الإدراك ولا يستبدله."
   ]
 };
 
