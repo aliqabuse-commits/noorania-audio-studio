@@ -1,52 +1,50 @@
 // ================================
-// memory-core-index.js
-// فهرس إدارة الذاكرة الإدراكية — تعريف حوكمي فقط
-// لا تحميل
-// لا تشغيل
+// memory-core/memory-core-index.js
+// فهرس إدارة الذاكرة
+// تعريف + تحميل ملفات الإدارة فقط
+// لا يفتح صفحة
+// لا يبني أزرار
+// لا يشغل محركات
+// لا يستدعي runMemoryCoreApp تلقائيًا
 // ================================
 
-console.log("🧠 memory-core-index.js جاهز — Sovereign Frozen Index");
+console.log("🧠 memory-core-index.js جاهز — Safe Department Index");
 
 window.NOORANIYA_MEMORY_CORE = {
   name: "memory-core",
-  mode: "frozen-index-only",
+  mode: "safe-department-index",
 
   charter: {
     title: "دستور إدارة الذاكرة",
     law:
-      "الذاكرة التي لا تعود لتصحح القرار ليست ذاكرة إدراكية، بل أرشيف صامت.",
-    motto: [
-      "#المعرفة_تخدم_القرار",
-      "#القرار_يراجع_المعرفة",
-      "#كل_شيء_يخدم_الوجهة"
-    ]
+      "الذاكرة التي لا تعود لتصحح القرار ليست ذاكرة إدراكية، بل أرشيف صامت."
   },
 
   role:
-    "إدارة حفظ الأثر والتغذية الراجعة ومصفوفة الالتباس والإحصاء الإدراكي، حتى لا تتكرر الأخطاء دون أن تتحول إلى معرفة حاكمة.",
+    "إدارة حفظ الأثر ومصفوفة الالتباس والإحصاءات والتغذية الراجعة للقرارات.",
 
   files: [
-    "memory-core-index.js",
-    "cognitive-confusion-matrix.js",
-    "cognitive-statistics-engine.js",
-    "memory-core-app.js"
+    "memory-core/cognitive-confusion-matrix.js",
+    "memory-core/cognitive-statistics-engine.js",
+    "memory-core/memory-core-app.js"
   ],
 
   knowledge: [
     "cognitive-confusion-matrix",
     "cognitive-statistics",
     "match-results-log",
-    "learning-memory-log",
     "decision-feedback",
-    "historical-error-patterns"
+    "historical-error-patterns",
+    "repeated-confusion-memory"
   ],
 
   decisions: [
-    "هل يوجد التباس متكرر بين حرفين؟",
-    "هل الجينوم يسحب حروفًا أخرى؟",
-    "هل القرار الحالي متسق مع الذاكرة؟",
-    "هل يجب إعادة تدريب حرف؟",
-    "هل يجب تقوية معرفة عائلة إدراكية؟"
+    "هل يوجد التباس متكرر؟",
+    "هل الجينوم يسحب حرفًا آخر؟",
+    "هل القرار الحالي يخالف الذاكرة؟",
+    "هل يلزم إعادة تدريب؟",
+    "هل يلزم تقوية عائلة إدراكية؟",
+    "هل الخطأ المتكرر تحول إلى معرفة قرار؟"
   ],
 
   serves: [
@@ -58,12 +56,67 @@ window.NOORANIYA_MEMORY_CORE = {
   ],
 
   principles: [
-    "الذاكرة ليست تخزينًا؛ الذاكرة أثر راجع.",
-    "كل التباس متكرر يجب أن يتحول إلى سؤال معرفي.",
-    "لا يجوز تجاهل سجل الأخطاء عند اتخاذ قرار جديد.",
-    "الذاكرة لا تبني الهوية بدل الحرف، لكنها تكشف ضعفها.",
-    "الإحصاء لا يحكم وحده، لكنه يمنع العمى التكراري."
+    "الذاكرة أثر راجع لا أرشيف.",
+    "كل خطأ متكرر يجب أن يغيّر قرارًا.",
+    "لا قرار ناضج بلا ذاكرة.",
+    "الإحصاء يخدم الحسم ولا ينفرد به.",
+    "الذاكرة تكشف الضعف ولا تبني الهوية بدل الحرف.",
+    "index الفرعي يعرف ويحمّل فقط.",
+    "المحركات تعمل عند الطلب فقط."
   ]
+};
+
+function loadMemoryCoreScript(src) {
+  return new Promise(function (resolve, reject) {
+    if (document.querySelector('script[src="' + src + '"]')) {
+      resolve({
+        src: src,
+        status: "already-loaded"
+      });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = src;
+
+    script.onload = function () {
+      resolve({
+        src: src,
+        status: "loaded"
+      });
+    };
+
+    script.onerror = function () {
+      reject(new Error("فشل تحميل ملف إدارة الذاكرة: " + src));
+    };
+
+    document.body.appendChild(script);
+  });
+}
+
+window.loadMemoryCore = async function () {
+  const report = {
+    department: "memory-core",
+    mode: "load-only",
+    loaded: [],
+    errors: [],
+    note:
+      "تم تحميل ملفات إدارة الذاكرة فقط دون فتح واجهة أو تشغيل app أو محركات."
+  };
+
+  for (const src of window.NOORANIYA_MEMORY_CORE.files) {
+    try {
+      const result = await loadMemoryCoreScript(src);
+      report.loaded.push(result);
+    } catch (err) {
+      report.errors.push(err.message);
+    }
+  }
+
+  report.ok = report.errors.length === 0;
+
+  console.log("🧠 تقرير تحميل إدارة الذاكرة:", report);
+  return report;
 };
 
 window.getMemoryCoreIndex = function () {
