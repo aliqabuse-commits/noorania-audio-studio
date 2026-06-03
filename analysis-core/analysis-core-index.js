@@ -1,69 +1,119 @@
 // ================================
-// analysis-core-index.js
-// فهرس إدارة التحليل الصوتي — تعريف حوكمي فقط
-// لا تحميل
-// لا تشغيل
+// analysis-core/analysis-core-index.js
+// فهرس إدارة التحليل
+// تعريف + تحميل ملفات الإدارة فقط
+// لا يفتح صفحة
+// لا يبني أزرار
+// لا يشغل محركات
+// لا يستدعي runAnalysisCoreApp تلقائيًا
 // ================================
 
-console.log("📊 analysis-core-index.js جاهز — Sovereign Frozen Index");
+console.log("📊 analysis-core-index.js جاهز — Safe Department Index");
 
 window.NOORANIYA_ANALYSIS_CORE = {
   name: "analysis-core",
-  mode: "frozen-index-only",
+  mode: "safe-department-index",
 
   charter: {
     title: "دستور إدارة التحليل",
     law:
-      "التحليل الذي لا يغيّر قرارًا يبقى وصفًا لا معرفة.",
-    rules: [
-      "كل قياس صوتي يجب أن يخدم قرارًا أعلى.",
-      "الطاقة و ZCR والطيف ليست غاية، بل أدلة.",
-      "لا يجوز للتحليل أن يحكم وحده على الهوية.",
-      "التحليل يخدم الحرف والمقطع والذاكرة ولا يستولي عليها.",
-      "أي تقرير تحليلي لا ينتقل إلى قرار يبقى غير مكتمل."
-    ]
+      "التحليل الذي لا يغيّر قرارًا يبقى وصفًا لا معرفة."
   },
 
   role:
-    "إدارة استخراج المؤشرات الصوتية التي تخدم قرارات الإدراك والفصل والمطابقة، دون أن تتحول إلى سلطة حكم مستقلة.",
+    "إدارة استخراج المؤشرات الصوتية التي تخدم الحرف والمقطع والذاكرة دون أن تتحول إلى سلطة حكم مستقلة.",
 
   files: [
-    "analysis-core-index.js",
-    "burst-onset-engine.js",
-    "burst-signature-engine.js",
-    "analysis-core-app.js"
+    "analysis-core/burst-onset-engine.js",
+    "analysis-core/analysis-core-app.js"
   ],
 
   knowledge: [
     "burst-onset",
-    "burst-signature",
     "energy-features",
     "zcr-features",
-    "spectral-indicators"
+    "spectral-indicators",
+    "audio-analysis-evidence"
   ],
 
   decisions: [
-    "هل توجد بداية انفجار واضحة؟",
-    "هل الانفجار يدعم هوية الحرف؟",
-    "هل المؤشر التحليلي يخدم المطابقة؟",
-    "هل المؤشر التحليلي يخدم الفصل؟",
-    "هل التقرير التحليلي له أثر في قرار؟"
+    "هل توجد بداية انفجار؟",
+    "هل المؤشر يدعم المطابقة؟",
+    "هل المؤشر يدعم الفصل؟",
+    "هل التحليل له أثر في القرار؟",
+    "هل التقرير التحليلي يخدم إدارة أعلى؟"
   ],
 
   serves: [
     "phoneme-core",
     "segment-core",
     "memory-core",
-    "training-core"
+    "training-core",
+    "governance-core"
   ],
 
   principles: [
     "التحليل دليل لا حاكم نهائي.",
     "كل رقم يجب أن يخدم قرارًا.",
-    "لا قيمة لتقرير لا يغيّر حكمًا.",
-    "لا يجوز للتحليل أن يتجاوز الحرف أو المقطع أو الذاكرة.",
-    "التحليل يخدم الإدراك ولا يستبدله."
+    "لا تقرير بلا أثر.",
+    "التحليل يخدم الإدراك ولا يستبدله.",
+    "الطيف والطاقة أدلة لا وجهة.",
+    "index الفرعي يعرف ويحمّل فقط.",
+    "المحركات تعمل عند الطلب فقط."
   ]
+};
+
+function loadAnalysisCoreScript(src) {
+  return new Promise(function (resolve, reject) {
+    if (document.querySelector('script[src="' + src + '"]')) {
+      resolve({
+        src: src,
+        status: "already-loaded"
+      });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = src;
+
+    script.onload = function () {
+      resolve({
+        src: src,
+        status: "loaded"
+      });
+    };
+
+    script.onerror = function () {
+      reject(new Error("فشل تحميل ملف إدارة التحليل: " + src));
+    };
+
+    document.body.appendChild(script);
+  });
+}
+
+window.loadAnalysisCore = async function () {
+  const report = {
+    department: "analysis-core",
+    mode: "load-only",
+    loaded: [],
+    errors: [],
+    note:
+      "تم تحميل ملفات إدارة التحليل فقط دون فتح واجهة أو تشغيل app أو محركات."
+  };
+
+  for (const src of window.NOORANIYA_ANALYSIS_CORE.files) {
+    try {
+      const result = await loadAnalysisCoreScript(src);
+      report.loaded.push(result);
+    } catch (err) {
+      report.errors.push(err.message);
+    }
+  }
+
+  report.ok = report.errors.length === 0;
+
+  console.log("📊 تقرير تحميل إدارة التحليل:", report);
+  return report;
 };
 
 window.getAnalysisCoreIndex = function () {
