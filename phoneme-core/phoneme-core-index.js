@@ -24,10 +24,13 @@ window.NOORANIYA_PHONEME_CORE = {
     "إدارة بناء هوية الحرف وذاكرته وبصمته وجينومه الإدراكي، بما يخدم قرارات المطابقة والفصل والتمييز.",
 
   files: [
+    "phoneme-core/ba_master_identity.js",
     "phoneme-core/ba-final-identity-engine.js",
     "phoneme-core/ba-identity-match-engine.js",
     "phoneme-core/common-payload-finder.js",
     "phoneme-core/core-purifier-engine.js",
+    "phoneme-core/burst-signature-engine.js",
+    "phoneme-core/phoneme-signal-validator.js",
     "phoneme-core/phoneme-cognitive-engine.js",
     "phoneme-core/phoneme-color-memory.js",
     "phoneme-core/phoneme-colors.js",
@@ -42,10 +45,13 @@ window.NOORANIYA_PHONEME_CORE = {
   ],
 
   knowledge: [
+    "ba-master-identity",
     "ba-final-identity",
     "ba-identity-match",
     "common-payload",
     "pure-core",
+    "burst-signature",
+    "signal-validation",
     "cognitive-genome",
     "phoneme-color-memory",
     "phoneme-colors",
@@ -61,7 +67,9 @@ window.NOORANIYA_PHONEME_CORE = {
   decisions: [
     "هل التسجيل صالح لفحص الحرف؟",
     "هل الصوت ينتمي للحرف؟",
+    "هل الهوية المرجعية للباء متاحة؟",
     "هل الهوية مستقرة؟",
+    "هل بصمة الانفجار تدعم القرار؟",
     "هل الجينوم صالح للمطابقة؟",
     "هل الذاكرة تدعم أو تعارض القرار؟",
     "هل التقرير يخدم قرارًا واضحًا؟",
@@ -79,6 +87,9 @@ window.NOORANIYA_PHONEME_CORE = {
   principles: [
     "الحرف هوية لا عينة.",
     "اللون والذاكرة يخدمان الحسم.",
+    "جودة التسجيل شرط قبل الحكم.",
+    "بصمة الانفجار دليل لا وصف زائد.",
+    "الهوية المرجعية لا تبقى ملفًا صامتًا.",
     "الجينوم لا يكون تقريرًا؛ بل دليل قرار.",
     "التقرير لا قيمة له إذا لم يخدم قرارًا.",
     "الزمن يصف القرار ولا يحكمه.",
