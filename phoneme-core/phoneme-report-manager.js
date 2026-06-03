@@ -192,3 +192,7 @@ function copyAllPhonemeReports(phonemeKey) {
     alert("❌ فشل النسخ: " + err);
   });
 }
+window.openReportMenu = function (type, key) {
+  console.log("📊 openReportMenu:", type, key);
+  alert("تم استدعاء التقرير: " + type + " / " + key);
+};
