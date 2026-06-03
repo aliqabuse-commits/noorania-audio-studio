@@ -1,9 +1,11 @@
 // ================================
 // app.js
-// غرفة العمليات الصوتية — قائد التشغيل 
+// قائد التشغيل القديم لغرفة العمليات الصوتية
+// يحافظ على تشغيل القوائم والتسجيل والاعتماد والتصدير
+// لا يستبدل nooraniya-main-orchestrator.js
 // ================================
 
-console.log("🧭 app.js جاهز  — قائد غرفة العمليات الصوتية يعمل");
+console.log("🧭 app.js جاهز — قائد التشغيل الآمن");
 
 const categories = [
   { title: "حقيبة الباء الساكنة" },
@@ -21,7 +23,40 @@ let currentUnits = [];
 let index = 0;
 
 function getUnitKey(unit) {
-  return unit.file;
+  return unit && unit.file ? unit.file : "";
+}
+
+function safeGet(id) {
+  return document.getElementById(id);
+}
+
+function showOnlyView(viewId) {
+  const ids = [
+    "homeView",
+    "governanceCoreView",
+    "phonemeCoreView",
+    "segmentCoreView",
+    "trainingCoreView",
+    "analysisCoreView",
+    "memoryCoreView",
+    "perceptualTrainingView",
+    "recordView",
+    "cognitiveStatisticsView",
+    "cognitiveExperimentsRoomView",
+    "operationLabDynamicView",
+    "mergeSplitView"
+  ];
+
+  ids.forEach(function (id) {
+    const el = safeGet(id);
+    if (el) el.style.display = "none";
+  });
+
+  const target = safeGet(viewId);
+  if (target) {
+    target.style.display = "block";
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
 }
 
 async function approveAndNext() {
@@ -75,12 +110,7 @@ async function approveAndNext() {
     clearCurrentAudioBlob();
   }
 
-  index++;
-
-  if (index >= currentUnits.length) {
-    index = 0;
-  }
-
+  index = (index + 1) % currentUnits.length;
   updateUI();
 }
 
@@ -124,10 +154,15 @@ function updateUI() {
 
   if (!unit) return;
 
-  document.getElementById("unit").innerText = unit.text;
-  document.getElementById("filename").innerText = unit.file;
-  document.getElementById("counter").innerText =
-    (index + 1) + " / " + currentUnits.length;
+  const unitEl = safeGet("unit");
+  const filenameEl = safeGet("filename");
+  const counterEl = safeGet("counter");
+
+  if (unitEl) unitEl.innerText = unit.text || "";
+  if (filenameEl) filenameEl.innerText = unit.file || "";
+  if (counterEl) {
+    counterEl.innerText = (index + 1) + " / " + currentUnits.length;
+  }
 
   if (typeof getAudio === "function") {
     getAudio(unit.file, function (blob) {
@@ -143,13 +178,15 @@ function updateUI() {
 }
 
 function goHome() {
-  document.getElementById("recordView").style.display = "none";
-  document.getElementById("perceptualTrainingView").style.display = "none";
-  document.getElementById("homeView").style.display = "block";
+  showOnlyView("homeView");
+
+  if (typeof renderHome === "function") {
+    renderHome();
+  }
 }
 
 function renderHome() {
-  const list = document.getElementById("categoryList");
+  const list = safeGet("categoryList");
 
   if (!list) return;
 
@@ -181,10 +218,7 @@ function renderHome() {
         return;
       }
 
-      document.getElementById("homeView").style.display = "none";
-      document.getElementById("perceptualTrainingView").style.display = "none";
-      document.getElementById("recordView").style.display = "block";
-
+      showOnlyView("recordView");
       updateUI();
     };
 
@@ -207,7 +241,7 @@ function prevUnit() {
 }
 
 function renderUnitList() {
-  const list = document.getElementById("unitList");
+  const list = safeGet("unitList");
 
   if (!list) return;
 
@@ -222,7 +256,7 @@ function renderUnitList() {
       unitStatus[key] === "approved";
 
     btn.innerText =
-      (approved ? "✅ " : "⏳ ") + unit.text;
+      (approved ? "✅ " : "⏳ ") + (unit.text || key);
 
     btn.style.display = "block";
     btn.style.margin = "5px auto";
@@ -321,8 +355,8 @@ async function exportApproved() {
   a.click();
 }
 
-window.onload = function () {
+window.addEventListener("DOMContentLoaded", function () {
   renderHome();
-};
+});
 
-console.log("🧭 قائد غرفة العمليات الصوتية جاهز ");
+console.log("🧭 قائد غرفة العمليات الصوتية جاهز — Safe Legacy Controller");
