@@ -152,7 +152,7 @@ window.loadPhonemeCore = async function () {
   console.log("🔤 تقرير تحميل إدارة الحرف:", report);
   return report;
 };
-
+alert("تم تحميل phoneme-core-index.js النسخة الجديدة");
 window.getPhonemeCoreIndex = function () {
   return window.NOORANIYA_PHONEME_CORE;
 };
