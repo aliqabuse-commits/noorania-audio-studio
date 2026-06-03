@@ -1,7 +1,10 @@
 // ================================
 // project-index.js
 // الفهرس السيادي العام للنورانية العالمية
-// تعريف فقط — لا تحميل — لا تشغيل
+// تعريف المشروع والإدارات فقط
+// لا يفتح صفحات
+// لا يحمّل محركات
+// لا يشغل app
 // ================================
 
 console.log("🌍 project-index.js جاهز — Sovereign Project Index");
@@ -9,19 +12,19 @@ console.log("🌍 project-index.js جاهز — Sovereign Project Index");
 window.NOORANIYA_PROJECT_INDEX = {
   name: "nooraniya-global",
   title: "النورانية العالمية",
-  mode: "sovereign-project-index-only",
+  mode: "safe-project-index",
 
   charter: {
-    title: "دستور فهرس المشروع",
+    title: "دستور المشروع",
     law:
-      "المشروع لا يُدار كملفات متفرقة، بل كمنظومة معرفة وقرار وأثر.",
-    rules: [
-      "كل إدارة يجب أن تكون مسجلة في department-registry.js.",
-      "كل index تعريف فقط ولا يشغل شيئًا.",
-      "كل app يفحص ويسجل ولا يشغل المحركات.",
-      "كل معرفة يجب أن تخدم قرارًا.",
-      "كل قرار يجب أن يراجع المعرفة.",
-      "المنظم الرئيسي لا يشغل المحركات، بل يجمع تقارير الإدارات."
+      "المعرفة التي لا تؤثر في القرار ليست جزءًا من المنظومة بعد. " +
+      "والقرار الذي لا يراجع المعرفة المتاحة ليس قرارًا إدراكيًا بعد.",
+    principles: [
+      "#الحوكمة",
+      "#لا_تعطني_وصفا_اعطني_أثرا",
+      "#المعرفة_تخدم_القرار",
+      "#القرار_يراجع_المعرفة",
+      "#كل_شيء_يخدم_الوجهة"
     ]
   },
 
@@ -29,65 +32,90 @@ window.NOORANIYA_PROJECT_INDEX = {
 
   departments: [
     {
-      id: "governance-core",
       order: 1,
+      id: "governance-core",
+      name: "إدارة الحوكمة",
       status: "official",
       indexFunction: "getGovernanceCoreIndex",
-      appFunction: "runGovernanceCoreApp"
+      loadFunction: "loadGovernanceCore",
+      appFunction: "runGovernanceCoreApp",
+      viewId: "governanceCoreView"
     },
     {
-      id: "phoneme-core",
       order: 2,
+      id: "phoneme-core",
+      name: "إدارة الحرف",
       status: "official",
       indexFunction: "getPhonemeCoreIndex",
-      appFunction: "runPhonemeCoreApp"
+      loadFunction: "loadPhonemeCore",
+      appFunction: "runPhonemeCoreApp",
+      viewId: "phonemeCoreView"
     },
     {
-      id: "segment-core",
       order: 3,
+      id: "segment-core",
+      name: "إدارة المقاطع",
       status: "official",
       indexFunction: "getSegmentCoreIndex",
-      appFunction: "runSegmentCoreApp"
+      loadFunction: "loadSegmentCore",
+      appFunction: "runSegmentCoreApp",
+      viewId: "segmentCoreView"
     },
     {
-      id: "training-core",
       order: 4,
+      id: "training-core",
+      name: "إدارة التدريب والتسجيل",
       status: "official",
       indexFunction: "getTrainingCoreIndex",
-      appFunction: "runTrainingCoreApp"
+      loadFunction: "loadTrainingCore",
+      appFunction: "runTrainingCoreApp",
+      viewId: "trainingCoreView"
     },
     {
-      id: "analysis-core",
       order: 5,
+      id: "analysis-core",
+      name: "إدارة التحليل",
       status: "official",
       indexFunction: "getAnalysisCoreIndex",
-      appFunction: "runAnalysisCoreApp"
+      loadFunction: "loadAnalysisCore",
+      appFunction: "runAnalysisCoreApp",
+      viewId: "analysisCoreView"
     },
     {
-      id: "memory-core",
       order: 6,
+      id: "memory-core",
+      name: "إدارة الذاكرة",
       status: "official",
       indexFunction: "getMemoryCoreIndex",
-      appFunction: "runMemoryCoreApp"
+      loadFunction: "loadMemoryCore",
+      appFunction: "runMemoryCoreApp",
+      viewId: "memoryCoreView"
     },
     {
-      id: "operation-labs",
       order: 7,
+      id: "operation-labs",
+      name: "إدارة المختبرات",
       status: "experimental",
       indexFunction: "getOperationLabsIndex",
-      appFunction: "runOperationLabsApp"
+      loadFunction: "loadOperationLabs",
+      appFunction: "runOperationLabsApp",
+      viewId: "cognitiveExperimentsRoomView"
     }
-  ],
-
-  principles: [
-    "#الحوكمة",
-    "#لا_تعطني_وصفا_اعطني_أثرا",
-    "#المعرفة_تخدم_القرار",
-    "#القرار_يراجع_المعرفة",
-    "#كل_شيء_يخدم_الوجهة"
   ]
 };
 
 window.getProjectIndex = function () {
   return window.NOORANIYA_PROJECT_INDEX;
+};
+
+window.getProjectDepartments = function () {
+  return window.NOORANIYA_PROJECT_INDEX.departments || [];
+};
+
+window.getProjectDepartment = function (id) {
+  return (
+    window.getProjectDepartments().find(function (dept) {
+      return dept.id === id;
+    }) || null
+  );
 };
