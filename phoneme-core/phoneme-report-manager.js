@@ -196,6 +196,8 @@ function copyAllPhonemeReports(phonemeKey) {
 // 7. تصدير عام للدوال
 // ======================================
 
+console.log("✅ phoneme-report-manager.js loaded and exported");
+
 window.openReportMenu = openReportMenu;
 window.closeReportMenu = closeReportMenu;
 window.viewSavedReport = viewSavedReport;
