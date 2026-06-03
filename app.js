@@ -1,11 +1,17 @@
 // ================================
 // app.js
-// قائد التشغيل القديم لغرفة العمليات الصوتية
-// يحافظ على تشغيل القوائم والتسجيل والاعتماد والتصدير
+// قائد التشغيل القديم الخفيف لغرفة العمليات الصوتية
+// يحافظ على القوائم والتسجيل والاعتماد والتصدير
 // لا يستبدل nooraniya-main-orchestrator.js
+// لا يشغل المحركات تلقائيًا
 // ================================
 
-console.log("🧭 app.js جاهز — قائد التشغيل الآمن");
+console.log("🧭 app.js جاهز — Safe Legacy Controller");
+
+
+// ======================================
+// 1) القوائم التشغيلية القديمة
+// ======================================
 
 const categories = [
   { title: "حقيبة الباء الساكنة" },
@@ -22,15 +28,31 @@ let currentCategory = "";
 let currentUnits = [];
 let index = 0;
 
-function getUnitKey(unit) {
-  return unit && unit.file ? unit.file : "";
-}
+
+// ======================================
+// 2) أدوات آمنة
+// ======================================
 
 function safeGet(id) {
   return document.getElementById(id);
 }
 
+
+function getUnitKey(unit) {
+  return unit && unit.file ? unit.file : "";
+}
+
+
+// ======================================
+// 3) عرض الصفحات دون منازعة المنظم العام
+// ======================================
+
 function showOnlyView(viewId) {
+  if (typeof window.showNooraniyaView === "function") {
+    window.showNooraniyaView(viewId);
+    return;
+  }
+
   const ids = [
     "homeView",
     "governanceCoreView",
@@ -53,11 +75,17 @@ function showOnlyView(viewId) {
   });
 
   const target = safeGet(viewId);
+
   if (target) {
     target.style.display = "block";
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 }
+
+
+// ======================================
+// 4) اعتماد الوحدة والانتقال
+// ======================================
 
 async function approveAndNext() {
   if (!currentUnits.length) return;
@@ -111,8 +139,14 @@ async function approveAndNext() {
   }
 
   index = (index + 1) % currentUnits.length;
+
   updateUI();
 }
+
+
+// ======================================
+// 5) رفض الوحدة
+// ======================================
 
 function rejectUnit() {
   if (!currentUnits.length) return;
@@ -149,6 +183,11 @@ function rejectUnit() {
   updateUI();
 }
 
+
+// ======================================
+// 6) تحديث واجهة التسجيل
+// ======================================
+
 function updateUI() {
   const unit = currentUnits[index];
 
@@ -160,6 +199,7 @@ function updateUI() {
 
   if (unitEl) unitEl.innerText = unit.text || "";
   if (filenameEl) filenameEl.innerText = unit.file || "";
+
   if (counterEl) {
     counterEl.innerText = (index + 1) + " / " + currentUnits.length;
   }
@@ -177,6 +217,11 @@ function updateUI() {
   renderUnitList();
 }
 
+
+// ======================================
+// 7) العودة للرئيسية
+// ======================================
+
 function goHome() {
   showOnlyView("homeView");
 
@@ -184,6 +229,11 @@ function goHome() {
     renderHome();
   }
 }
+
+
+// ======================================
+// 8) بناء القوائم القديمة
+// ======================================
 
 function renderHome() {
   const list = safeGet("categoryList");
@@ -226,6 +276,11 @@ function renderHome() {
   });
 }
 
+
+// ======================================
+// 9) التنقل بين الوحدات
+// ======================================
+
 function nextUnit() {
   if (!currentUnits.length) return;
 
@@ -233,12 +288,18 @@ function nextUnit() {
   updateUI();
 }
 
+
 function prevUnit() {
   if (!currentUnits.length) return;
 
   index = (index - 1 + currentUnits.length) % currentUnits.length;
   updateUI();
 }
+
+
+// ======================================
+// 10) قائمة الوحدات
+// ======================================
 
 function renderUnitList() {
   const list = safeGet("unitList");
@@ -274,6 +335,11 @@ function renderUnitList() {
     list.appendChild(btn);
   });
 }
+
+
+// ======================================
+// 11) تصدير الوحدات المعتمدة
+// ======================================
 
 async function exportApproved() {
   if (!currentUnits.length) return;
@@ -355,8 +421,15 @@ async function exportApproved() {
   a.click();
 }
 
+
+// ======================================
+// 12) تشغيل أولي آمن
+// ======================================
+
 window.addEventListener("DOMContentLoaded", function () {
-  renderHome();
+  if (typeof renderHome === "function") {
+    renderHome();
+  }
 });
 
 console.log("🧭 قائد غرفة العمليات الصوتية جاهز — Safe Legacy Controller");
