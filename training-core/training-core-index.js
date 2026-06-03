@@ -1,58 +1,122 @@
 // ================================
-// training-core-index.js
-// فهرس إدارة التدريب الصوتي
-// تعريف فقط
-// لا تحميل
-// لا تشغيل
+// training-core/training-core-index.js
+// فهرس إدارة التدريب والتسجيل
+// تعريف + تحميل ملفات الإدارة فقط
+// لا يفتح صفحة
+// لا يبني أزرار
+// لا يشغل محركات
+// لا يستدعي runTrainingCoreApp تلقائيًا
 // ================================
 
-console.log("🎙 training-core-index.js جاهز — Frozen Index Only");
+console.log("🎙 training-core-index.js جاهز — Safe Department Index");
 
 window.NOORANIYA_TRAINING_CORE = {
   name: "training-core",
+  mode: "safe-department-index",
+
+  charter: {
+    title: "دستور إدارة التدريب والتسجيل",
+    law:
+      "التسجيل لا يصبح معرفة إدراكية حتى يكون واضح البداية والنهاية ومحفوظًا ومؤهلًا للفحص."
+  },
 
   role:
-    "إدارة التدريب الصوتي والتسجيل وغرفة العمليات الصوتية وتجهيز العينات قبل دخولها إلى الإدراك والتحليل",
-
-  mode: "frozen-index-only",
+    "إدارة التسجيل والتدريب وتجهيز العينات الصوتية قبل دخولها إلى الإدراك والتحليل.",
 
   files: [
-    "training-core-index.js",
-
-    "audio-lab.js",
-
-    "training-recorder.js",
-
-    "training-core-app.js"
+    "training-core/audio-lab.js",
+    "training-core/training-recorder.js",
+    "training-core/training-core-app.js"
   ],
 
   knowledge: [
     "audio-recording",
     "training-session",
-    "training-step",
-    "waveform-lab",
-    "audio-regions",
-    "recording-quality-preparation",
-    "saved-training-audio"
+    "waveform-view",
+    "recording-status",
+    "saved-training-audio",
+    "training-sample-preparation"
   ],
 
   decisions: [
-    "هل توجد حقيبة تدريب مفتوحة؟",
-    "هل التسجيل بدأ؟",
-    "هل التسجيل توقف؟",
-    "هل تم حفظ التسجيل؟",
-    "هل توجد عينة صوتية ظاهرة؟",
-    "هل مناطق الصوت جاهزة للعرض؟",
-    "هل التسجيل صالح للانتقال إلى الإدراك؟"
+    "هل التسجيل بدأ بوضوح؟",
+    "هل التسجيل انتهى بوضوح؟",
+    "هل تم الحفظ؟",
+    "هل العينة صالحة للانتقال إلى الفحص؟",
+    "هل توجد عينة ظاهرة؟",
+    "هل التدريب جهز المادة الخام دون أن يحكم الهوية؟"
+  ],
+
+  serves: [
+    "phoneme-core",
+    "analysis-core",
+    "memory-core",
+    "segment-core",
+    "governance-core"
   ],
 
   principles: [
-    "التدريب يجهز المادة الخام ولا يحكم الهوية",
-    "التسجيل لا يصبح معرفة حتى يمر عبر الفحص",
-    "الصوت الخام يخدم الإدراك",
-    "واجهة التسجيل يجب أن تعطي إشارة بداية ونهاية واضحة",
-    "لا تشغيل تلقائي داخل الفهرس"
+    "التدريب يجهز ولا يحكم الهوية.",
+    "لا تسجيل بلا إشارة بداية.",
+    "لا تسجيل بلا إشارة نهاية.",
+    "لا حفظ بلا تأكيد.",
+    "الصوت الخام يخدم الإدراك ولا يستبدله.",
+    "index الفرعي يعرف ويحمّل فقط.",
+    "المحركات تعمل عند الطلب فقط."
   ]
+};
+
+function loadTrainingCoreScript(src) {
+  return new Promise(function (resolve, reject) {
+    if (document.querySelector('script[src="' + src + '"]')) {
+      resolve({
+        src: src,
+        status: "already-loaded"
+      });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = src;
+
+    script.onload = function () {
+      resolve({
+        src: src,
+        status: "loaded"
+      });
+    };
+
+    script.onerror = function () {
+      reject(new Error("فشل تحميل ملف إدارة التدريب: " + src));
+    };
+
+    document.body.appendChild(script);
+  });
+}
+
+window.loadTrainingCore = async function () {
+  const report = {
+    department: "training-core",
+    mode: "load-only",
+    loaded: [],
+    errors: [],
+    note:
+      "تم تحميل ملفات إدارة التدريب فقط دون فتح واجهة أو تشغيل app أو محركات."
+  };
+
+  for (const src of window.NOORANIYA_TRAINING_CORE.files) {
+    try {
+      const result = await loadTrainingCoreScript(src);
+      report.loaded.push(result);
+    } catch (err) {
+      report.errors.push(err.message);
+    }
+  }
+
+  report.ok = report.errors.length === 0;
+
+  console.log("🎙 تقرير تحميل إدارة التدريب:", report);
+  return report;
 };
 
 window.getTrainingCoreIndex = function () {
