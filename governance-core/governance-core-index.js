@@ -1,83 +1,122 @@
 // ================================
 // governance-core/governance-core-index.js
-// فهرس إدارة الحوكمة — تعريف سيادي فقط
-// لا تحميل
-// لا تشغيل
+// فهرس إدارة الحوكمة
+// تعريف + تحميل ملفات الإدارة فقط
+// لا يفتح صفحة
+// لا يبني أزرار
+// لا يشغل محركات
+// لا يستدعي runGovernanceCoreApp تلقائيًا
 // ================================
 
-console.log("🏛️ governance-core-index.js جاهز — Sovereign Frozen Index");
+console.log("🏛️ governance-core-index.js جاهز — Safe Department Index");
 
 window.NOORANIYA_GOVERNANCE_CORE = {
   name: "governance-core",
-  mode: "frozen-index-only",
+  mode: "safe-department-index",
 
   charter: {
     title: "دستور إدارة الحوكمة",
     law:
       "المعرفة التي لا تؤثر في القرار ليست جزءًا من المنظومة بعد، " +
-      "والقرار الذي لا يراجع المعرفة المتاحة ليس قرارًا إدراكيًا بعد.",
-    motto: [
-      "#الحوكمة",
-      "#لا_تعطني_وصفا_اعطني_أثرا",
-      "#المعرفة_تخدم_القرار",
-      "#القرار_يراجع_المعرفة",
-      "#كل_شيء_يخدم_الوجهة"
-    ]
+      "والقرار الذي لا يراجع المعرفة المتاحة ليس قرارًا إدراكيًا بعد."
   },
 
   role:
-    "إدارة الحوكمة التي تضبط علاقة المعرفة بالقرار، وتمنع الفوضى المعمارية، وتحرس الوجهة العليا للمشروع.",
+    "إدارة الحوكمة التي تضبط علاقة المعرفة بالقرار، وتحرس الوجهة، وتمنع الفوضى المعمارية.",
 
   files: [
-    "governance-core-index.js",
-    "department-registry.js",
-    "knowledge-decision-map.js",
-    "decision-gates.js",
-    "governance-audit-guards.js",
-    "governance-core-app.js",
-    "README.md"
+    "governance-core/department-registry.js",
+    "governance-core/knowledge-decision-map.js",
+    "governance-core/decision-gates.js",
+    "governance-core/governance-audit-guards.js",
+    "governance-core/governance-core-app.js"
   ],
 
   knowledge: [
-    "governance-charter",
     "department-registry",
     "knowledge-decision-map",
     "decision-gates",
-    "governance-audit-guards",
-    "governance-audit-report"
+    "governance-audit-guards"
   ],
 
   decisions: [
-    "هل الإدارة مسجلة رسميًا؟",
-    "هل المعرفة مرتبطة بقرار؟",
-    "هل القرار يراجع المعرفة المتاحة؟",
-    "هل يوجد ملف بلا أثر؟",
-    "هل يوجد تداخل مسؤوليات بين الإدارات؟",
-    "هل يجوز إنشاء إدارة جديدة؟",
-    "هل يجوز اعتماد نتيجة مختبر؟",
-    "هل training-core مسجلة ومضبوطة داخل السجل؟"
+    "هل الإدارة مسجلة؟",
+    "هل المعرفة تخدم قرارًا؟",
+    "هل القرار يراجع المعرفة؟",
+    "هل يوجد تداخل مسؤوليات؟",
+    "هل توجد معرفة يتيمة؟"
   ],
 
   serves: [
-    "phoneme-core",
-    "segment-core",
-    "training-core",
-    "analysis-core",
-    "memory-core",
-    "operation-labs",
+    "all-departments",
     "project-index",
     "main-orchestrator"
   ],
 
   principles: [
-    "index.js تعريف فقط، لا تحميل ولا تشغيل.",
-    "app.js فحص وتنسيق فقط، لا يشغل محركات تلقائيًا.",
-    "لا تُقبل معرفة لا تخدم قرارًا.",
-    "لا يُقبل قرار لا يراجع المعرفة.",
-    "لا تُقبل إدارة جديدة إلا عبر السجل والبوابات.",
-    "لا يُعتمد مختبر إلا بأثر وقرار.",
-    "الحوكمة سلطة سيادية لا تُتجاوز."
+    "index الفرعي يعرف الإدارة ويحمّل ملفاتها فقط.",
+    "app يسجل ويفحص ولا يشغل المحركات.",
+    "orchestrator ينسق ويراقب العرض العام.",
+    "المحركات تعمل عند الطلب فقط.",
+    "#الحوكمة",
+    "#لا_تعطني_وصفا_اعطني_أثرا",
+    "#المعرفة_تخدم_القرار",
+    "#القرار_يراجع_المعرفة",
+    "#كل_شيء_يخدم_الوجهة"
   ]
+};
+
+function loadGovernanceCoreScript(src) {
+  return new Promise(function (resolve, reject) {
+    if (document.querySelector('script[src="' + src + '"]')) {
+      resolve({
+        src: src,
+        status: "already-loaded"
+      });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = src;
+
+    script.onload = function () {
+      resolve({
+        src: src,
+        status: "loaded"
+      });
+    };
+
+    script.onerror = function () {
+      reject(new Error("فشل تحميل ملف الحوكمة: " + src));
+    };
+
+    document.body.appendChild(script);
+  });
+}
+
+window.loadGovernanceCore = async function () {
+  const report = {
+    department: "governance-core",
+    mode: "load-only",
+    loaded: [],
+    errors: [],
+    note:
+      "تم تحميل ملفات إدارة الحوكمة فقط دون فتح واجهة أو تشغيل app أو محركات."
+  };
+
+  for (const src of window.NOORANIYA_GOVERNANCE_CORE.files) {
+    try {
+      const result = await loadGovernanceCoreScript(src);
+      report.loaded.push(result);
+    } catch (err) {
+      report.errors.push(err.message);
+    }
+  }
+
+  report.ok = report.errors.length === 0;
+
+  console.log("🏛️ تقرير تحميل إدارة الحوكمة:", report);
+  return report;
 };
 
 window.getGovernanceCoreIndex = function () {
