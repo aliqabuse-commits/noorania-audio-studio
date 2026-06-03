@@ -1,15 +1,13 @@
 // ================================
 // nooraniya-main-orchestrator.js
 // المنظم الرئيسي الآمن للنورانية العالمية
+// ينسق التحميل والعرض والمراقبة
 // لا يشغل المحركات
-// لا يفتح المختبرات
-// لا يسجل صوتًا
-// فقط يشغل app.js الإداري لكل إدارة
 // ================================
 
 console.log("🌍 nooraniya-main-orchestrator.js جاهز — Safe Main Orchestrator");
 
-window.NOORANIYA_ORCHESTRATOR_STATE = {
+window.NOORANIYA_MAIN_STATE = {
   status: "idle",
   startedAt: null,
   completedAt: null,
@@ -17,52 +15,106 @@ window.NOORANIYA_ORCHESTRATOR_STATE = {
   summary: {}
 };
 
+function getMainViews() {
+  return [
+    "homeView",
+    "governanceCoreView",
+    "phonemeCoreView",
+    "segmentCoreView",
+    "trainingCoreView",
+    "analysisCoreView",
+    "memoryCoreView",
+    "perceptualTrainingView",
+    "recordView",
+    "cognitiveStatisticsView",
+    "cognitiveExperimentsRoomView",
+    "operationLabDynamicView",
+    "mergeSplitView"
+  ];
+}
 
-function runDepartmentSafely(dept) {
-  const state = {
+window.hideAllNooraniyaViews = function () {
+  getMainViews().forEach(function (id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "none";
+  });
+};
+
+window.showNooraniyaView = function (viewId) {
+  window.hideAllNooraniyaViews();
+
+  const view = document.getElementById(viewId);
+
+  if (!view) {
+    alert("الصفحة غير موجودة: " + viewId);
+    return false;
+  }
+
+  view.style.display = "block";
+  window.scrollTo({ top: 0, behavior: "auto" });
+
+  return true;
+};
+
+async function loadDepartmentByRecord(dept) {
+  const result = {
     id: dept.id,
+    name: dept.name,
     order: dept.order,
     status: "pending",
     indexFunction: dept.indexFunction,
+    loadFunction: dept.loadFunction,
     appFunction: dept.appFunction,
+    viewId: dept.viewId,
     indexAvailable: false,
+    loadAvailable: false,
     appAvailable: false,
     index: null,
-    appResult: null,
+    loadReport: null,
+    appReport: null,
     error: null
   };
 
   try {
     if (typeof window[dept.indexFunction] === "function") {
-      state.indexAvailable = true;
-      state.index = window[dept.indexFunction]();
+      result.indexAvailable = true;
+      result.index = window[dept.indexFunction]();
+    }
+
+    if (typeof window[dept.loadFunction] === "function") {
+      result.loadAvailable = true;
+      result.loadReport = await window[dept.loadFunction]();
     }
 
     if (typeof window[dept.appFunction] === "function") {
-      state.appAvailable = true;
-      state.appResult = window[dept.appFunction]();
-      state.status = "checked";
-    } else {
-      state.status = "app-missing";
+      result.appAvailable = true;
+
+      // app = تسجيل وفحص فقط
+      // لا محركات
+      result.appReport = window[dept.appFunction]();
     }
 
+    result.status =
+      result.indexAvailable && result.loadAvailable && result.appAvailable
+        ? "ready"
+        : "needs-attention";
+
   } catch (err) {
-    state.status = "error";
-    state.error = err.message;
-    console.error("❌ فشل فحص الإدارة:", dept.id, err);
+    result.status = "error";
+    result.error = err.message;
+    console.error("❌ خطأ في تحميل الإدارة:", dept.id, err);
   }
 
-  return state;
+  return result;
 }
 
-
-window.runNooraniyaMainOrchestrator = function () {
+window.runNooraniyaMainOrchestrator = async function () {
   const project =
     typeof window.getProjectIndex === "function"
       ? window.getProjectIndex()
       : null;
 
-  const state = window.NOORANIYA_ORCHESTRATOR_STATE;
+  const state = window.NOORANIYA_MAIN_STATE;
 
   state.status = "running";
   state.startedAt = new Date().toISOString();
@@ -70,9 +122,8 @@ window.runNooraniyaMainOrchestrator = function () {
   state.departments = {};
   state.summary = {
     total: 0,
-    checked: 0,
-    missingIndex: 0,
-    missingApp: 0,
+    ready: 0,
+    needsAttention: 0,
     errors: 0
   };
 
@@ -89,34 +140,25 @@ window.runNooraniyaMainOrchestrator = function () {
       return Number(a.order || 999) - Number(b.order || 999);
     });
 
-  departments.forEach(function (dept) {
-    const result = runDepartmentSafely(dept);
+  for (const dept of departments) {
+    const report = await loadDepartmentByRecord(dept);
 
-    state.departments[dept.id] = result;
+    state.departments[dept.id] = report;
     state.summary.total++;
 
-    if (result.status === "checked") {
-      state.summary.checked++;
-    }
-
-    if (!result.indexAvailable) {
-      state.summary.missingIndex++;
-    }
-
-    if (!result.appAvailable) {
-      state.summary.missingApp++;
-    }
-
-    if (result.status === "error") {
+    if (report.status === "ready") {
+      state.summary.ready++;
+    } else if (report.status === "error") {
       state.summary.errors++;
+    } else {
+      state.summary.needsAttention++;
     }
-  });
+  }
 
   state.completedAt = new Date().toISOString();
+
   state.status =
-    state.summary.errors ||
-    state.summary.missingIndex ||
-    state.summary.missingApp
+    state.summary.errors || state.summary.needsAttention
       ? "needs-attention"
       : "healthy";
 
@@ -124,7 +166,30 @@ window.runNooraniyaMainOrchestrator = function () {
   return state;
 };
 
+window.openNooraniyaDepartment = async function (departmentId) {
+  const dept =
+    typeof window.getProjectDepartment === "function"
+      ? window.getProjectDepartment(departmentId)
+      : null;
 
-window.getNooraniyaOrchestratorState = function () {
-  return window.NOORANIYA_ORCHESTRATOR_STATE;
+  if (!dept) {
+    alert("الإدارة غير موجودة في project-index: " + departmentId);
+    return;
+  }
+
+  if (!window.NOORANIYA_MAIN_STATE.departments[departmentId]) {
+    await loadDepartmentByRecord(dept);
+  }
+
+  window.showNooraniyaView(dept.viewId);
+
+  // المنظم العام يفتح الصفحة
+  // المنظم الفرعي يملأ أو يفحص فقط
+  if (typeof window[dept.appFunction] === "function") {
+    window[dept.appFunction]();
+  }
+};
+
+window.getNooraniyaMainState = function () {
+  return window.NOORANIYA_MAIN_STATE;
 };
