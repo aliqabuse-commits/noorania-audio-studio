@@ -18,16 +18,10 @@ window.NOORANIYA_MAIN_STATE = {
   summary: {}
 };
 
-
-// ======================================
-// 1) دستور المنظم العام
-// ======================================
-
 window.NOORANIYA_MAIN_ORCHESTRATOR_CHARTER = {
   title: "دستور المنظم الرئيسي",
   law:
     "المنظم العام ينسق ولا يحكم، يفتح العرض العام ولا يشغل المحركات، ويراقب أن كل إدارة تحمل نفسها وتفحص نفسها عبر منظمها الفرعي.",
-
   principles: [
     "index.html يعرض الواجهات فقط.",
     "project-index.js يعرف المشروع.",
@@ -40,11 +34,6 @@ window.NOORANIYA_MAIN_ORCHESTRATOR_CHARTER = {
     "لا قرار بلا مراجعة معرفة."
   ]
 };
-
-
-// ======================================
-// 2) صفحات العرض العامة
-// ======================================
 
 function getNooraniyaViewIds() {
   return [
@@ -64,25 +53,12 @@ function getNooraniyaViewIds() {
   ];
 }
 
-
-// ======================================
-// 3) إخفاء جميع الصفحات
-// ======================================
-
 window.hideAllNooraniyaViews = function () {
   getNooraniyaViewIds().forEach(function (id) {
     const el = document.getElementById(id);
-
-    if (el) {
-      el.style.display = "none";
-    }
+    if (el) el.style.display = "none";
   });
 };
-
-
-// ======================================
-// 4) إظهار صفحة واحدة فقط
-// ======================================
 
 window.showNooraniyaView = function (viewId) {
   window.hideAllNooraniyaViews();
@@ -95,7 +71,6 @@ window.showNooraniyaView = function (viewId) {
   }
 
   view.style.display = "block";
-
   window.NOORANIYA_MAIN_STATE.activeView = viewId;
 
   window.scrollTo({
@@ -106,11 +81,6 @@ window.showNooraniyaView = function (viewId) {
   return true;
 };
 
-
-// ======================================
-// 5) قراءة فهرس المشروع
-// ======================================
-
 function getSafeProjectIndex() {
   if (typeof window.getProjectIndex !== "function") {
     return null;
@@ -119,11 +89,6 @@ function getSafeProjectIndex() {
   return window.getProjectIndex();
 }
 
-
-// ======================================
-// 6) تحميل إدارة واحدة بأمان
-// ======================================
-
 async function loadDepartmentByRecord(dept) {
   const result = {
     id: dept.id,
@@ -131,46 +96,52 @@ async function loadDepartmentByRecord(dept) {
     order: dept.order,
     status: "pending",
 
+    viewId: dept.viewId,
+    panelContainerId: dept.panelContainerId,
+
     indexFunction: dept.indexFunction,
     loadFunction: dept.loadFunction,
     appFunction: dept.appFunction,
-    viewId: dept.viewId,
+    renderFunction: dept.renderFunction,
 
     indexAvailable: false,
     loadAvailable: false,
     appAvailable: false,
+    renderAvailable: false,
 
     index: null,
     loadReport: null,
     appReport: null,
+    renderReport: null,
 
     error: null
   };
 
   try {
-    // 1) قراءة index
     if (typeof window[dept.indexFunction] === "function") {
       result.indexAvailable = true;
       result.index = window[dept.indexFunction]();
     }
 
-    // 2) تحميل ملفات الإدارة عبر index الفرعي
     if (typeof window[dept.loadFunction] === "function") {
       result.loadAvailable = true;
       result.loadReport = await window[dept.loadFunction]();
     }
 
-    // 3) تشغيل app الإداري للفحص فقط
-    // لا محركات، لا قرار، لا تشغيل صوتي
     if (typeof window[dept.appFunction] === "function") {
       result.appAvailable = true;
       result.appReport = window[dept.appFunction]();
     }
 
+    if (typeof window[dept.renderFunction] === "function") {
+      result.renderAvailable = true;
+    }
+
     result.status =
       result.indexAvailable &&
       result.loadAvailable &&
-      result.appAvailable
+      result.appAvailable &&
+      result.renderAvailable
         ? "ready"
         : "needs-attention";
 
@@ -182,11 +153,6 @@ async function loadDepartmentByRecord(dept) {
 
   return result;
 }
-
-
-// ======================================
-// 7) تشغيل المنظم العام
-// ======================================
 
 window.runNooraniyaMainOrchestrator = async function () {
   const project = getSafeProjectIndex();
@@ -206,9 +172,7 @@ window.runNooraniyaMainOrchestrator = async function () {
   if (!project || !Array.isArray(project.departments)) {
     state.status = "failed";
     state.error = "project-index-missing-or-invalid";
-
     console.error("❌ project-index غير موجود أو غير صالح");
-
     return state;
   }
 
@@ -245,11 +209,6 @@ window.runNooraniyaMainOrchestrator = async function () {
   return state;
 };
 
-
-// ======================================
-// 8) فتح إدارة من البوابة العامة
-// ======================================
-
 window.openNooraniyaDepartment = async function (departmentId) {
   const dept =
     typeof window.getProjectDepartment === "function"
@@ -270,28 +229,20 @@ window.openNooraniyaDepartment = async function (departmentId) {
 
   window.showNooraniyaView(dept.viewId);
 
-  // المنظم العام يفتح الصفحة فقط
-  // app الفرعي فحص وتسجيل فقط
-  if (typeof window[dept.appFunction] === "function") {
-    report.appReport = window[dept.appFunction]();
+  if (typeof window[dept.renderFunction] === "function") {
+    report.renderAvailable = true;
+    report.renderReport = window[dept.renderFunction](dept.panelContainerId);
+  } else {
+    report.renderAvailable = false;
+    console.warn("⚠️ renderFunction غير متاحة:", dept.renderFunction);
   }
 
   return report;
 };
 
-
-// ======================================
-// 9) قراءة حالة المنظم
-// ======================================
-
 window.getNooraniyaMainState = function () {
   return window.NOORANIYA_MAIN_STATE;
 };
-
-
-// ======================================
-// 10) فحص سريع للعرض
-// ======================================
 
 window.auditNooraniyaViews = function () {
   const ids = getNooraniyaViewIds();
