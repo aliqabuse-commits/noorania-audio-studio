@@ -1,109 +1,232 @@
 // ======================================
 // governance-core/governance-core-app.js
-// المنسق التنفيذي لإدارة الحوكمة
-// السلطة العليا للمشروع
+// المنسق الرقابي لإدارة الحوكمة
+// لا يشغّل محركات تلقائيًا
+// لا يعيد تعريف registerDepartment
 // ======================================
 
-console.log("🧠 governance-core-app.js جاهز — المنسق التنفيذي للحوكمة");
+console.log("🧠 governance-core-app.js جاهز — Sovereign Safe App");
 
 
 // ======================================
-// 1) تشغيل تقرير الحوكمة العام
+// 1) دستور المنظم الحوكمي
 // ======================================
 
-function runGovernanceAudit() {
+const GOVERNANCE_CORE_APP_CHARTER = {
+  title: "دستور منسق الحوكمة",
+  law:
+    "منسق الحوكمة لا يبني القرار بدل الإدارات، بل يفحص أن كل إدارة ومعرفة وقرار يخضع للدستور.",
+  warning:
+    "أي منسق يعيد تعريف سلطة السجل أو يشغل المحركات تلقائيًا يتحول من حارس إلى متجاوز.",
+  rules: [
+    "لا يعيد تعريف registerDepartment.",
+    "لا يشغل محركًا صوتيًا أو تحليليًا أو تجريبيًا.",
+    "لا يحمّل ملفات تلقائيًا.",
+    "يفحص فقط وجود الدوال والسيادة الحوكمية.",
+    "يرجع تقريرًا موحدًا يمكن للمنظم الرئيسي قراءته."
+  ]
+};
+
+
+// ======================================
+// 2) الدوال المتوقعة من ملفات الحوكمة
+// ======================================
+
+const GOVERNANCE_EXPECTED_FUNCTIONS = [
+  // governance-core-index.js
+  "getGovernanceCoreIndex",
+
+  // department-registry.js
+  "getDepartmentRegistry",
+  "getDepartmentById",
+  "listDepartments",
+  "getOrderedDepartments",
+  "getDepartmentRecord",
+  "registerDepartment",
+  "auditDepartment",
+  "auditDepartmentRegistry",
+
+  // knowledge-decision-map.js
+  "getDecisionTypes",
+  "getKnowledgeDecisionMap",
+  "getKnowledgeForDecision",
+  "getDecisionsForKnowledge",
+  "getKnowledgeByDepartment",
+  "auditDecisionKnowledge",
+  "auditKnowledgeUsage",
+  "findOrphanKnowledge",
+  "auditKnowledgeDecisionMap",
+
+  // decision-gates.js
+  "gateNewFile",
+  "gateNewDepartment",
+  "gateDecisionExecution",
+  "gateTrainingSample",
+  "gateLabAdoption",
+  "auditDecisionGates",
+
+  // governance-audit-guards.js
+  "detectDuplicateResponsibilities",
+  "detectOrphanKnowledge",
+  "auditDecisionCoverage",
+  "auditGovernanceCharterPresence",
+  "runGovernanceAuditGuards"
+];
+
+
+// ======================================
+// 3) تشغيل منظم الحوكمة الآمن
+// ======================================
+
+window.runGovernanceCoreApp = function () {
+  const index =
+    typeof window.getGovernanceCoreIndex === "function"
+      ? window.getGovernanceCoreIndex()
+      : null;
+
+  const result = {
+    department: "governance-core",
+    mode: "safe-registry-only",
+    status: "registered",
+    charter: GOVERNANCE_CORE_APP_CHARTER,
+    indexLoaded: !!index,
+    files: {},
+    functions: {},
+    sovereignChecks: {},
+    summary: {
+      filesRegistered: 0,
+      functionsAvailable: 0,
+      functionsMissing: 0,
+      charterChecksPassed: 0,
+      charterChecksFailed: 0
+    },
+    note:
+      "تم تسجيل وفحص إدارة الحوكمة فقط دون تحميل أو تشغيل تلقائي."
+  };
+
+  // ======================================
+  // 3.1 فحص الملفات المسجلة في index
+  // ======================================
+
+  if (index && Array.isArray(index.files)) {
+    index.files.forEach(function (file) {
+      result.files[file] = "registered";
+      result.summary.filesRegistered++;
+    });
+  }
+
+  // ======================================
+  // 3.2 فحص الدوال المتوقعة
+  // ======================================
+
+  GOVERNANCE_EXPECTED_FUNCTIONS.forEach(function (fnName) {
+    const state =
+      typeof window[fnName] === "function"
+        ? "available"
+        : "missing";
+
+    result.functions[fnName] = state;
+
+    if (state === "available") {
+      result.summary.functionsAvailable++;
+    } else {
+      result.summary.functionsMissing++;
+    }
+  });
+
+  // ======================================
+  // 3.3 تسجيل إدارة الحوكمة في السجل الرسمي
+  // لا نعيد تعريف registerDepartment هنا
+  // ======================================
+
+  if (typeof window.registerDepartment === "function" && index) {
+    const registration = window.registerDepartment(index);
+    result.registration = registration;
+  } else {
+    result.registration = {
+      ok: false,
+      reason: "registerDepartment-missing-or-index-missing"
+    };
+  }
+
+  // ======================================
+  // 3.4 فحوص سيادية لا تشغل محركات
+  // ======================================
+
+  result.sovereignChecks.governanceCharter =
+    typeof window.GOVERNANCE_CHARTER !== "undefined"
+      ? "available"
+      : "missing";
+
+  result.sovereignChecks.knowledgeDecisionCharter =
+    typeof window.KNOWLEDGE_DECISION_CHARTER !== "undefined"
+      ? "available"
+      : "missing";
+
+  result.sovereignChecks.decisionGateCharter =
+    typeof window.DECISION_GATE_CHARTER !== "undefined"
+      ? "available"
+      : "missing";
+
+  result.sovereignChecks.auditGuardsCharter =
+    typeof window.GOVERNANCE_AUDIT_GUARDS_CHARTER !== "undefined"
+      ? "available"
+      : "missing";
+
+  result.sovereignChecks.trainingCoreRegistered =
+    typeof window.getDepartmentById === "function" &&
+    window.getDepartmentById("training-core")
+      ? "registered"
+      : "missing";
+
+  Object.keys(result.sovereignChecks).forEach(function (key) {
+    if (
+      result.sovereignChecks[key] === "available" ||
+      result.sovereignChecks[key] === "registered"
+    ) {
+      result.summary.charterChecksPassed++;
+    } else {
+      result.summary.charterChecksFailed++;
+    }
+  });
+
+  console.log("✅ governance-core safe report:", result);
+  return result;
+};
+
+
+// ======================================
+// 4) تقرير الحوكمة العام — يدوي عند الطلب فقط
+// ======================================
+
+window.runGovernanceAudit = function () {
   const report = {
-    method: "Nooraniya Governance Audit V1",
+    method: "Nooraniya Governance Audit V2 Sovereign",
+    charter: GOVERNANCE_CORE_APP_CHARTER,
     createdAt: new Date().toISOString(),
-
-    departments: auditAllDepartments(),
-    decisions: auditAllKnownDecisions(),
-    orphanKnowledge: runOrphanKnowledgeAudit(),
-
-    summary: {}
+    departments:
+      typeof auditDepartmentRegistry === "function"
+        ? auditDepartmentRegistry()
+        : { ok: false, message: "auditDepartmentRegistry غير متاحة." },
+    knowledge:
+      typeof auditKnowledgeDecisionMap === "function"
+        ? auditKnowledgeDecisionMap()
+        : { ok: false, message: "auditKnowledgeDecisionMap غير متاحة." },
+    gates:
+      typeof auditDecisionGates === "function"
+        ? auditDecisionGates()
+        : { ok: false, message: "auditDecisionGates غير متاحة." },
+    guards:
+      typeof runGovernanceAuditGuards === "function"
+        ? runGovernanceAuditGuards()
+        : { ok: false, message: "runGovernanceAuditGuards غير متاحة." }
   };
 
   report.summary = buildGovernanceSummary(report);
 
   console.log("🏛️ تقرير الحوكمة العام:", report);
-
   return report;
-}
-
-
-// ======================================
-// 2) فحص جميع الإدارات
-// ======================================
-
-function auditAllDepartments() {
-  if (typeof listDepartments !== "function") {
-    return {
-      ok: false,
-      message: "department-registry.js غير محمّل."
-    };
-  }
-
-  const departments = listDepartments();
-
-  return departments.map(function (dept) {
-    if (typeof auditDepartment !== "function") {
-      return {
-        id: dept.id,
-        ok: false,
-        message: "auditDepartment غير متاحة."
-      };
-    }
-
-    return auditDepartment(dept.id);
-  });
-}
-
-
-// ======================================
-// 3) فحص جميع القرارات المعروفة
-// ======================================
-
-function auditAllKnownDecisions() {
-  if (typeof DECISION_TYPES === "undefined") {
-    return {
-      ok: false,
-      message: "knowledge-decision-map.js غير محمّل."
-    };
-  }
-
-  if (typeof gateDecisionExecution !== "function") {
-    return {
-      ok: false,
-      message: "decision-gates.js غير محمّل."
-    };
-  }
-
-  return Object.values(DECISION_TYPES).map(function (decision) {
-    return gateDecisionExecution(decision.id);
-  });
-}
-
-
-// ======================================
-// 4) فحص المعارف اليتيمة
-// ======================================
-
-function runOrphanKnowledgeAudit() {
-  if (typeof findOrphanKnowledge !== "function") {
-    return {
-      ok: false,
-      message: "findOrphanKnowledge غير متاحة."
-    };
-  }
-
-  const orphan = findOrphanKnowledge();
-
-  return {
-    ok: orphan.length === 0,
-    count: orphan.length,
-    items: orphan
-  };
-}
+};
 
 
 // ======================================
@@ -111,61 +234,48 @@ function runOrphanKnowledgeAudit() {
 // ======================================
 
 function buildGovernanceSummary(report) {
-  const summary = {
-    departmentWarnings: 0,
-    unsupportedDecisions: 0,
-    orphanKnowledge: 0,
-    overallStatus: "unknown",
-    message: ""
+  let totalProblems = 0;
+
+  if (report.departments && report.departments.summary) {
+    totalProblems +=
+      Number(report.departments.summary.missingIndexFunction || 0) +
+      Number(report.departments.summary.missingAppFunction || 0) +
+      Number(report.departments.summary.unregisteredNew || 0);
+  }
+
+  if (report.knowledge) {
+    totalProblems += Number(report.knowledge.orphanKnowledgeCount || 0);
+    totalProblems += Array.isArray(report.knowledge.warnings)
+      ? report.knowledge.warnings.length
+      : 0;
+  }
+
+  if (report.gates) {
+    totalProblems += Array.isArray(report.gates.warnings)
+      ? report.gates.warnings.length
+      : 0;
+  }
+
+  if (report.guards) {
+    totalProblems += Number(report.guards.totalProblems || 0);
+  }
+
+  return {
+    totalProblems,
+    overallStatus: totalProblems === 0 ? "healthy" : "needs-attention",
+    message:
+      totalProblems === 0
+        ? "الحوكمة سليمة ظاهريًا: لا توجد مؤشرات سيادية خطرة الآن."
+        : "الحوكمة تحتاج مراجعة: توجد مؤشرات يجب عدم تجاهلها."
   };
-
-  if (Array.isArray(report.departments)) {
-    report.departments.forEach(function (item) {
-      if (!item.ok) {
-        summary.departmentWarnings++;
-      }
-
-      if (item.warnings && item.warnings.length) {
-        summary.departmentWarnings += item.warnings.length;
-      }
-    });
-  }
-
-  if (Array.isArray(report.decisions)) {
-    report.decisions.forEach(function (item) {
-      if (!item.ok) {
-        summary.unsupportedDecisions++;
-      }
-    });
-  }
-
-  if (report.orphanKnowledge && typeof report.orphanKnowledge.count === "number") {
-    summary.orphanKnowledge = report.orphanKnowledge.count;
-  }
-
-  const totalProblems =
-    summary.departmentWarnings +
-    summary.unsupportedDecisions +
-    summary.orphanKnowledge;
-
-  if (totalProblems === 0) {
-    summary.overallStatus = "healthy";
-    summary.message = "الحوكمة سليمة: لا توجد معرفة يتيمة ولا قرارات عمياء ظاهرة.";
-  } else {
-    summary.overallStatus = "needs-attention";
-    summary.message =
-      "تحتاج الحوكمة إلى مراجعة: توجد مؤشرات معرفة معزولة أو قرارات غير مسنودة.";
-  }
-
-  return summary;
 }
 
 
 // ======================================
-// 6) فحص طلب إنشاء ملف جديد
+// 6) مراجعات حوكمية يدوية
 // ======================================
 
-function reviewNewFileRequest(request) {
+window.reviewNewFileRequest = function (request) {
   if (typeof gateNewFile !== "function") {
     return {
       ok: false,
@@ -174,14 +284,10 @@ function reviewNewFileRequest(request) {
   }
 
   return gateNewFile(request);
-}
+};
 
 
-// ======================================
-// 7) فحص طلب إنشاء إدارة جديدة
-// ======================================
-
-function reviewNewDepartmentRequest(request) {
+window.reviewNewDepartmentRequest = function (request) {
   if (typeof gateNewDepartment !== "function") {
     return {
       ok: false,
@@ -190,14 +296,22 @@ function reviewNewDepartmentRequest(request) {
   }
 
   return gateNewDepartment(request);
-}
+};
 
 
-// ======================================
-// 8) فحص اعتماد نتيجة مختبر
-// ======================================
+window.reviewTrainingSampleRequest = function (request) {
+  if (typeof gateTrainingSample !== "function") {
+    return {
+      ok: false,
+      message: "بوابة عينة التدريب غير محمّلة."
+    };
+  }
 
-function reviewLabAdoptionRequest(request) {
+  return gateTrainingSample(request);
+};
+
+
+window.reviewLabAdoptionRequest = function (request) {
   if (typeof gateLabAdoption !== "function") {
     return {
       ok: false,
@@ -206,62 +320,26 @@ function reviewLabAdoptionRequest(request) {
   }
 
   return gateLabAdoption(request);
-}
+};
 
 
 // ======================================
-// 9) سؤال الحوكمة السريع لأي فكرة
+// 7) سؤال الحوكمة السريع
 // ======================================
 
-function quickGovernanceQuestion(idea) {
+window.quickGovernanceQuestion = function (idea) {
   return {
     idea: idea || "",
+    charter: GOVERNANCE_CORE_APP_CHARTER,
     mustAnswer: [
       "ما المعرفة التي ستنتجها؟",
       "أي قرار ستخدم؟",
       "هل توجد إدارة حالية تكفي؟",
       "هل يوجد ملف قديم يجب تطويره بدل إنشاء جديد؟",
       "ما الأثر العملي المتوقع؟",
-      "هل تخدم الوجهة؟"
+      "هل تخدم الوجهة؟",
+      "هل يمر هذا عبر دستور الحوكمة؟"
     ],
-    law:
-      "لا تعطني وصفًا، أعطني أثرًا."
+    law: "#لا_تعطني_وصفا_اعطني_أثرا"
   };
-}
-
-
-// ======================================
-// 10) تصدير عام
-// ======================================
-
-window.runGovernanceAudit = runGovernanceAudit;
-window.auditAllDepartments = auditAllDepartments;
-window.auditAllKnownDecisions = auditAllKnownDecisions;
-window.runOrphanKnowledgeAudit = runOrphanKnowledgeAudit;
-
-window.reviewNewFileRequest = reviewNewFileRequest;
-window.reviewNewDepartmentRequest = reviewNewDepartmentRequest;
-window.reviewLabAdoptionRequest = reviewLabAdoptionRequest;
-
-window.quickGovernanceQuestion = quickGovernanceQuestion;
-window.NOORANIYA_REGISTERED_DEPARTMENTS =
-  window.NOORANIYA_REGISTERED_DEPARTMENTS || {};
-
-window.registerDepartment = function (departmentIndex) {
-  if (!departmentIndex || !departmentIndex.name) {
-    console.warn("⚠️ محاولة تسجيل إدارة بلا اسم", departmentIndex);
-    return false;
-  }
-
-  window.NOORANIYA_REGISTERED_DEPARTMENTS[departmentIndex.name] = {
-    ...departmentIndex,
-    registeredAt: new Date().toISOString()
-  };
-
-  console.log("🏛️ تم تسجيل الإدارة:", departmentIndex.name);
-  return true;
-};
-
-window.getRegisteredDepartments = function () {
-  return window.NOORANIYA_REGISTERED_DEPARTMENTS;
 };
