@@ -1,175 +1,89 @@
 // ================================
-// operation-labs/operation-labs-index.js
-// غرفة التجارب الإدراكية — الفهرس الفرعي لمجلد operation-labs
-// يدير قائمة المختبرات وتحميلها وفتحها فقط
-// ولا يحتوي منطق أي مختبر
+// operation-labs-index.js
+// فهرس غرفة التجارب الإدراكية — تعريف حوكمي فقط
+// لا تحميل
+// لا تشغيل
+// لا فتح تلقائي
 // ================================
 
-console.log("🧪 operation-labs-index.js جاهز — الفهرس الفرعي");
+console.log("🧪 operation-labs-index.js جاهز — Sovereign Frozen Index");
 
-(function () {
+window.NOORANIYA_OPERATION_LABS = {
+  name: "operation-labs",
+  mode: "frozen-index-only",
 
-  // ======================================
-  // 1️⃣ تعريف المختبرات داخل operation-labs
-  // ======================================
+  charter: {
+    title: "دستور المختبرات",
+    law:
+      "المختبر لا يملك سلطة الاعتماد؛ التجربة لا تصبح معرفة رسمية إلا إذا أثبتت أثرًا وعادت إلى إدارة وقرار.",
+    rules: [
+      "المختبر يختبر ولا يعتمد.",
+      "كل تجربة يجب أن تخدم سؤالًا معرفيًا واضحًا.",
+      "لا ينتقل المختبر إلى إدارة رسمية إلا عبر بوابة الحوكمة.",
+      "النتيجة التي لا تغيّر قرارًا تبقى تجربة غير مكتملة.",
+      "الفشل في المختبر معرفة إذا كشف نقصًا في القرار أو الإدراك."
+    ]
+  },
 
-  const OPERATION_LABS = [
+  role:
+    "غرفة تجارب لاختبار الفرضيات الصوتية والإدراكية قبل ترقيتها إلى الإدارات الرسمية عبر الحوكمة.",
+
+  files: [
+    "operation-labs-index.js",
+    "phoneme-merge-split-engine.js",
+    "weighted-join-zone.js",
+    "operation-labs-app.js"
+  ],
+
+  labs: [
     {
       id: "merge-split",
-      title: "🧩 مختبر الفصل والدمج",
-      description: "المختبر المرجعي الحالي كما هو دون تغيير منطقه.",
-      script: "operation-labs/phoneme-merge-split-engine.js",
-      openFunction: "openMergeSplitView"
+      title: "مختبر الفصل والدمج",
+      file: "phoneme-merge-split-engine.js",
+      status: "experimental"
     },
     {
       id: "weighted-join-zone",
-      title: "⚖️ مختبر منطقة الاشتباك الموزون",
-      description: "امتداد للمختبر السابق يضيف اختبار منطقة الاشتباك الموزون.",
-      script: "operation-labs/weighted-join-zone.js",
-      openFunction: "openWeightedJoinZoneView"
+      title: "مختبر منطقة الاشتباك الموزون",
+      file: "weighted-join-zone.js",
+      status: "experimental"
     }
-  ];
+  ],
 
+  knowledge: [
+    "merge-split-experiment",
+    "weighted-join-zone",
+    "carrier-payload-interaction",
+    "experimental-join-units",
+    "failure-evidence",
+    "success-evidence"
+  ],
 
-  // ======================================
-  // 2️⃣ تحميل ملف مختبر واحد دون تكرار
-  // ======================================
+  decisions: [
+    "هل التجربة تصلح للترقية إلى إدارة رسمية؟",
+    "هل نتيجة المختبر تغيّر قرار الفصل؟",
+    "هل نتيجة المختبر تغيّر قرار الدمج؟",
+    "هل التجربة قابلة للتكرار؟",
+    "هل الأثر حقيقي أم مجرد وصف؟"
+  ],
 
-  function loadOperationLabScript(src) {
-    return new Promise(function (resolve, reject) {
-      if (document.querySelector('script[src="' + src + '"]')) {
-        console.log("ℹ️ الملف محمّل مسبقًا:", src);
-        resolve();
-        return;
-      }
+  serves: [
+    "governance-core",
+    "segment-core",
+    "phoneme-core",
+    "training-core",
+    "analysis-core"
+  ],
 
-      const script = document.createElement("script");
-      script.src = src;
+  principles: [
+    "المختبر يختبر ولا يعتمد.",
+    "كل تجربة يجب أن تخدم قرارًا.",
+    "لا تشغيل تلقائي داخل index.",
+    "لا ترقية بلا أثر.",
+    "الحوكمة وحدها تعتمد النقل من المختبر إلى الإدارة الرسمية."
+  ]
+};
 
-      script.onload = function () {
-        console.log("✅ تم تحميل:", src);
-        resolve();
-      };
-
-      script.onerror = function () {
-        reject(new Error("فشل تحميل الملف: " + src));
-      };
-
-      document.body.appendChild(script);
-    });
-  }
-
-
-  // ======================================
-  // 3️⃣ تحميل ملفات المختبرات بالترتيب
-  // المختبر المرجعي أولًا، ثم المختبرات المطوّرة
-  // ======================================
-
-  async function loadOperationLabsScripts() {
-    for (const lab of OPERATION_LABS) {
-      await loadOperationLabScript(lab.script);
-    }
-  }
-
-
-  // ======================================
-  // 4️⃣ فتح مختبر عبر اسم دالة الفتح
-  // لا يحتوي الفهرس منطق أي مختبر
-  // ======================================
-
-  function openOperationLab(lab) {
-    const fn = window[lab.openFunction];
-
-    if (typeof fn === "function") {
-      fn();
-      return;
-    }
-
-    alert(
-      "لم يتم العثور على دالة فتح المختبر:\n" +
-      lab.openFunction +
-      "\n\nتأكد أن ملف المختبر تم تحميله وأنه يصدّر دالة الفتح."
-    );
-  }
-
-
-  // ======================================
-  // 5️⃣ بناء أزرار غرفة التجارب الإدراكية
-  // داخل operation-labs-grid فقط
-  // ======================================
-
-  function renderOperationLabsRoom() {
-    const grid = document.getElementById("operation-labs-grid");
-
-    if (!grid) {
-      console.warn("⚠️ لم يتم العثور على operation-labs-grid داخل index.html");
-      return;
-    }
-
-    grid.innerHTML = "";
-
-    OPERATION_LABS.forEach(function (lab) {
-      const card = document.createElement("div");
-
-      card.style.background = "#08111f";
-      card.style.border = "1px solid #334155";
-      card.style.borderRadius = "14px";
-      card.style.padding = "16px";
-
-      card.innerHTML = `
-        <h3 style="margin-top:0;color:#a3e635;">
-          ${lab.title}
-        </h3>
-
-        <p style="line-height:1.8;color:#cbd5e1;">
-          ${lab.description}
-        </p>
-
-        <button style="
-          background:#0f172a;
-          color:white;
-          border:1px solid #a3e635;
-          padding:12px;
-          border-radius:10px;
-          cursor:pointer;
-          width:100%;
-          font-weight:bold;
-        ">
-          فتح المختبر
-        </button>
-      `;
-
-      const btn = card.querySelector("button");
-
-      btn.onclick = function () {
-        openOperationLab(lab);
-      };
-
-      grid.appendChild(card);
-    });
-  }
-
-
-  // ======================================
-  // 6️⃣ تصدير دالة بناء الغرفة
-  // يستدعيها index.html عند فتح غرفة التجارب
-  // ======================================
-
-  window.renderOperationLabsRoom = renderOperationLabsRoom;
-
-
-  // ======================================
-  // 7️⃣ التشغيل الأول
-  // ======================================
-
-  document.addEventListener("DOMContentLoaded", async function () {
-    try {
-      await loadOperationLabsScripts();
-      renderOperationLabsRoom();
-    } catch (err) {
-      console.error("❌ فشل تحميل مختبرات operation-labs", err);
-      alert("فشل تحميل مختبرات operation-labs:\n" + err.message);
-    }
-  });
-
-})();
+window.getOperationLabsIndex = function () {
+  return window.NOORANIYA_OPERATION_LABS;
+};
