@@ -1,7 +1,7 @@
 // ================================
 // phoneme-core/phoneme-core-index.js
 // فهرس إدارة الحرف
-// تعريف + تحميل ملفات الإدارة فقط
+// تعريف + تحميل ملفات الإدارة الموجودة فعليًا فقط
 // لا يفتح صفحة
 // لا يبني أزرار
 // لا يشغل محركات
@@ -24,48 +24,47 @@ window.NOORANIYA_PHONEME_CORE = {
     "إدارة بناء هوية الحرف وذاكرته وبصمته وجينومه الإدراكي، بما يخدم قرارات المطابقة والفصل والتمييز.",
 
   files: [
-    "phoneme-core/phoneme-training-pack.js",
-    "phoneme-core/phoneme-colors.js",
-    "phoneme-core/phoneme-color-memory.js",
-    "phoneme-core/phoneme-signal-validator.js",
-    "phoneme-core/phoneme-memory-trainer.js",
-    "phoneme-core/phoneme-timeline-engine.js",
-    "phoneme-core/common-payload-finder.js",
-    "phoneme-core/burst-signature-engine.js",
-    "phoneme-core/spectral-seal-engine.js",
-    "phoneme-core/core-purifier-engine.js",
-    "phoneme-core/phoneme-cognitive-engine.js",
-    "phoneme-core/phoneme-identity-engine.js",
     "phoneme-core/ba-final-identity-engine.js",
     "phoneme-core/ba-identity-match-engine.js",
+    "phoneme-core/common-payload-finder.js",
+    "phoneme-core/core-purifier-engine.js",
+    "phoneme-core/phoneme-cognitive-engine.js",
+    "phoneme-core/phoneme-color-memory.js",
+    "phoneme-core/phoneme-colors.js",
+    "phoneme-core/phoneme-report-manager.js",
+    "phoneme-core/phoneme-training-pack.js",
+    "phoneme-core/phoneme-identity-engine.js",
     "phoneme-core/phoneme-match-engine.js",
-    "phoneme-core/ba_master_identity.js",
+    "phoneme-core/phoneme-memory-trainer.js",
+    "phoneme-core/phoneme-timeline-engine.js",
+    "phoneme-core/spectral-seal-engine.js",
     "phoneme-core/phoneme-core-app.js"
   ],
 
   knowledge: [
-    "phoneme-training-pack",
-    "phoneme-colors",
-    "phoneme-color-memory",
-    "signal-validation",
-    "phoneme-memory",
-    "timeline-genome",
+    "ba-final-identity",
+    "ba-identity-match",
     "common-payload",
-    "burst-signature",
-    "spectral-seal",
     "pure-core",
     "cognitive-genome",
+    "phoneme-color-memory",
+    "phoneme-colors",
+    "phoneme-report-manager",
+    "phoneme-training-pack",
     "phoneme-identity",
-    "identity-match",
-    "master-identity"
+    "phoneme-match",
+    "phoneme-memory",
+    "timeline-genome",
+    "spectral-seal"
   ],
 
   decisions: [
     "هل التسجيل صالح لفحص الحرف؟",
     "هل الصوت ينتمي للحرف؟",
     "هل الهوية مستقرة؟",
-    "هل البصمة تدعم القرار؟",
     "هل الجينوم صالح للمطابقة؟",
+    "هل الذاكرة تدعم أو تعارض القرار؟",
+    "هل التقرير يخدم قرارًا واضحًا؟",
     "هل الفصل يحافظ على هوية الحرف؟"
   ],
 
@@ -81,9 +80,11 @@ window.NOORANIYA_PHONEME_CORE = {
     "الحرف هوية لا عينة.",
     "اللون والذاكرة يخدمان الحسم.",
     "الجينوم لا يكون تقريرًا؛ بل دليل قرار.",
+    "التقرير لا قيمة له إذا لم يخدم قرارًا.",
     "الزمن يصف القرار ولا يحكمه.",
     "الفصل لا يقطع الهوية.",
-    "index الفرعي يعرف ويحمّل فقط.",
+    "index الفرعي يعرف ويحمّل الملفات الموجودة فعليًا فقط.",
+    "app يسجل ويفحص ويبني لوحة الإدارة فقط.",
     "المحركات تعمل عند الطلب فقط."
   ]
 };
@@ -123,7 +124,7 @@ window.loadPhonemeCore = async function () {
     loaded: [],
     errors: [],
     note:
-      "تم تحميل ملفات إدارة الحرف فقط دون فتح واجهة أو تشغيل app أو محركات."
+      "تم تحميل ملفات إدارة الحرف الموجودة فعليًا فقط دون فتح واجهة أو تشغيل app أو محركات."
   };
 
   for (const src of window.NOORANIYA_PHONEME_CORE.files) {
