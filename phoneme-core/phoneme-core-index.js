@@ -109,7 +109,7 @@ function loadPhonemeCoreScript(src) {
       });
       return;
     }
-
+console.log("🔎 محاولة تحميل:", src);
     const script = document.createElement("script");
     script.src = src;
 
