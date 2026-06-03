@@ -36,70 +36,84 @@ window.NOORANIYA_PROJECT_INDEX = {
       id: "governance-core",
       name: "إدارة الحوكمة",
       status: "official",
+      viewId: "governanceCoreView",
+      panelContainerId: "governance-actions",
       indexFunction: "getGovernanceCoreIndex",
       loadFunction: "loadGovernanceCore",
       appFunction: "runGovernanceCoreApp",
-      viewId: "governanceCoreView"
+      renderFunction: "renderGovernanceCorePanel"
     },
     {
       order: 2,
       id: "phoneme-core",
       name: "إدارة الحرف",
       status: "official",
+      viewId: "phonemeCoreView",
+      panelContainerId: "phoneme-actions",
       indexFunction: "getPhonemeCoreIndex",
       loadFunction: "loadPhonemeCore",
       appFunction: "runPhonemeCoreApp",
-      viewId: "phonemeCoreView"
+      renderFunction: "renderPhonemeCorePanel"
     },
     {
       order: 3,
       id: "segment-core",
       name: "إدارة المقاطع",
       status: "official",
+      viewId: "segmentCoreView",
+      panelContainerId: "segment-actions",
       indexFunction: "getSegmentCoreIndex",
       loadFunction: "loadSegmentCore",
       appFunction: "runSegmentCoreApp",
-      viewId: "segmentCoreView"
+      renderFunction: "renderSegmentCorePanel"
     },
     {
       order: 4,
       id: "training-core",
       name: "إدارة التدريب والتسجيل",
       status: "official",
+      viewId: "trainingCoreView",
+      panelContainerId: "training-actions",
       indexFunction: "getTrainingCoreIndex",
       loadFunction: "loadTrainingCore",
       appFunction: "runTrainingCoreApp",
-      viewId: "trainingCoreView"
+      renderFunction: "renderTrainingCorePanel"
     },
     {
       order: 5,
       id: "analysis-core",
       name: "إدارة التحليل",
       status: "official",
+      viewId: "analysisCoreView",
+      panelContainerId: "analysis-actions",
       indexFunction: "getAnalysisCoreIndex",
       loadFunction: "loadAnalysisCore",
       appFunction: "runAnalysisCoreApp",
-      viewId: "analysisCoreView"
+      renderFunction: "renderAnalysisCorePanel"
     },
     {
       order: 6,
       id: "memory-core",
       name: "إدارة الذاكرة",
       status: "official",
+      viewId: "memoryCoreView",
+      panelContainerId: "memory-actions",
       indexFunction: "getMemoryCoreIndex",
       loadFunction: "loadMemoryCore",
       appFunction: "runMemoryCoreApp",
-      viewId: "memoryCoreView"
+      renderFunction: "renderMemoryCorePanel"
     },
     {
       order: 7,
       id: "operation-labs",
       name: "إدارة المختبرات",
       status: "experimental",
+      viewId: "cognitiveExperimentsRoomView",
+      panelContainerId: "operation-labs-grid",
       indexFunction: "getOperationLabsIndex",
       loadFunction: "loadOperationLabs",
       appFunction: "runOperationLabsApp",
-      viewId: "cognitiveExperimentsRoomView"
+      renderFunction: "renderOperationLabsPanel"
     }
   ]
 };
