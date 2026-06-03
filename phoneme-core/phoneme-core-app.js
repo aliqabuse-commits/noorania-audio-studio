@@ -34,23 +34,19 @@ const PHONEME_CORE_APP_CHARTER = {
 // ======================================
 
 const PHONEME_CORE_EXPECTED_FUNCTIONS = [
-  // phoneme-training-pack.js
   "getAllPhonemeTrainingPacks",
   "getPhonemeTrainingPack",
 
-  // phoneme-colors.js
   "normalizePhonemeColorKey",
   "bindPhonemeToColor",
   "getPhonemeColor",
   "getAllPhonemeColors",
 
-  // phoneme-color-memory.js
   "createPhonemeColorMemory",
   "buildPhonemeColorMemoryConfigs",
   "getAllPhonemeMemories",
   "getPhonemeMemory",
 
-  // phoneme-memory-trainer.js
   "trainPhonemeMemory",
   "findMissingTrainingFiles",
   "buildPerceptualIdentity",
@@ -58,54 +54,47 @@ const PHONEME_CORE_EXPECTED_FUNCTIONS = [
   "renderPhonemeMemoryReport",
   "getAudioPromiseForMemory",
 
-  // phoneme-signal-validator.js
   "validatePhonemeSignal",
   "buildSignalValidationReport",
   "testSignalQualityForPhoneme",
 
-  // phoneme-cognitive-engine.js
   "buildPhonemeCognitiveIdentity",
   "loadCognitiveIdentity",
   "renderCognitiveReport",
 
-  // phoneme-match-engine.js
   "getAvailablePhonemeKeysForMatch",
   "startPhonemeMatchTest",
   "recordMatchSample",
   "renderMatchResultsLog",
   "clearCognitiveMatchResultsLog",
 
-  // phoneme-timeline-engine.js
   "buildTimelineGenomeForPhoneme",
   "renderTimelineGenomeReport",
 
-  // phoneme-identity-engine.js
   "runPhonemeIdentityEngine",
   "buildPhonemeIdentity",
   "renderIdentityReport",
 
-  // common-payload-finder.js
   "runBaCommonPayloadTest",
   "findCommonPayloadForKeys",
   "renderCommonPayloadReport",
 
-  // burst-signature-engine.js
   "runBurstSignatureEngine",
 
-  // spectral-seal-engine.js
   "runSpectralSealEngine",
 
-  // core-purifier-engine.js
   "runCorePurifierEngine",
   "renderPureCoreReport",
 
-  // ba-final-identity-engine.js
   "runBaFinalIdentityEngine",
   "renderBaFinalIdentityReport",
 
-  // ba-identity-match-engine.js
   "runBaaIdentityMatchEngine",
-  "renderBaaMatchReport"
+  "renderBaaMatchReport",
+
+  "openReportMenu",
+  "copyCurrentReport",
+  "copyAllPhonemeReports"
 ];
 
 
@@ -180,7 +169,6 @@ window.runPhonemeCoreApp = function () {
 
 // ======================================
 // 5) بناء لوحة إدارة الحرف داخل الصفحة
-// يستدعيها المنظم العام أو زر الإدارة
 // ======================================
 
 window.renderPhonemeCorePanel = function (containerId) {
@@ -221,11 +209,7 @@ window.renderPhonemeCorePanel = function (containerId) {
     container,
     "🧠 عرض الحقائب الإدراكية",
     function () {
-      if (typeof window.renderPhonemeCards === "function") {
-        window.renderPhonemeCards();
-      } else {
-        renderPhonemeCardsFromCore();
-      }
+      renderPhonemeCardsFromCore();
 
       if (typeof window.showNooraniyaView === "function") {
         window.showNooraniyaView("perceptualTrainingView");
@@ -313,7 +297,6 @@ function addPhonemeActionButton(container, label, handler) {
 
 // ======================================
 // 7) عرض الحقائب الإدراكية
-// انتقلت من index.html إلى إدارة الحرف
 // ======================================
 
 window.renderPhonemeCards = function () {
@@ -395,7 +378,6 @@ function renderPhonemeCardsFromCore() {
 
 // ======================================
 // 8) تفاصيل حقيبة حرف
-// كل الأزرار تعمل بطلب المستخدم فقط
 // ======================================
 
 function renderPhonemeBagDetailsFromCore(key, pack) {
@@ -425,11 +407,11 @@ function renderPhonemeBagDetailsFromCore(key, pack) {
 
       <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:18px;">
         <button onclick="startPerceptualTraining('${key}')">🎙 تدريب</button>
-        <button onclick="openReportMenu('signal', '${key}')">🛡️ فحص جودة التسجيل</button>
+        <button onclick="safeOpenPhonemeReport('signal', '${key}')">🛡️ فحص جودة التسجيل</button>
         <button onclick="testPhonemeColorBinding('${key}')">🎨 اللون</button>
-        <button onclick="openReportMenu('memory', '${key}')">🧠 الذاكرة</button>
-        <button onclick="openReportMenu('cognitive', '${key}')">🧬 الجينوم</button>
-        <button onclick="openReportMenu('timeline', '${key}')">⏳ بناء المسار الزمني</button>
+        <button onclick="safeOpenPhonemeReport('memory', '${key}')">🧠 الذاكرة</button>
+        <button onclick="safeOpenPhonemeReport('cognitive', '${key}')">🧬 الجينوم</button>
+        <button onclick="safeOpenPhonemeReport('timeline', '${key}')">⏳ بناء المسار الزمني</button>
         <button onclick="startPhonemeMatchTest('${key}')">🎯 اختبار</button>
         <button onclick="clearCognitiveMatchResultsLog()">🗑 حذف سجل الاختبارات</button>
       </div>
@@ -511,4 +493,24 @@ window.toggleMatchResultsLog = function (key) {
   } else {
     box.style.display = "none";
   }
+};
+
+
+// ======================================
+// 11) فتح تقارير الحرف بأمان
+// يمنع صمت الأزرار ويكشف هل مدير التقارير محمّل أم لا
+// ======================================
+
+window.safeOpenPhonemeReport = function (type, key) {
+  if (typeof window.openReportMenu === "function") {
+    window.openReportMenu(type, key);
+    return;
+  }
+
+  alert(
+    "مدير التقارير غير محمّل:\n" +
+    "phoneme-core/phoneme-report-manager.js\n\n" +
+    "نوع التقرير: " + type + "\n" +
+    "الحقيبة: " + key
+  );
 };
