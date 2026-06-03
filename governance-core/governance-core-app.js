@@ -1,7 +1,8 @@
 // ======================================
 // governance-core/governance-core-app.js
 // المنسق الرقابي لإدارة الحوكمة
-// لا يشغّل محركات تلقائيًا
+// تسجيل + فحص + بناء لوحة الحوكمة
+// لا يشغل محركات تلقائيًا
 // لا يعيد تعريف registerDepartment
 // ======================================
 
@@ -23,6 +24,7 @@ const GOVERNANCE_CORE_APP_CHARTER = {
     "لا يشغل محركًا صوتيًا أو تحليليًا أو تجريبيًا.",
     "لا يحمّل ملفات تلقائيًا.",
     "يفحص فقط وجود الدوال والسيادة الحوكمية.",
+    "يبني لوحة الحوكمة داخل الحاوية فقط.",
     "يرجع تقريرًا موحدًا يمكن للمنظم الرئيسي قراءته."
   ]
 };
@@ -33,10 +35,8 @@ const GOVERNANCE_CORE_APP_CHARTER = {
 // ======================================
 
 const GOVERNANCE_EXPECTED_FUNCTIONS = [
-  // governance-core-index.js
   "getGovernanceCoreIndex",
 
-  // department-registry.js
   "getDepartmentRegistry",
   "getDepartmentById",
   "listDepartments",
@@ -46,7 +46,6 @@ const GOVERNANCE_EXPECTED_FUNCTIONS = [
   "auditDepartment",
   "auditDepartmentRegistry",
 
-  // knowledge-decision-map.js
   "getDecisionTypes",
   "getKnowledgeDecisionMap",
   "getKnowledgeForDecision",
@@ -57,7 +56,6 @@ const GOVERNANCE_EXPECTED_FUNCTIONS = [
   "findOrphanKnowledge",
   "auditKnowledgeDecisionMap",
 
-  // decision-gates.js
   "gateNewFile",
   "gateNewDepartment",
   "gateDecisionExecution",
@@ -65,7 +63,6 @@ const GOVERNANCE_EXPECTED_FUNCTIONS = [
   "gateLabAdoption",
   "auditDecisionGates",
 
-  // governance-audit-guards.js
   "detectDuplicateResponsibilities",
   "detectOrphanKnowledge",
   "auditDecisionCoverage",
@@ -86,7 +83,7 @@ window.runGovernanceCoreApp = function () {
 
   const result = {
     department: "governance-core",
-    mode: "safe-registry-only",
+    mode: "safe-registry-and-panel",
     status: "registered",
     charter: GOVERNANCE_CORE_APP_CHARTER,
     indexLoaded: !!index,
@@ -104,20 +101,12 @@ window.runGovernanceCoreApp = function () {
       "تم تسجيل وفحص إدارة الحوكمة فقط دون تحميل أو تشغيل تلقائي."
   };
 
-  // ======================================
-  // 3.1 فحص الملفات المسجلة في index
-  // ======================================
-
   if (index && Array.isArray(index.files)) {
     index.files.forEach(function (file) {
       result.files[file] = "registered";
       result.summary.filesRegistered++;
     });
   }
-
-  // ======================================
-  // 3.2 فحص الدوال المتوقعة
-  // ======================================
 
   GOVERNANCE_EXPECTED_FUNCTIONS.forEach(function (fnName) {
     const state =
@@ -134,24 +123,12 @@ window.runGovernanceCoreApp = function () {
     }
   });
 
-  // ======================================
-  // 3.3 تسجيل إدارة الحوكمة في السجل الرسمي
-  // لا نعيد تعريف registerDepartment هنا
-  // ======================================
-
   if (typeof window.registerDepartment === "function" && index) {
-    const registration = window.registerDepartment(index);
-    result.registration = registration;
+    window.registerDepartment(index);
+    result.registration = "registered";
   } else {
-    result.registration = {
-      ok: false,
-      reason: "registerDepartment-missing-or-index-missing"
-    };
+    result.registration = "missing";
   }
-
-  // ======================================
-  // 3.4 فحوص سيادية لا تشغل محركات
-  // ======================================
 
   result.sovereignChecks.governanceCharter =
     typeof window.GOVERNANCE_CHARTER !== "undefined"
@@ -196,7 +173,91 @@ window.runGovernanceCoreApp = function () {
 
 
 // ======================================
-// 4) تقرير الحوكمة العام — يدوي عند الطلب فقط
+// 4) بناء لوحة إدارة الحوكمة
+// ======================================
+
+window.renderGovernanceCorePanel = function (containerId) {
+  const container =
+    document.getElementById(containerId || "governance-actions");
+
+  if (!container) {
+    console.warn("⚠️ لم يتم العثور على حاوية الحوكمة:", containerId);
+    return null;
+  }
+
+  container.innerHTML = "";
+
+  const report = window.runGovernanceCoreApp();
+
+  const statusBox = document.createElement("div");
+  statusBox.style.background = "#0f172a";
+  statusBox.style.border = "1px solid #334155";
+  statusBox.style.borderRadius = "12px";
+  statusBox.style.padding = "12px";
+  statusBox.style.marginBottom = "14px";
+  statusBox.style.lineHeight = "1.8";
+
+  statusBox.innerHTML =
+    "<b>إدارة الحوكمة:</b> " +
+    (report.indexLoaded ? "✅ index available" : "⚠️ index missing") +
+    "<br><b>الدوال المتاحة:</b> " +
+    report.summary.functionsAvailable +
+    "<br><b>الدوال الناقصة:</b> " +
+    report.summary.functionsMissing +
+    "<br><b>فحوص الدستور الناجحة:</b> " +
+    report.summary.charterChecksPassed +
+    "<br><b>فحوص الدستور الناقصة:</b> " +
+    report.summary.charterChecksFailed +
+    "<br><span style='color:#94a3b8;'>الحوكمة تفحص ولا تشغل المحركات.</span>";
+
+  container.appendChild(statusBox);
+
+  addGovernanceButton(container, "🏛️ تقرير الحوكمة العام", function () {
+    if (typeof window.runGovernanceAudit === "function") {
+      window.runGovernanceAudit();
+    } else {
+      alert("runGovernanceAudit غير متاحة.");
+    }
+  });
+
+  addGovernanceButton(container, "🧭 فحص سجل الإدارات", function () {
+    if (typeof window.auditDepartmentRegistry === "function") {
+      window.auditDepartmentRegistry();
+    } else {
+      alert("auditDepartmentRegistry غير متاحة.");
+    }
+  });
+
+  addGovernanceButton(container, "🗺️ فحص خريطة المعرفة والقرار", function () {
+    if (typeof window.auditKnowledgeDecisionMap === "function") {
+      window.auditKnowledgeDecisionMap();
+    } else {
+      alert("auditKnowledgeDecisionMap غير متاحة.");
+    }
+  });
+
+  addGovernanceButton(container, "🚦 فحص بوابات القرار", function () {
+    if (typeof window.auditDecisionGates === "function") {
+      window.auditDecisionGates();
+    } else {
+      alert("auditDecisionGates غير متاحة.");
+    }
+  });
+
+  addGovernanceButton(container, "🛡️ تشغيل حراس الحوكمة", function () {
+    if (typeof window.runGovernanceAuditGuards === "function") {
+      window.runGovernanceAuditGuards();
+    } else {
+      alert("runGovernanceAuditGuards غير متاحة.");
+    }
+  });
+
+  return report;
+};
+
+
+// ======================================
+// 5) تقرير الحوكمة العام — يدوي عند الطلب فقط
 // ======================================
 
 window.runGovernanceAudit = function () {
@@ -204,21 +265,25 @@ window.runGovernanceAudit = function () {
     method: "Nooraniya Governance Audit V2 Sovereign",
     charter: GOVERNANCE_CORE_APP_CHARTER,
     createdAt: new Date().toISOString(),
+
     departments:
-      typeof auditDepartmentRegistry === "function"
-        ? auditDepartmentRegistry()
+      typeof window.auditDepartmentRegistry === "function"
+        ? window.auditDepartmentRegistry()
         : { ok: false, message: "auditDepartmentRegistry غير متاحة." },
+
     knowledge:
-      typeof auditKnowledgeDecisionMap === "function"
-        ? auditKnowledgeDecisionMap()
+      typeof window.auditKnowledgeDecisionMap === "function"
+        ? window.auditKnowledgeDecisionMap()
         : { ok: false, message: "auditKnowledgeDecisionMap غير متاحة." },
+
     gates:
-      typeof auditDecisionGates === "function"
-        ? auditDecisionGates()
+      typeof window.auditDecisionGates === "function"
+        ? window.auditDecisionGates()
         : { ok: false, message: "auditDecisionGates غير متاحة." },
+
     guards:
-      typeof runGovernanceAuditGuards === "function"
-        ? runGovernanceAuditGuards()
+      typeof window.runGovernanceAuditGuards === "function"
+        ? window.runGovernanceAuditGuards()
         : { ok: false, message: "runGovernanceAuditGuards غير متاحة." }
   };
 
@@ -230,7 +295,7 @@ window.runGovernanceAudit = function () {
 
 
 // ======================================
-// 5) بناء ملخص الحوكمة
+// 6) بناء ملخص الحوكمة
 // ======================================
 
 function buildGovernanceSummary(report) {
@@ -272,59 +337,56 @@ function buildGovernanceSummary(report) {
 
 
 // ======================================
-// 6) مراجعات حوكمية يدوية
+// 7) مراجعات حوكمية يدوية
 // ======================================
 
 window.reviewNewFileRequest = function (request) {
-  if (typeof gateNewFile !== "function") {
+  if (typeof window.gateNewFile !== "function") {
     return {
       ok: false,
       message: "decision-gates.js غير محمّل."
     };
   }
 
-  return gateNewFile(request);
+  return window.gateNewFile(request);
 };
-
 
 window.reviewNewDepartmentRequest = function (request) {
-  if (typeof gateNewDepartment !== "function") {
+  if (typeof window.gateNewDepartment !== "function") {
     return {
       ok: false,
       message: "decision-gates.js غير محمّل."
     };
   }
 
-  return gateNewDepartment(request);
+  return window.gateNewDepartment(request);
 };
 
-
 window.reviewTrainingSampleRequest = function (request) {
-  if (typeof gateTrainingSample !== "function") {
+  if (typeof window.gateTrainingSample !== "function") {
     return {
       ok: false,
       message: "بوابة عينة التدريب غير محمّلة."
     };
   }
 
-  return gateTrainingSample(request);
+  return window.gateTrainingSample(request);
 };
 
-
 window.reviewLabAdoptionRequest = function (request) {
-  if (typeof gateLabAdoption !== "function") {
+  if (typeof window.gateLabAdoption !== "function") {
     return {
       ok: false,
       message: "decision-gates.js غير محمّل."
     };
   }
 
-  return gateLabAdoption(request);
+  return window.gateLabAdoption(request);
 };
 
 
 // ======================================
-// 7) سؤال الحوكمة السريع
+// 8) سؤال الحوكمة السريع
 // ======================================
 
 window.quickGovernanceQuestion = function (idea) {
@@ -343,3 +405,25 @@ window.quickGovernanceQuestion = function (idea) {
     law: "#لا_تعطني_وصفا_اعطني_أثرا"
   };
 };
+
+
+// ======================================
+// 9) زر آمن للوحة الحوكمة
+// ======================================
+
+function addGovernanceButton(container, label, handler) {
+  const btn = document.createElement("button");
+
+  btn.innerText = label;
+
+  btn.onclick = function () {
+    try {
+      handler();
+    } catch (err) {
+      console.error("❌ خطأ في زر الحوكمة:", err);
+      alert("حدث خطأ أثناء تنفيذ الإجراء:\n" + err.message);
+    }
+  };
+
+  container.appendChild(btn);
+}
