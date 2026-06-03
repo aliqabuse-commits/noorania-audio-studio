@@ -2,20 +2,42 @@
 // governance-core/decision-gates.js
 // بوابات القرار — Decision Gates
 // إدارة الحوكمة / السلطة العليا للمشروع
+// نسخة سيادية محدثة تشمل training-core
 // ======================================
 
-console.log("🚦 decision-gates.js جاهز");
+console.log("🚦 decision-gates.js جاهز — Sovereign Governance Mode");
+
 
 // ======================================
-// مبدأ بوابات القرار
+// 1) دستور بوابات القرار
 // ======================================
+
+const DECISION_GATE_CHARTER = {
+  motto: [
+    "#الحوكمة",
+    "#لا_تعطني_وصفا_اعطني_أثرا",
+    "#المعرفة_تخدم_القرار",
+    "#القرار_يراجع_المعرفة",
+    "#كل_شيء_يخدم_الوجهة"
+  ],
+
+  supremeLaw:
+    "لا يمر قرار ولا إضافة ولا إدارة جديدة قبل مراجعة المعرفة والوجهة والأثر.",
+
+  trainingLaw:
+    "لا تتحول العينة الصوتية إلى معرفة إدراكية قبل أن تُسجَّل بوضوح، وتُحفظ بسلام، وتُفحص جودتها، وتُربط بقرار.",
+
+  warning:
+    "أي بوابة لا تسأل عن الأثر ليست بوابة حوكمة، وأي قرار يتجاوز المعرفة المتاحة ليس قرارًا إدراكيًا."
+};
+
 
 const DECISION_GATE_LAW =
-  "لا يمر قرار ولا إضافة ولا إدارة جديدة قبل مراجعة المعرفة والوجهة والأثر.";
+  DECISION_GATE_CHARTER.supremeLaw;
 
 
 // ======================================
-// أنواع البوابات
+// 2) أنواع البوابات
 // ======================================
 
 const DECISION_GATES = {
@@ -29,7 +51,8 @@ const DECISION_GATES = {
       "أي قرار سيستفيد من هذه المعرفة؟",
       "هل يوجد ملف سابق يؤدي الوظيفة نفسها؟",
       "هل الأفضل تطوير ملف موجود بدل إنشاء ملف جديد؟",
-      "إلى أي إدارة ينتمي الملف؟"
+      "إلى أي إدارة ينتمي الملف؟",
+      "هل هذا الملف يلتزم بدستور الحوكمة؟"
     ]
   },
 
@@ -42,7 +65,8 @@ const DECISION_GATES = {
       "هل هذه الإدارة تنتج معرفة مستقلة؟",
       "أي قرارات ستخدمها هذه الإدارة؟",
       "هل تتداخل مع إدارة قائمة؟",
-      "هل يمكن تطوير إدارة قائمة بدل إنشاء إدارة جديدة؟"
+      "هل يمكن تطوير إدارة قائمة بدل إنشاء إدارة جديدة؟",
+      "هل تم تسجيلها في department-registry.js؟"
     ]
   },
 
@@ -59,6 +83,21 @@ const DECISION_GATES = {
     ]
   },
 
+  trainingSampleGate: {
+    id: "training-sample-gate",
+    name: "بوابة عينة التدريب الصوتي",
+    purpose: "منع انتقال التسجيل الخام إلى الإدراك قبل وضوح التسجيل والحفظ والفحص والأثر.",
+    requiredQuestions: [
+      "ما الحرف أو الحقيبة التي تنتمي إليها العينة؟",
+      "هل بدأ التسجيل بإشارة واضحة للمستخدم؟",
+      "هل انتهى التسجيل بإشارة واضحة؟",
+      "هل تم حفظ التسجيل بنجاح؟",
+      "هل فُحصت جودة الإشارة؟",
+      "هل العينة تخدم قرارًا لاحقًا مثل validate-signal أو identify-phoneme؟",
+      "هل تنتمي العملية إلى training-core دون تجاوز phoneme-core أو analysis-core؟"
+    ]
+  },
+
   labAdoptionGate: {
     id: "lab-adoption-gate",
     name: "بوابة اعتماد نتائج المختبر",
@@ -68,7 +107,8 @@ const DECISION_GATES = {
       "أي إدارة ستتبنى هذه المعرفة؟",
       "أي قرار سيتغير بسببها؟",
       "هل النتيجة قابلة للتكرار؟",
-      "هل تحل مشكلة حقيقية أم تضيف وصفًا فقط؟"
+      "هل تحل مشكلة حقيقية أم تضيف وصفًا فقط؟",
+      "هل مرّت النتيجة عبر دستور الحوكمة؟"
     ]
   }
 
@@ -76,13 +116,15 @@ const DECISION_GATES = {
 
 
 // ======================================
-// نتيجة بوابة قياسية
+// 3) نتيجة بوابة قياسية
 // ======================================
 
 function makeGateResult(ok, gateId, message, details) {
   return {
     ok,
     gateId,
+    law: DECISION_GATE_LAW,
+    charterWarning: DECISION_GATE_CHARTER.warning,
     message,
     details: details || {},
     checkedAt: new Date().toISOString()
@@ -91,7 +133,29 @@ function makeGateResult(ok, gateId, message, details) {
 
 
 // ======================================
-// فحص إنشاء ملف جديد
+// 4) أدوات مساعدة
+// ======================================
+
+function isRegisteredDepartment(departmentId) {
+  if (typeof getDepartmentById !== "function") {
+    return null;
+  }
+
+  return !!getDepartmentById(departmentId);
+}
+
+
+function getKnowledgeSupportForDecision(decisionId) {
+  if (typeof getKnowledgeForDecision !== "function") {
+    return null;
+  }
+
+  return getKnowledgeForDecision(decisionId);
+}
+
+
+// ======================================
+// 5) فحص إنشاء ملف جديد
 // ======================================
 
 function gateNewFile(request) {
@@ -111,6 +175,13 @@ function gateNewFile(request) {
 
   if (!request.departmentId) {
     warnings.push("لم يتم تحديد الإدارة التي ينتمي إليها الملف.");
+  }
+
+  if (
+    request.departmentId &&
+    isRegisteredDepartment(request.departmentId) === false
+  ) {
+    warnings.push("الإدارة غير مسجلة رسميًا في department-registry.js: " + request.departmentId);
   }
 
   if (!request.producesKnowledge) {
@@ -142,7 +213,7 @@ function gateNewFile(request) {
 
 
 // ======================================
-// فحص إنشاء إدارة جديدة
+// 6) فحص إنشاء إدارة جديدة
 // ======================================
 
 function gateNewDepartment(request) {
@@ -176,13 +247,20 @@ function gateNewDepartment(request) {
     warnings.push("لم يتم توضيح لماذا لا تكفي الإدارات الحالية.");
   }
 
+  if (
+    request.departmentId &&
+    isRegisteredDepartment(request.departmentId) === true
+  ) {
+    warnings.push("هذه الإدارة مسجلة بالفعل ولا تحتاج إنشاء جديد: " + request.departmentId);
+  }
+
   const ok = warnings.length === 0;
 
   return makeGateResult(
     ok,
     "new-department-gate",
     ok
-      ? "يمكن دراسة إنشاء الإدارة الجديدة."
+      ? "يمكن دراسة إنشاء الإدارة الجديدة بعد عرضها على الحوكمة."
       : "لا تنشأ إدارة جديدة قبل إثبات الحاجة وعدم التداخل.",
     {
       warnings,
@@ -193,7 +271,7 @@ function gateNewDepartment(request) {
 
 
 // ======================================
-// فحص تنفيذ قرار
+// 7) فحص تنفيذ قرار
 // ======================================
 
 function gateDecisionExecution(decisionId) {
@@ -205,16 +283,16 @@ function gateDecisionExecution(decisionId) {
     );
   }
 
-  if (typeof getKnowledgeForDecision !== "function") {
+  const requiredKnowledge =
+    getKnowledgeSupportForDecision(decisionId);
+
+  if (requiredKnowledge === null) {
     return makeGateResult(
       false,
       "decision-execution-gate",
       "خريطة المعرفة والقرار غير محمّلة."
     );
   }
-
-  const requiredKnowledge =
-    getKnowledgeForDecision(decisionId);
 
   if (!requiredKnowledge || !requiredKnowledge.length) {
     return makeGateResult(
@@ -247,7 +325,78 @@ function gateDecisionExecution(decisionId) {
 
 
 // ======================================
-// فحص اعتماد نتيجة مختبر
+// 8) فحص عينة تدريب صوتي
+// ======================================
+
+function gateTrainingSample(request) {
+  const warnings = [];
+
+  if (!request) {
+    return makeGateResult(
+      false,
+      "training-sample-gate",
+      "لا يوجد طلب لفحص عينة التدريب."
+    );
+  }
+
+  if (!request.phonemeKey && !request.trainingPackKey) {
+    warnings.push("لم يتم تحديد الحرف أو حقيبة التدريب.");
+  }
+
+  if (!request.fileName) {
+    warnings.push("لم يتم تحديد اسم ملف التسجيل.");
+  }
+
+  if (request.departmentId && request.departmentId !== "training-core") {
+    warnings.push("عينة التدريب يجب أن تمر عبر training-core لا عبر: " + request.departmentId);
+  }
+
+  if (!request.recordingStartedClearly) {
+    warnings.push("لم يتم إثبات أن التسجيل بدأ بإشارة واضحة.");
+  }
+
+  if (!request.recordingEndedClearly) {
+    warnings.push("لم يتم إثبات أن التسجيل انتهى بإشارة واضحة.");
+  }
+
+  if (!request.saved) {
+    warnings.push("لم يتم إثبات حفظ التسجيل.");
+  }
+
+  if (!request.signalChecked) {
+    warnings.push("لم يتم فحص جودة الإشارة.");
+  }
+
+  if (!request.servesDecision) {
+    warnings.push("لم يتم تحديد القرار الذي ستخدمه العينة.");
+  }
+
+  if (
+    request.servesDecision &&
+    !["prepare-training-sample", "validate-signal", "identify-phoneme"].includes(request.servesDecision)
+  ) {
+    warnings.push("قرار العينة غير معروف ضمن قرارات التدريب المصرح بها: " + request.servesDecision);
+  }
+
+  const ok = warnings.length === 0;
+
+  return makeGateResult(
+    ok,
+    "training-sample-gate",
+    ok
+      ? "عينة التدريب مستوفية لشروط المرور إلى الإدراك أو الفحص."
+      : "لا تمر عينة التدريب قبل استكمال شروط التسجيل والحفظ والفحص والأثر.",
+    {
+      law: DECISION_GATE_CHARTER.trainingLaw,
+      warnings,
+      request
+    }
+  );
+}
+
+
+// ======================================
+// 9) فحص اعتماد نتيجة مختبر
 // ======================================
 
 function gateLabAdoption(request) {
@@ -273,6 +422,13 @@ function gateLabAdoption(request) {
     warnings.push("لم يتم تحديد الإدارة التي ستتبنى نتيجة المختبر.");
   }
 
+  if (
+    request.targetDepartment &&
+    isRegisteredDepartment(request.targetDepartment) === false
+  ) {
+    warnings.push("الإدارة المستهدفة غير مسجلة رسميًا: " + request.targetDepartment);
+  }
+
   if (!request.changedDecision) {
     warnings.push("لم يتم تحديد القرار الذي سيتغير بسبب النتيجة.");
   }
@@ -287,7 +443,7 @@ function gateLabAdoption(request) {
     ok,
     "lab-adoption-gate",
     ok
-      ? "يمكن اعتماد نتيجة المختبر وتحويلها إلى معرفة تشغيلية."
+      ? "يمكن اعتماد نتيجة المختبر وتحويلها إلى معرفة تشغيلية بعد توثيقها."
       : "لا تعتمد نتيجة المختبر قبل إثبات أثرها وربطها بإدارة وقرار.",
     {
       warnings,
@@ -298,13 +454,47 @@ function gateLabAdoption(request) {
 
 
 // ======================================
-// تصدير عام
+// 10) فحص شامل للبوابات
 // ======================================
 
+function auditDecisionGates() {
+  const report = {
+    charter: DECISION_GATE_CHARTER,
+    status: "audited",
+    createdAt: new Date().toISOString(),
+    gates: Object.keys(DECISION_GATES),
+    gateCount: Object.keys(DECISION_GATES).length,
+    warnings: []
+  };
+
+  if (!DECISION_GATES.trainingSampleGate) {
+    report.warnings.push("بوابة عينة التدريب غير موجودة.");
+  }
+
+  if (typeof getKnowledgeForDecision !== "function") {
+    report.warnings.push("خريطة المعرفة والقرار غير محمّلة.");
+  }
+
+  if (typeof getDepartmentById !== "function") {
+    report.warnings.push("سجل الإدارات غير محمّل.");
+  }
+
+  console.log("🚦 تقرير بوابات القرار:", report);
+  return report;
+}
+
+
+// ======================================
+// 11) تصدير عام
+// ======================================
+
+window.DECISION_GATE_CHARTER = DECISION_GATE_CHARTER;
 window.DECISION_GATE_LAW = DECISION_GATE_LAW;
 window.DECISION_GATES = DECISION_GATES;
 
 window.gateNewFile = gateNewFile;
 window.gateNewDepartment = gateNewDepartment;
 window.gateDecisionExecution = gateDecisionExecution;
+window.gateTrainingSample = gateTrainingSample;
 window.gateLabAdoption = gateLabAdoption;
+window.auditDecisionGates = auditDecisionGates;
