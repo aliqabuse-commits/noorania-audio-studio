@@ -34,7 +34,7 @@ window.NOORANIYA_PHONEME_CORE = {
     "phoneme-core/phoneme-cognitive-engine.js",
     "phoneme-core/phoneme-color-memory.js",
     "phoneme-core/phoneme-colors.js",
-    "phoneme-core/phoneme-report-manager.js",
+    "phoneme-core/phoneme-report-manager.js?v=20260603-1",
     "phoneme-core/phoneme-training-pack.js",
     "phoneme-core/phoneme-identity-engine.js",
     "phoneme-core/phoneme-match-engine.js",
