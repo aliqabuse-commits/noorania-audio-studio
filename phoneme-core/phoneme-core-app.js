@@ -209,11 +209,7 @@ window.renderPhonemeCorePanel = function (containerId) {
     container,
     "🧠 عرض الحقائب الإدراكية",
     function () {
-      renderPhonemeCardsFromCore();
-
-      if (typeof window.showNooraniyaView === "function") {
-        window.showNooraniyaView("perceptualTrainingView");
-      }
+      window.openPhonemeBagsView();
     }
   );
 
@@ -513,4 +509,25 @@ window.safeOpenPhonemeReport = function (type, key) {
     "نوع التقرير: " + type + "\n" +
     "الحقيبة: " + key
   );
+};
+
+
+// ======================================
+// 12) فتح صفحة الحقائب الإدراكية بأمان
+// يفتح الصفحة أولًا ثم يبني الحقائب داخلها
+// ======================================
+
+window.openPhonemeBagsView = function () {
+  if (typeof window.showNooraniyaView === "function") {
+    window.showNooraniyaView("perceptualTrainingView");
+  } else if (typeof window.openView === "function") {
+    window.openView("perceptualTrainingView");
+  } else {
+    alert("دالة فتح الصفحات غير متاحة.");
+    return;
+  }
+
+  setTimeout(function () {
+    renderPhonemeCardsFromCore();
+  }, 50);
 };
