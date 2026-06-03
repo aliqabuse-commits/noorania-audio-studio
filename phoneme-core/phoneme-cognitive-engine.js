@@ -106,7 +106,8 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
     };
 
     localStorage.setItem(phonemeKey + "_cognitive_identity", JSON.stringify(identity));
-    
+    const cumulativeMemory = updatePhonemeCumulativeMemory(phonemeKey, identity);
+localStorage.setItem(phonemeKey + "_perceptual_identity", JSON.stringify(cumulativeMemory));
     renderCognitiveReport(identity);
     return identity;
 
@@ -444,5 +445,105 @@ window.getStoredAudio = getStoredAudio;
 // التعديل 2: إتاحة دالة renderCognitiveReport للمدير الموحد
 // ======================================
 window.renderCognitiveReport = renderCognitiveReport;
+// ======================================
+// الذاكرة التراكمية لجينوم الحرف
+// لا تُمسح عند إعادة التسجيل
+// ======================================
 
+function updatePhonemeCumulativeMemory(phonemeKey, identity) {
+  const storageKey = phonemeKey + "_cumulative_memory";
+
+  const oldMemoryRaw = localStorage.getItem(storageKey);
+  const oldMemory = oldMemoryRaw ? JSON.parse(oldMemoryRaw) : null;
+
+  const sample = {
+    id: phonemeKey + "_" + Date.now(),
+    createdAt: new Date().toISOString(),
+    source: "cognitive-identity",
+    phonemeKey: phonemeKey,
+    phoneme: identity.phoneme,
+    label: identity.label,
+    units: identity.units || [],
+    genome: identity.genome || {}
+  };
+
+  const memory = oldMemory || {
+    method: "Noorani Cumulative Phoneme Memory V1",
+    phonemeKey: phonemeKey,
+    phoneme: identity.phoneme,
+    label: identity.label,
+    color: identity.color,
+    samplesCount: 0,
+    samples: [],
+    cumulativeGenome: {},
+    createdAt: new Date().toISOString(),
+    updatedAt: null
+  };
+
+  memory.samples.push(sample);
+  memory.samplesCount = memory.samples.length;
+  memory.updatedAt = new Date().toISOString();
+  memory.cumulativeGenome = buildCumulativeGenomeFromSamples(memory.samples);
+
+  localStorage.setItem(storageKey, JSON.stringify(memory));
+
+  return memory;
+}
+
+
+function buildCumulativeGenomeFromSamples(samples) {
+  const keys = [
+    "duration",
+    "energy",
+    "zcr",
+    "centroid",
+    "spread",
+    "burstEnergy",
+    "burstCentroid",
+    "burstSpread",
+    "energyMovement",
+    "spectralMovement"
+  ];
+
+  const result = {};
+
+  keys.forEach(function (key) {
+    const values = [];
+
+    samples.forEach(function (sample) {
+      if (
+        sample.genome &&
+        sample.genome[key] &&
+        typeof sample.genome[key].mean === "number"
+      ) {
+        values.push(sample.genome[key].mean);
+      }
+    });
+
+    result[key] = cumulativeStat(values);
+  });
+
+  return result;
+}
+
+
+function cumulativeStat(values) {
+  if (!values.length) {
+    return {
+      samplesCount: 0,
+      mean: 0,
+      variance: 0,
+      min: 0,
+      max: 0
+    };
+  }
+
+  return {
+    samplesCount: values.length,
+    mean: roundCognitive(avgCognitive(values)),
+    variance: roundCognitive(varCognitive(values)),
+    min: roundCognitive(Math.min.apply(null, values)),
+    max: roundCognitive(Math.max.apply(null, values))
+  };
+}
 console.log("🧠 المحرك الإدراكي المركزي جاهز V3 كامل");
