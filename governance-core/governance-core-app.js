@@ -215,11 +215,45 @@ window.renderGovernanceCorePanel = function (containerId) {
     "<br><span style='color:#94a3b8;'>الحوكمة تفحص ولا تشغل المحركات.</span>";
 
   container.appendChild(statusBox);
+function renderGovernanceResult(title, data) {
+  let box = document.getElementById("governance-result-box");
 
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "governance-result-box";
+    box.style.background = "#020617";
+    box.style.color = "#e5e7eb";
+    box.style.border = "1px solid #38bdf8";
+    box.style.borderRadius = "12px";
+    box.style.padding = "12px";
+    box.style.margin = "16px auto";
+    box.style.width = "92%";
+    box.style.maxHeight = "420px";
+    box.style.overflow = "auto";
+    box.style.direction = "ltr";
+    box.style.textAlign = "left";
+
+    const container = document.getElementById("governance-actions");
+    if (container) container.appendChild(box);
+  }
+
+  box.innerHTML =
+    "<h3 style='direction:rtl;text-align:right;color:#38bdf8;'>" +
+    title +
+    "</h3><pre style='white-space:pre-wrap;font-size:12px;'>" +
+    JSON.stringify(data, null, 2) +
+    "</pre>";
+
+  box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
   addGovernanceButton(container, "🏛️ تقرير الحوكمة العام", function () {
-    if (typeof window.runGovernanceAudit === "function") window.runGovernanceAudit();
-    else alert("runGovernanceAudit غير متاحة.");
-  });
+  if (typeof window.runGovernanceAudit === "function") {
+    const report = window.runGovernanceAudit();
+    renderGovernanceResult("🏛️ تقرير الحوكمة العام", report);
+  } else {
+    alert("runGovernanceAudit غير متاحة.");
+  }
+});
 
   addGovernanceButton(container, "🧭 فحص سجل الإدارات", function () {
     if (typeof window.auditDepartmentRegistry === "function") window.auditDepartmentRegistry();
