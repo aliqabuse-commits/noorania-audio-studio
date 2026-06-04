@@ -1,11 +1,30 @@
 // ================================
 // phoneme-core/phoneme-cognitive-engine.js
-// المحرك الإدراكي المركزي للحرف — V4
-// يبني الجينوم + يحفظ ذاكرة تراكمية للحرف
-// لا يمسح الذاكرة القديمة عند إعادة التسجيل
+// المحرك الإدراكي المركزي للحرف — V5
+// خدمة القرار + الحوكمة + خلية النحل
+// يبني:
+// 1) جينوم مركزي عام
+// 2) جينوم مستقل لكل حالة
+// 3) تقرير قرار إدراكي
+// 4) أثرًا في الذاكرة التراكمية دون مسح القديم
 // ================================
 
-console.log("🧠 phoneme-cognitive-engine.js جاهز V4 — Cumulative Memory Safe");
+console.log("🧠 phoneme-cognitive-engine.js جاهز V5 — Decision Governed Cognitive Engine");
+
+const COGNITIVE_ENGINE_VERSION = "V5-decision-governed";
+
+const COGNITIVE_FEATURE_KEYS = [
+  "duration",
+  "energy",
+  "zcr",
+  "centroid",
+  "spread",
+  "burstEnergy",
+  "burstCentroid",
+  "burstSpread",
+  "energyMovement",
+  "spectralMovement"
+];
 
 
 // ======================================
@@ -19,25 +38,23 @@ async function getStoredAudio(fileName) {
 
     if (blob) {
       console.log("✅ from getAudioPromiseForMemory:", fileName, blob);
-
-      // حفظ نسخة احتياطية في localStorage إن أمكن
       persistAudioBlobBackup(fileName, blob);
-
       return blob;
     }
   }
 
   const dataUrl =
     localStorage.getItem("audio_" + fileName) ||
-    localStorage.getItem(fileName);
+    localStorage.getItem(fileName) ||
+    localStorage.getItem("record_" + fileName);
 
   console.log(
     "📦 from localStorage:",
     fileName,
-    dataUrl ? dataUrl.substring(0, 40) : null
+    dataUrl ? String(dataUrl).substring(0, 40) : null
   );
 
-  if (dataUrl && dataUrl.startsWith("data:")) {
+  if (dataUrl && String(dataUrl).startsWith("data:")) {
     return cognitiveDataUrlToBlob(dataUrl);
   }
 
@@ -47,7 +64,6 @@ async function getStoredAudio(fileName) {
 
 // ======================================
 // 2) حفظ نسخة احتياطية من التسجيل
-// حتى يبقى بعد تحديث الصفحة
 // ======================================
 function persistAudioBlobBackup(fileName, blob) {
   try {
@@ -66,7 +82,7 @@ function persistAudioBlobBackup(fileName, blob) {
         if (typeof dataUrl === "string" && dataUrl.startsWith("data:")) {
           localStorage.setItem("audio_" + fileName, dataUrl);
           localStorage.setItem(fileName, dataUrl);
-          console.log("💾 تم حفظ نسخة احتياطية للتسجيل:", fileName);
+          console.log("💾 تم تثبيت نسخة التسجيل:", fileName);
         }
       } catch (err) {
         console.warn("⚠️ تعذر حفظ التسجيل احتياطيًا:", fileName, err);
@@ -160,14 +176,18 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
 
       const phases = detectCognitivePhases(timeline);
       const summary = summarizeCognitiveTimeline(timeline, phases);
+      const decisionTrace = buildUnitDecisionTrace(unit, summary, phases);
 
       cognitiveUnits.push({
+        id: unit.id || unit.file.replace(/\.[^.]+$/, ""),
         text: unit.text,
         file: unit.file,
         role: unit.role,
+        description: unit.description || "",
         timeline,
         phases,
-        summary
+        summary,
+        decisionTrace
       });
     }
 
@@ -176,8 +196,26 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
       return null;
     }
 
+    const genome = buildCognitiveGenome(cognitiveUnits);
+    const genomeByState = buildCognitiveGenomeByState(cognitiveUnits);
+    const familyDecision =
+      typeof buildFamilyDecisionForPhoneme === "function"
+        ? buildFamilyDecisionForPhoneme(phonemeKey, pack)
+        : buildFallbackFamilyDecision(phonemeKey, pack);
+
+    const governance = buildCognitiveGovernanceDecision({
+      phonemeKey,
+      pack,
+      cognitiveUnits,
+      genome,
+      genomeByState,
+      familyDecision,
+      oldMemory
+    });
+
     const identity = {
-      method: "Noorani Central Cognitive Engine V4",
+      method: "Noorani Central Cognitive Engine V5",
+      version: COGNITIVE_ENGINE_VERSION,
       phonemeKey,
       key: phonemeKey,
       phoneme,
@@ -193,15 +231,21 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
 
       units: cognitiveUnits.map(function (u) {
         return {
+          id: u.id,
           text: u.text,
           file: u.file,
           role: u.role,
+          description: u.description,
           phases: u.phases,
-          summary: u.summary
+          summary: u.summary,
+          decisionTrace: u.decisionTrace
         };
       }),
 
-      genome: buildCognitiveGenome(cognitiveUnits),
+      genome,
+      genomeByState,
+      familyDecision,
+      governance,
       createdAt: new Date().toISOString()
     };
 
@@ -224,46 +268,44 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
 function saveCognitiveIdentityAndCumulativeMemory(phonemeKey, identity) {
   localStorage.setItem(
     phonemeKey + "_cognitive_identity",
-    JSON.stringify(identity)
+    JSON.stringify(identity, null, 2)
   );
 
-  const cumulativeMemory = updatePhonemeCumulativeMemory(
-    phonemeKey,
-    identity
-  );
+  let cumulativeMemory = null;
 
-  // مفاتيح متعددة لمنع ضياع الذاكرة بسبب اختلاف أسماء الملفات
-  localStorage.setItem(
-    phonemeKey + "_cumulative_memory",
-    JSON.stringify(cumulativeMemory)
-  );
+  if (typeof addCognitiveIdentityToCumulativeMemory === "function") {
+    cumulativeMemory = addCognitiveIdentityToCumulativeMemory(
+      phonemeKey,
+      identity
+    );
+  } else {
+    cumulativeMemory = updatePhonemeCumulativeMemory(phonemeKey, identity);
+  }
 
-  localStorage.setItem(
-    phonemeKey + "_perceptual_identity",
-    JSON.stringify(cumulativeMemory)
-  );
-
-  localStorage.setItem(
-    phonemeKey + "_memory",
-    JSON.stringify(cumulativeMemory)
-  );
-
-  localStorage.setItem(
-    "phoneme_memory_" + phonemeKey,
-    JSON.stringify(cumulativeMemory)
-  );
-
-  localStorage.setItem(
-    "cognitive_memory_" + phonemeKey,
-    JSON.stringify(cumulativeMemory)
-  );
+  saveMemoryUnderKnownKeys(phonemeKey, cumulativeMemory);
 
   console.log("💾 تم حفظ الجينوم والذاكرة التراكمية:", {
     phonemeKey,
-    samplesCount: cumulativeMemory.samplesCount
+    samplesCount: cumulativeMemory.samplesCount,
+    decision: identity.governance?.decision
   });
 
   return cumulativeMemory;
+}
+
+
+function saveMemoryUnderKnownKeys(phonemeKey, memory) {
+  const value = JSON.stringify(memory, null, 2);
+
+  [
+    phonemeKey + "_cumulative_memory",
+    phonemeKey + "_perceptual_identity",
+    phonemeKey + "_memory",
+    "phoneme_memory_" + phonemeKey,
+    "cognitive_memory_" + phonemeKey
+  ].forEach(function (key) {
+    localStorage.setItem(key, value);
+  });
 }
 
 
@@ -297,13 +339,13 @@ function getAnyStoredPhonemeMemory(phonemeKey) {
 
 // ======================================
 // 6) تحديث الذاكرة التراكمية للحرف
-// لا يمسح القديم عند إعادة التسجيل
+// احتياطيًا إلى حين وجود phoneme-cumulative-memory.js
 // ======================================
 function updatePhonemeCumulativeMemory(phonemeKey, identity) {
   const oldMemory = getAnyStoredPhonemeMemory(phonemeKey);
 
   const sample = {
-    id: phonemeKey + "_" + Date.now(),
+    id: phonemeKey + "_cognitive_" + Date.now(),
     createdAt: new Date().toISOString(),
     source: "cognitive-identity",
     phonemeKey,
@@ -311,11 +353,13 @@ function updatePhonemeCumulativeMemory(phonemeKey, identity) {
     phoneme: identity.phoneme,
     label: identity.label,
     units: identity.units || [],
-    genome: identity.genome || {}
+    genome: identity.genome || {},
+    genomeByState: identity.genomeByState || {},
+    governance: identity.governance || {}
   };
 
   const memory = oldMemory || {
-    method: "Noorani Cumulative Phoneme Memory V1",
+    method: "Noorani Cumulative Phoneme Memory V2",
     phonemeKey,
     key: phonemeKey,
     phoneme: identity.phoneme,
@@ -326,7 +370,9 @@ function updatePhonemeCumulativeMemory(phonemeKey, identity) {
     samples: [],
     attemptHistory: [],
     cumulativeGenome: {},
+    cumulativeGenomeByState: {},
     latestIdentity: null,
+    latestGovernance: null,
     createdAt: new Date().toISOString(),
     updatedAt: null
   };
@@ -339,17 +385,23 @@ function updatePhonemeCumulativeMemory(phonemeKey, identity) {
   memory.attemptHistory.push({
     id: sample.id,
     createdAt: sample.createdAt,
+    source: sample.source,
     unitsCount: sample.units.length,
-    accepted: true,
+    accepted: identity.governance?.decision !== "rejected",
+    decision: identity.governance?.decision || "unknown",
+    decisionReason: identity.governance?.reason || "",
     genomeKeys: Object.keys(sample.genome || {})
   });
 
   memory.samplesCount = memory.samples.length;
   memory.latestIdentity = identity;
+  memory.latestGovernance = identity.governance || null;
   memory.color = identity.color;
   memory.pack = identity.pack;
   memory.updatedAt = new Date().toISOString();
   memory.cumulativeGenome = buildCumulativeGenomeFromSamples(memory.samples);
+  memory.cumulativeGenomeByState =
+    buildCumulativeGenomeByStateFromSamples(memory.samples);
 
   return memory;
 }
@@ -359,22 +411,9 @@ function updatePhonemeCumulativeMemory(phonemeKey, identity) {
 // 7) بناء الجينوم التراكمي من العينات السابقة
 // ======================================
 function buildCumulativeGenomeFromSamples(samples) {
-  const keys = [
-    "duration",
-    "energy",
-    "zcr",
-    "centroid",
-    "spread",
-    "burstEnergy",
-    "burstCentroid",
-    "burstSpread",
-    "energyMovement",
-    "spectralMovement"
-  ];
-
   const result = {};
 
-  keys.forEach(function (key) {
+  COGNITIVE_FEATURE_KEYS.forEach(function (key) {
     const values = [];
 
     samples.forEach(function (sample) {
@@ -385,9 +424,57 @@ function buildCumulativeGenomeFromSamples(samples) {
       ) {
         values.push(sample.genome[key].mean);
       }
+
+      if (
+        sample.identity &&
+        sample.identity.perceptualSignature &&
+        sample.identity.perceptualSignature[key] &&
+        typeof sample.identity.perceptualSignature[key].mean === "number"
+      ) {
+        values.push(sample.identity.perceptualSignature[key].mean);
+      }
     });
 
     result[key] = cumulativeStat(values);
+  });
+
+  return result;
+}
+
+
+function buildCumulativeGenomeByStateFromSamples(samples) {
+  const byState = {};
+
+  samples.forEach(function (sample) {
+    const src = sample.genomeByState || {};
+
+    Object.keys(src).forEach(function (stateKey) {
+      if (!byState[stateKey]) byState[stateKey] = {};
+
+      COGNITIVE_FEATURE_KEYS.forEach(function (featureKey) {
+        const stat = src[stateKey][featureKey];
+
+        if (!stat || typeof stat.mean !== "number") return;
+
+        if (!byState[stateKey][featureKey]) {
+          byState[stateKey][featureKey] = [];
+        }
+
+        byState[stateKey][featureKey].push(stat.mean);
+      });
+    });
+  });
+
+  const result = {};
+
+  Object.keys(byState).forEach(function (stateKey) {
+    result[stateKey] = {};
+
+    Object.keys(byState[stateKey]).forEach(function (featureKey) {
+      result[stateKey][featureKey] = cumulativeStat(
+        byState[stateKey][featureKey]
+      );
+    });
   });
 
   return result;
@@ -463,8 +550,8 @@ async function decodeCognitiveBlob(blob) {
 // 9) بناء المسار والتحليل
 // ======================================
 function buildCognitiveTimeline(samples, sampleRate) {
-  const frameSize = Math.floor(sampleRate * 0.010);
-  const hopSize = Math.floor(sampleRate * 0.010);
+  const frameSize = Math.max(128, Math.floor(sampleRate * 0.010));
+  const hopSize = Math.max(64, Math.floor(sampleRate * 0.005));
   const timeline = [];
 
   for (
@@ -494,18 +581,7 @@ function buildCognitiveTimeline(samples, sampleRate) {
 
 function detectCognitivePhases(timeline) {
   if (!timeline.length) {
-    return {
-      onset: null,
-      burst: null,
-      coreStart: null,
-      coreEnd: null,
-      tail: null,
-      onsetIndex: 0,
-      burstIndex: 0,
-      coreStartIndex: 0,
-      coreEndIndex: 0,
-      tailIndex: 0
-    };
+    return emptyCognitivePhases();
   }
 
   const energies = timeline.map(function (f) {
@@ -513,7 +589,9 @@ function detectCognitivePhases(timeline) {
   });
 
   const maxEnergy = Math.max.apply(null, energies);
-  const threshold = maxEnergy * 0.18;
+  const noiseFloor = percentileCognitive(energies, 0.15);
+  const dynamic = Math.max(0, maxEnergy - noiseFloor);
+  const threshold = noiseFloor + dynamic * 0.22;
 
   let onsetIndex = 0;
 
@@ -525,7 +603,7 @@ function detectCognitivePhases(timeline) {
   }
 
   let burstIndex = onsetIndex;
-  let maxRise = 0;
+  let maxRise = -Infinity;
 
   for (let i = onsetIndex + 1; i < timeline.length; i++) {
     const rise = timeline[i].energy - timeline[i - 1].energy;
@@ -537,12 +615,20 @@ function detectCognitivePhases(timeline) {
   }
 
   let endIndex = timeline.length - 1;
+  const releaseThreshold = noiseFloor + dynamic * 0.14;
 
-  for (let i = timeline.length - 1; i >= 0; i--) {
-    if (timeline[i].energy >= threshold) {
+  for (let i = timeline.length - 1; i >= onsetIndex; i--) {
+    if (timeline[i].energy >= releaseThreshold) {
       endIndex = i;
       break;
     }
+  }
+
+  const activeLength = Math.max(1, endIndex - onsetIndex + 1);
+  const maxActiveFrames = Math.max(8, Math.round(timeline.length * 0.65));
+
+  if (activeLength > maxActiveFrames) {
+    endIndex = Math.min(timeline.length - 1, onsetIndex + maxActiveFrames);
   }
 
   const coreStart = Math.min(burstIndex + 1, endIndex);
@@ -558,7 +644,25 @@ function detectCognitivePhases(timeline) {
     burstIndex,
     coreStartIndex: coreStart,
     coreEndIndex: coreEnd,
-    tailIndex: endIndex
+    tailIndex: endIndex,
+    threshold: roundCognitive(threshold),
+    noiseFloor: roundCognitive(noiseFloor)
+  };
+}
+
+
+function emptyCognitivePhases() {
+  return {
+    onset: null,
+    burst: null,
+    coreStart: null,
+    coreEnd: null,
+    tail: null,
+    onsetIndex: 0,
+    burstIndex: 0,
+    coreStartIndex: 0,
+    coreEndIndex: 0,
+    tailIndex: 0
   };
 }
 
@@ -584,8 +688,30 @@ function summarizeCognitiveTimeline(timeline, phases) {
     burstCentroid: roundCognitive(burstFrame.centroid || 0),
     burstSpread: roundCognitive(burstFrame.spread || 0),
     energyMovement: roundCognitive(movementCognitive(active.map(f => f.energy))),
-    spectralMovement: roundCognitive(movementCognitive(active.map(f => f.centroid)))
+    spectralMovement: roundCognitive(movementCognitive(active.map(f => f.centroid))),
+    activeFrames: active.length,
+    phaseQuality: scorePhaseQuality(active, phases)
   };
+}
+
+
+function scorePhaseQuality(active, phases) {
+  if (!active.length) return 0;
+
+  const durationFrames = active.length;
+  const hasOrder =
+    phases.onsetIndex <= phases.burstIndex &&
+    phases.burstIndex <= phases.coreStartIndex &&
+    phases.coreStartIndex <= phases.coreEndIndex &&
+    phases.coreEndIndex <= phases.tailIndex;
+
+  let score = hasOrder ? 0.55 : 0.2;
+
+  if (durationFrames >= 4) score += 0.2;
+  if (durationFrames <= 160) score += 0.15;
+  if ((phases.tailIndex - phases.onsetIndex) > 0) score += 0.1;
+
+  return roundCognitive(Math.min(1, score));
 }
 
 
@@ -594,23 +720,156 @@ function buildCognitiveGenome(units) {
     return u.summary;
   });
 
+  const genome = {};
+
+  COGNITIVE_FEATURE_KEYS.forEach(function (key) {
+    const fieldName =
+      key === "energy" ? "meanEnergy" :
+      key === "zcr" ? "meanZcr" :
+      key === "centroid" ? "meanCentroid" :
+      key === "spread" ? "meanSpread" :
+      key;
+
+    genome[key] = statCognitive(
+      summaries.map(function (s) {
+        return s[fieldName];
+      })
+    );
+  });
+
+  genome.phaseQuality = statCognitive(
+    summaries.map(function (s) {
+      return s.phaseQuality || 0;
+    })
+  );
+
+  return genome;
+}
+
+
+function buildCognitiveGenomeByState(units) {
+  const byState = {};
+
+  units.forEach(function (unit) {
+    const key = unit.id || unit.file.replace(/\.[^.]+$/, "");
+    const summary = unit.summary;
+
+    byState[key] = {
+      text: unit.text,
+      role: unit.role,
+      file: unit.file,
+      duration: statCognitive([summary.duration]),
+      energy: statCognitive([summary.meanEnergy]),
+      zcr: statCognitive([summary.meanZcr]),
+      centroid: statCognitive([summary.meanCentroid]),
+      spread: statCognitive([summary.meanSpread]),
+      burstEnergy: statCognitive([summary.burstEnergy]),
+      burstCentroid: statCognitive([summary.burstCentroid]),
+      burstSpread: statCognitive([summary.burstSpread]),
+      energyMovement: statCognitive([summary.energyMovement]),
+      spectralMovement: statCognitive([summary.spectralMovement]),
+      phaseQuality: statCognitive([summary.phaseQuality || 0])
+    };
+  });
+
+  return byState;
+}
+
+
+// ======================================
+// 10) خدمة القرار والحوكمة
+// ======================================
+function buildUnitDecisionTrace(unit, summary, phases) {
+  const warnings = [];
+
+  if (summary.duration > 1.2) warnings.push("active-duration-too-long");
+  if (summary.phaseQuality < 0.65) warnings.push("weak-phase-quality");
+  if (summary.burstEnergy <= 0) warnings.push("missing-burst-energy");
+  if (!Number.isFinite(summary.meanCentroid)) warnings.push("invalid-centroid");
+
   return {
-    duration: statCognitive(summaries.map(s => s.duration)),
-    energy: statCognitive(summaries.map(s => s.meanEnergy)),
-    zcr: statCognitive(summaries.map(s => s.meanZcr)),
-    centroid: statCognitive(summaries.map(s => s.meanCentroid)),
-    spread: statCognitive(summaries.map(s => s.meanSpread)),
-    burstEnergy: statCognitive(summaries.map(s => s.burstEnergy)),
-    burstCentroid: statCognitive(summaries.map(s => s.burstCentroid)),
-    burstSpread: statCognitive(summaries.map(s => s.burstSpread)),
-    energyMovement: statCognitive(summaries.map(s => s.energyMovement)),
-    spectralMovement: statCognitive(summaries.map(s => s.spectralMovement))
+    unit: unit.id || unit.file,
+    role: unit.role,
+    text: unit.text,
+    phaseQuality: summary.phaseQuality,
+    warnings,
+    usableForDecision: warnings.length === 0
+  };
+}
+
+
+function buildFallbackFamilyDecision(phonemeKey, pack) {
+  return {
+    source: "fallback",
+    phonemeKey,
+    family: pack?.traits || {},
+    competitors: [],
+    decisiveTraits: [],
+    note:
+      "لم يتم تحميل phoneme-family-map.js بعد؛ القرار العائلي غير مكتمل."
+  };
+}
+
+
+function buildCognitiveGovernanceDecision(ctx) {
+  const unitsCount = ctx.cognitiveUnits.length;
+  const weakUnits = ctx.cognitiveUnits.filter(function (u) {
+    return !u.decisionTrace.usableForDecision;
+  });
+
+  const hasStateGenome =
+    ctx.genomeByState && Object.keys(ctx.genomeByState).length === unitsCount;
+
+  const familyHasCompetitors =
+    ctx.familyDecision &&
+    Array.isArray(ctx.familyDecision.competitors) &&
+    ctx.familyDecision.competitors.length > 0;
+
+  const phaseMean = ctx.genome.phaseQuality?.mean || 0;
+
+  let decision = "provisional";
+  let reason = "الجينوم صالح للتشغيل، لكنه ينتظر اكتمال المقارنة العائلية والذاكرة.";
+
+  if (!unitsCount) {
+    decision = "rejected";
+    reason = "لا توجد وحدات صالحة.";
+  } else if (weakUnits.length > 0) {
+    decision = "needs-review";
+    reason = "بعض الوحدات ذات مراحل زمنية ضعيفة وتحتاج مراجعة.";
+  } else if (!familyHasCompetitors) {
+    decision = "not-certified";
+    reason = "لا توجد عائلة مقارنة؛ لا يجوز اعتماد الفصل النهائي.";
+  } else if (phaseMean >= 0.75 && hasStateGenome) {
+    decision = "usable-for-comparison";
+    reason = "الجينوم صالح للدخول في مقارنة عائلية، لا للاعتماد النهائي وحده.";
+  }
+
+  return {
+    authority: "governance-core",
+    department: "phoneme-core",
+    decision,
+    reason,
+    unitsCount,
+    weakUnits: weakUnits.map(function (u) {
+      return {
+        file: u.file,
+        warnings: u.decisionTrace.warnings
+      };
+    }),
+    evidence: {
+      hasStateGenome,
+      familyHasCompetitors,
+      phaseQualityMean: phaseMean,
+      memorySamplesCount: ctx.oldMemory?.samplesCount || 0
+    },
+    principle:
+      "الجينوم لا يعتمد الحرف وحده؛ القرار يراجع العائلة والذاكرة والزمن."
   };
 }
 
 
 // ======================================
-// 10) عرض تقرير الجينوم
+// 11) عرض تقرير الجينوم
 // ======================================
 function renderCognitiveReport(identity) {
   const g = identity.genome;
@@ -620,10 +879,12 @@ function renderCognitiveReport(identity) {
       🧠 الجينوم الإدراكي المركزي لحرف ${identity.label}
     </h3>
 
-    <div style="font-size:14px;">
+    <div style="font-size:14px;line-height:1.8;">
       <div>الحرف: <b>${identity.phoneme}</b></div>
       <div>المفتاح: <b>${identity.phonemeKey}</b></div>
       <div>اللون: <b style="color:${identity.color.hex};">${identity.color.name}</b></div>
+      <div>حكم الحوكمة: <b style="color:#facc15;">${identity.governance.decision}</b></div>
+      <div>سبب الحكم: ${identity.governance.reason}</div>
     </div>
 
     <hr style="border-color:#1f2937; margin:12px 0;">
@@ -635,12 +896,15 @@ function renderCognitiveReport(identity) {
       <div>الحركة الطيفية: <b style="color:white;">${g.spectralMovement.mean}</b></div>
       <div>حركة الطاقة: <b style="color:white;">${g.energyMovement.mean}</b></div>
       <div>طاقة الانفجار: <b style="color:white;">${g.burstEnergy.mean}</b></div>
+      <div>جودة المراحل: <b style="color:white;">${g.phaseQuality.mean}</b></div>
+      <div>عدد جينومات الحالات: <b style="color:white;">${Object.keys(identity.genomeByState || {}).length}</b></div>
     </div>
 
     <hr style="border-color:#1f2937; margin:12px 0;">
 
-    <div style="font-size:12px; color:#94a3b8;">
-      هذا التقرير يبني آخر جينوم مركزي، ثم يضيفه إلى ذاكرة تراكمية لا تُمسح عند إعادة التسجيل.
+    <div style="font-size:12px; color:#94a3b8; line-height:1.8;">
+      هذا التقرير يبني آخر جينوم مركزي، وجينومًا لكل حالة، ثم يضيفه إلى ذاكرة تراكمية.
+      لا يعتمد الحرف وحده؛ بل يترك الاعتماد للمقارنة العائلية والذاكرة والحوكمة.
     </div>
   `;
 
@@ -653,7 +917,7 @@ function renderCognitiveReport(identity) {
 
 
 // ======================================
-// 11) أدوات رياضية
+// 12) أدوات رياضية
 // ======================================
 function cognitiveRms(frame) {
   if (!frame.length) return 0;
@@ -753,11 +1017,24 @@ function movementCognitive(values) {
 
 
 function statCognitive(values) {
+  const clean = values.filter(function (v) {
+    return typeof v === "number" && Number.isFinite(v);
+  });
+
+  if (!clean.length) {
+    return {
+      mean: 0,
+      variance: 0,
+      min: 0,
+      max: 0
+    };
+  }
+
   return {
-    mean: roundCognitive(avgCognitive(values)),
-    variance: roundCognitive(varCognitive(values)),
-    min: roundCognitive(Math.min.apply(null, values)),
-    max: roundCognitive(Math.max.apply(null, values))
+    mean: roundCognitive(avgCognitive(clean)),
+    variance: roundCognitive(varCognitive(clean)),
+    min: roundCognitive(Math.min.apply(null, clean)),
+    max: roundCognitive(Math.max.apply(null, clean))
   };
 }
 
@@ -785,6 +1062,22 @@ function varCognitive(values) {
 }
 
 
+function percentileCognitive(values, ratio) {
+  if (!values.length) return 0;
+
+  const sorted = values.slice().sort(function (a, b) {
+    return a - b;
+  });
+
+  const index = Math.max(
+    0,
+    Math.min(sorted.length - 1, Math.floor(sorted.length * ratio))
+  );
+
+  return sorted[index];
+}
+
+
 function hannCognitive(n, length) {
   if (length <= 1) return 1;
 
@@ -809,7 +1102,7 @@ function roundCognitive(num) {
 
 
 // ======================================
-// 12) التصدير العام
+// 13) التصدير العام
 // ======================================
 window.buildPhonemeCognitiveIdentity = buildPhonemeCognitiveIdentity;
 window.getStoredAudio = getStoredAudio;
@@ -820,5 +1113,11 @@ window.buildCumulativeGenomeFromSamples = buildCumulativeGenomeFromSamples;
 window.getAnyStoredPhonemeMemory = getAnyStoredPhonemeMemory;
 window.saveCognitiveIdentityAndCumulativeMemory =
   saveCognitiveIdentityAndCumulativeMemory;
+window.buildCognitiveGenomeByState = buildCognitiveGenomeByState;
+window.buildCognitiveGovernanceDecision = buildCognitiveGovernanceDecision;
+window.decodeCognitiveBlob = decodeCognitiveBlob;
+window.buildCognitiveTimeline = buildCognitiveTimeline;
+window.detectCognitivePhases = detectCognitivePhases;
+window.summarizeCognitiveTimeline = summarizeCognitiveTimeline;
 
-console.log("🧠 المحرك الإدراكي المركزي جاهز V4 كامل");
+console.log("🧠 المحرك الإدراكي المركزي جاهز V5 كامل");
