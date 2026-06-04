@@ -261,7 +261,22 @@ function renderGovernanceResult(title, data) {
     alert("runGovernanceAudit غير متاحة.");
   }
 });
+addGovernanceButton(container, "🧪 فحص مركز التقارير", function () {
+  alert(
+    "renderGovernanceReportCenter = " +
+    typeof window.renderGovernanceReportCenter
+  );
 
+  if (typeof window.getGovernanceCoreIndex === "function") {
+    alert(
+      window.getGovernanceCoreIndex().files.includes(
+        "governance-core/governance-report-center.js"
+      )
+        ? "✅ الملف موجود في governance-core-index"
+        : "❌ الملف غير موجود في governance-core-index"
+    );
+  }
+});
   addGovernanceButton(container, "🧭 فحص سجل الإدارات", function () {
     if (typeof window.auditDepartmentRegistry === "function") window.auditDepartmentRegistry();
     else alert("auditDepartmentRegistry غير متاحة.");
