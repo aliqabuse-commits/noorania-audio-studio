@@ -81,7 +81,7 @@ window.NOORANIYA_PHONEME_CORE = {
     "هل الجينوم صالح للمطابقة؟",
     "هل الذاكرة تدعم أو تعارض القرار؟",
     "هل الحرف داخل عائلة إدراكية تتطلب فصلاً خاصاً؟",
-"هل الذاكرة التراكمية تؤيد القرار أم تعارضه؟"
+"هل الذاكرة التراكمية تؤيد القرار أم تعارضه؟",
     "هل التقرير يخدم قرارًا واضحًا؟",
     "هل الفصل يحافظ على هوية الحرف؟"
   ],
@@ -162,7 +162,7 @@ window.loadPhonemeCore = async function () {
   console.log("🔤 تقرير تحميل إدارة الحرف:", report);
   return report;
 };
-alert("تم تحميل phoneme-core-index.js النسخة الجديدة");
+
 window.getPhonemeCoreIndex = function () {
   return window.NOORANIYA_PHONEME_CORE;
 };
