@@ -306,4 +306,8 @@ window.buildFamilyDecisionContext = buildFamilyDecisionContext;
 window.evaluateFamilyDecisionReadiness = evaluateFamilyDecisionReadiness;
 
 console.log("🧭 خريطة العائلات الإدراكية جاهزة — المعرفة توجه المقارنة");
+window.getPhonemeFamilyMap = getPhonemeFamilyMap;
+window.getCompetingPhonemes = getCompetingPhonemes;
+
+console.log("🧭 phoneme-family-map.js جاهز");
 
