@@ -1,6 +1,6 @@
 // ================================
 // governance-core/governance-core-index.js
-// فهرس إدارة الحوكمة
+// فهرس إدارة الحوكمة — V3
 // تعريف + تحميل ملفات الإدارة فقط
 // لا يفتح صفحة
 // لا يبني أزرار
@@ -8,7 +8,7 @@
 // لا يستدعي runGovernanceCoreApp تلقائيًا
 // ================================
 
-console.log("🏛️ governance-core-index.js جاهز — Safe Department Index");
+console.log("🏛️ governance-core-index.js جاهز — V3 Safe Department Index");
 
 window.NOORANIYA_GOVERNANCE_CORE = {
   name: "governance-core",
@@ -18,11 +18,13 @@ window.NOORANIYA_GOVERNANCE_CORE = {
     title: "دستور إدارة الحوكمة",
     law:
       "المعرفة التي لا تؤثر في القرار ليست جزءًا من المنظومة بعد، " +
-      "والقرار الذي لا يراجع المعرفة المتاحة ليس قرارًا إدراكيًا بعد."
+      "والقرار الذي لا يراجع المعرفة المتاحة ليس قرارًا إدراكيًا بعد.",
+    integrationLaw:
+      "كل إضافة أو نقل أو تعديل يجب أن يظهر في الإدارة المالكة والاندكس وخريطة المعرفة والقرار وبوابات التدقيق عند الحاجة."
   },
 
   role:
-    "إدارة الحوكمة التي تضبط علاقة المعرفة بالقرار، وتحرس الوجهة، وتمنع الفوضى المعمارية.",
+    "إدارة الحوكمة التي تضبط علاقة المعرفة بالقرار، وتحرس الوجهة، وتمنع الفوضى المعمارية ومرور المعرفة من خلف العداد.",
 
   files: [
     "governance-core/department-registry.js",
@@ -36,7 +38,9 @@ window.NOORANIYA_GOVERNANCE_CORE = {
     "department-registry",
     "knowledge-decision-map",
     "decision-gates",
-    "governance-audit-guards"
+    "governance-audit-guards",
+    "department-index-alignment",
+    "family-memory-governance-audit"
   ],
 
   decisions: [
@@ -44,13 +48,22 @@ window.NOORANIYA_GOVERNANCE_CORE = {
     "هل المعرفة تخدم قرارًا؟",
     "هل القرار يراجع المعرفة؟",
     "هل يوجد تداخل مسؤوليات؟",
-    "هل توجد معرفة يتيمة؟"
+    "هل توجد معرفة يتيمة؟",
+    "هل الاندكس الفرعي منسجم مع خريطة المعرفة؟",
+    "هل الإضافة الجديدة ظهرت في البوابات والتدقيق؟",
+    "هل نتيجة المطابقة تملك عائلة وذاكرة وهامش فصل قبل اعتمادها؟"
   ],
 
   serves: [
     "all-departments",
     "project-index",
-    "main-orchestrator"
+    "main-orchestrator",
+    "phoneme-core",
+    "segment-core",
+    "analysis-core",
+    "memory-core",
+    "training-core",
+    "operation-labs"
   ],
 
   principles: [
@@ -58,6 +71,11 @@ window.NOORANIYA_GOVERNANCE_CORE = {
     "app يسجل ويفحص ولا يشغل المحركات.",
     "orchestrator ينسق ويراقب العرض العام.",
     "المحركات تعمل عند الطلب فقط.",
+    "لا ملف معرفي بلا قرار.",
+    "لا قرار بلا معرفة.",
+    "لا إضافة تمر من خلف العداد.",
+    "خريطة العائلة والذاكرة التراكمية يجب أن تؤثرا في قرار المطابقة.",
+    "النجاح التشغيلي لا يساوي اعتمادًا إدراكيًا.",
     "#الحوكمة",
     "#لا_تعطني_وصفا_اعطني_أثرا",
     "#المعرفة_تخدم_القرار",
