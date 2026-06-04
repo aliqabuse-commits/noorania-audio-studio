@@ -1,12 +1,13 @@
 // ======================================
 // governance-core/governance-core-app.js
-// المنسق الرقابي لإدارة الحوكمة — V3
+// المنسق الرقابي لإدارة الحوكمة — V4
 // تسجيل + فحص + بناء لوحة الحوكمة
+// الواجهة الرسمية للتقارير عبر governance-report-center.js
 // لا يشغل محركات صوتية تلقائيًا
 // لا يعيد تعريف registerDepartment
 // ======================================
 
-console.log("🧠 governance-core-app.js جاهز — V3 Sovereign Safe App");
+console.log("🧠 governance-core-app.js جاهز — V4 Sovereign Safe App");
 
 
 // ======================================
@@ -25,7 +26,7 @@ const GOVERNANCE_CORE_APP_CHARTER = {
     "لا يحمّل ملفات تلقائيًا.",
     "يفحص فقط وجود الدوال والسيادة الحوكمية.",
     "يبني لوحة الحوكمة داخل الحاوية فقط.",
-    "يرجع تقريرًا موحدًا يمكن للمنظم الرئيسي قراءته.",
+    "يجعل مركز التقارير هو الواجهة الرسمية للقراءة والنسخ.",
     "يراقب أن الإضافات الجديدة لا تمر من خلف العداد."
   ]
 };
@@ -74,7 +75,13 @@ const GOVERNANCE_EXPECTED_FUNCTIONS = [
   "auditGovernanceCharterPresence",
   "auditDepartmentIndexAlignment",
   "auditPhonemeFamilyAndCumulativeMemoryGovernance",
-  "runGovernanceAuditGuards"
+  "runGovernanceAuditGuards",
+
+  "renderGovernanceReportCenter",
+  "showGovernanceCouncilExecutiveReport",
+  "showGovernanceSectionReport",
+  "copyGovernanceExecutiveReport",
+  "copyGovernanceFullReport"
 ];
 
 
@@ -105,7 +112,7 @@ window.runGovernanceCoreApp = function () {
       charterChecksFailed: 0
     },
     note:
-      "تم تسجيل وفحص إدارة الحوكمة فقط دون تحميل أو تشغيل تلقائي."
+      "تم تسجيل وفحص إدارة الحوكمة فقط دون تحميل أو تشغيل محركات."
   };
 
   if (index && Array.isArray(index.files)) {
@@ -116,11 +123,16 @@ window.runGovernanceCoreApp = function () {
   }
 
   GOVERNANCE_EXPECTED_FUNCTIONS.forEach(function (fnName) {
-    const state = typeof window[fnName] === "function" ? "available" : "missing";
+    const state =
+      typeof window[fnName] === "function" ? "available" : "missing";
+
     result.functions[fnName] = state;
 
-    if (state === "available") result.summary.functionsAvailable++;
-    else result.summary.functionsMissing++;
+    if (state === "available") {
+      result.summary.functionsAvailable++;
+    } else {
+      result.summary.functionsMissing++;
+    }
   });
 
   if (typeof window.registerDepartment === "function" && index) {
@@ -134,24 +146,40 @@ window.runGovernanceCoreApp = function () {
     typeof window.GOVERNANCE_CHARTER !== "undefined" ? "available" : "missing";
 
   result.sovereignChecks.knowledgeDecisionCharter =
-    typeof window.KNOWLEDGE_DECISION_CHARTER !== "undefined" ? "available" : "missing";
+    typeof window.KNOWLEDGE_DECISION_CHARTER !== "undefined"
+      ? "available"
+      : "missing";
 
   result.sovereignChecks.decisionGateCharter =
-    typeof window.DECISION_GATE_CHARTER !== "undefined" ? "available" : "missing";
+    typeof window.DECISION_GATE_CHARTER !== "undefined"
+      ? "available"
+      : "missing";
 
   result.sovereignChecks.auditGuardsCharter =
-    typeof window.GOVERNANCE_AUDIT_GUARDS_CHARTER !== "undefined" ? "available" : "missing";
+    typeof window.GOVERNANCE_AUDIT_GUARDS_CHARTER !== "undefined"
+      ? "available"
+      : "missing";
 
   result.sovereignChecks.trainingCoreRegistered =
-    typeof window.getDepartmentById === "function" && window.getDepartmentById("training-core")
+    typeof window.getDepartmentById === "function" &&
+    window.getDepartmentById("training-core")
       ? "registered"
       : "missing";
 
   result.sovereignChecks.phonemeFamilyMapGoverned =
-    isGovernanceKnowledgeAvailable("phoneme-family-map") ? "available" : "missing";
+    isGovernanceKnowledgeAvailable("phoneme-family-map")
+      ? "available"
+      : "missing";
 
   result.sovereignChecks.phonemeCumulativeMemoryGoverned =
-    isGovernanceKnowledgeAvailable("phoneme-cumulative-memory") ? "available" : "missing";
+    isGovernanceKnowledgeAvailable("phoneme-cumulative-memory")
+      ? "available"
+      : "missing";
+
+  result.sovereignChecks.reportCenter =
+    typeof window.renderGovernanceReportCenter === "function"
+      ? "available"
+      : "missing";
 
   Object.keys(result.sovereignChecks).forEach(function (key) {
     if (
@@ -173,6 +201,7 @@ function isGovernanceKnowledgeAvailable(knowledgeId) {
   if (typeof window.getKnowledgeDecisionMap !== "function") return false;
 
   const map = window.getKnowledgeDecisionMap();
+
   return Object.values(map).some(function (item) {
     return item.id === knowledgeId;
   });
@@ -195,132 +224,147 @@ window.renderGovernanceCorePanel = function (containerId) {
 
   const report = window.runGovernanceCoreApp();
 
-  const statusBox = document.createElement("div");
-  statusBox.style.background = "#0f172a";
-  statusBox.style.border = "1px solid #334155";
-  statusBox.style.borderRadius = "12px";
-  statusBox.style.padding = "12px";
-  statusBox.style.marginBottom = "14px";
-  statusBox.style.lineHeight = "1.8";
-
-  statusBox.innerHTML =
-    "<b>إدارة الحوكمة:</b> " +
-    (report.indexLoaded ? "✅ index available" : "⚠️ index missing") +
-    "<br><b>الدوال المتاحة:</b> " + report.summary.functionsAvailable +
-    "<br><b>الدوال الناقصة:</b> " + report.summary.functionsMissing +
-    "<br><b>فحوص الدستور الناجحة:</b> " + report.summary.charterChecksPassed +
-    "<br><b>فحوص الدستور الناقصة:</b> " + report.summary.charterChecksFailed +
-    "<br><b>خريطة العائلة:</b> " + report.sovereignChecks.phonemeFamilyMapGoverned +
-    "<br><b>الذاكرة التراكمية:</b> " + report.sovereignChecks.phonemeCumulativeMemoryGoverned +
-    "<br><span style='color:#94a3b8;'>الحوكمة تفحص ولا تشغل المحركات.</span>";
-addGovernanceButton(container, "📋 مركز تقارير الحوكمة", function () {
-  if (typeof window.renderGovernanceReportCenter === "function") {
-    window.renderGovernanceReportCenter("governance-actions");
-  } else {
-    alert("governance-report-center.js غير محمّل.");
-  }
-});
+  const statusBox = buildGovernanceStatusBox(report);
   container.appendChild(statusBox);
-function renderGovernanceResult(title, data) {
-  let box = document.getElementById("governance-result-box");
 
-  if (!box) {
-    box = document.createElement("div");
-    box.id = "governance-result-box";
-    box.style.background = "#020617";
-    box.style.color = "#e5e7eb";
-    box.style.border = "1px solid #38bdf8";
-    box.style.borderRadius = "12px";
-    box.style.padding = "12px";
-    box.style.margin = "16px auto";
-    box.style.width = "92%";
-    box.style.maxHeight = "420px";
-    box.style.overflow = "auto";
-    box.style.direction = "ltr";
-    box.style.textAlign = "left";
-
-    const container = document.getElementById("governance-actions");
-    if (container) container.appendChild(box);
-  }
-
-  box.innerHTML =
-    "<h3 style='direction:rtl;text-align:right;color:#38bdf8;'>" +
-    title +
-    "</h3><pre style='white-space:pre-wrap;font-size:12px;'>" +
-    JSON.stringify(data, null, 2) +
-    "</pre>";
-
-  box.scrollIntoView({ behavior: "smooth", block: "nearest" });
-}
-  addGovernanceButton(container, "🏛️ تقرير الحوكمة العام", function () {
-    alert("تم الضغط على زر تقرير الحوكمة");
-  if (typeof window.runGovernanceAudit === "function") {
-    const report = window.runGovernanceAudit();
-    renderGovernanceResult("🏛️ تقرير الحوكمة العام", report);
-  } else {
-    alert("runGovernanceAudit غير متاحة.");
-  }
-});
-addGovernanceButton(container, "🧪 فحص مركز التقارير", function () {
-  alert(
-    "renderGovernanceReportCenter = " +
-    typeof window.renderGovernanceReportCenter
-  );
-
-  if (typeof window.getGovernanceCoreIndex === "function") {
-    alert(
-      window.getGovernanceCoreIndex().files.includes(
-        "governance-core/governance-report-center.js"
-      )
-        ? "✅ الملف موجود في governance-core-index"
-        : "❌ الملف غير موجود في governance-core-index"
-    );
-  }
-});
-  addGovernanceButton(container, "🧭 فحص سجل الإدارات", function () {
-    if (typeof window.auditDepartmentRegistry === "function") window.auditDepartmentRegistry();
-    else alert("auditDepartmentRegistry غير متاحة.");
+  addGovernanceButton(container, "📋 مركز تقارير الحوكمة", function () {
+    openGovernanceReportCenter(container.id || "governance-actions");
   });
 
-  addGovernanceButton(container, "🗺️ فحص خريطة المعرفة والقرار", function () {
-    if (typeof window.auditKnowledgeDecisionMap === "function") window.auditKnowledgeDecisionMap();
-    else alert("auditKnowledgeDecisionMap غير متاحة.");
-  });
+  addGovernanceButton(container, "🏛️ التقرير التنفيذي العام", function () {
+    openGovernanceReportCenter(container.id || "governance-actions");
 
-  addGovernanceButton(container, "🚦 فحص بوابات القرار", function () {
-    if (typeof window.auditDecisionGates === "function") window.auditDecisionGates();
-    else alert("auditDecisionGates غير متاحة.");
-  });
-
-  addGovernanceButton(container, "🛡️ تشغيل حراس الحوكمة", function () {
-    if (typeof window.runGovernanceAuditGuards === "function") window.runGovernanceAuditGuards();
-    else alert("runGovernanceAuditGuards غير متاحة.");
-  });
-
-  addGovernanceButton(container, "🔎 فحص الاندكسات ضد الحوكمة", function () {
-    if (typeof window.auditDepartmentIndexAlignment === "function") window.auditDepartmentIndexAlignment();
-    else alert("auditDepartmentIndexAlignment غير متاحة.");
-  });
-
-  addGovernanceButton(container, "🧬 فحص العائلة والذاكرة التراكمية", function () {
-    if (typeof window.auditPhonemeFamilyAndCumulativeMemoryGovernance === "function") {
-      window.auditPhonemeFamilyAndCumulativeMemoryGovernance();
+    if (typeof window.showGovernanceCouncilExecutiveReport === "function") {
+      window.showGovernanceCouncilExecutiveReport();
     } else {
-      alert("فحص العائلة والذاكرة التراكمية غير متاح.");
+      renderGovernanceResult(
+        "🏛️ تقرير الحوكمة العام",
+        window.runGovernanceAudit()
+      );
     }
+  });
+
+  addGovernanceButton(container, "🧭 تقرير سجل الإدارات", function () {
+    openGovernanceSectionReport("departments");
+  });
+
+  addGovernanceButton(container, "🗺️ تقرير المعرفة والقرار", function () {
+    openGovernanceSectionReport("knowledge");
+  });
+
+  addGovernanceButton(container, "🚦 تقرير بوابات القرار", function () {
+    openGovernanceSectionReport("gates");
+  });
+
+  addGovernanceButton(container, "🛡️ تقرير حراس الحوكمة", function () {
+    openGovernanceSectionReport("guards");
+  });
+
+  addGovernanceButton(container, "🔎 تقرير مواءمة الاندكسات", function () {
+    openGovernanceSectionReport("indexAlignment");
+  });
+
+  addGovernanceButton(container, "🧬 تقرير العائلة والذاكرة التراكمية", function () {
+    openGovernanceSectionReport("familyMemory");
   });
 
   return report;
 };
 
 
+function buildGovernanceStatusBox(report) {
+  const statusBox = document.createElement("div");
+
+  statusBox.style.background = "#0f172a";
+  statusBox.style.border = "1px solid #334155";
+  statusBox.style.borderRadius = "12px";
+  statusBox.style.padding = "12px";
+  statusBox.style.marginBottom = "14px";
+  statusBox.style.lineHeight = "1.8";
+  statusBox.style.direction = "rtl";
+  statusBox.style.textAlign = "right";
+
+  statusBox.innerHTML =
+    "<b>إدارة الحوكمة:</b> " +
+    (report.indexLoaded ? "✅ index available" : "⚠️ index missing") +
+    "<br><b>الدوال المتاحة:</b> " +
+    report.summary.functionsAvailable +
+    "<br><b>الدوال الناقصة:</b> " +
+    report.summary.functionsMissing +
+    "<br><b>فحوص الدستور الناجحة:</b> " +
+    report.summary.charterChecksPassed +
+    "<br><b>فحوص الدستور الناقصة:</b> " +
+    report.summary.charterChecksFailed +
+    "<br><b>خريطة العائلة:</b> " +
+    report.sovereignChecks.phonemeFamilyMapGoverned +
+    "<br><b>الذاكرة التراكمية:</b> " +
+    report.sovereignChecks.phonemeCumulativeMemoryGoverned +
+    "<br><b>مركز التقارير:</b> " +
+    report.sovereignChecks.reportCenter +
+    "<br><span style='color:#94a3b8;'>الحوكمة تفحص، ومركز التقارير هو واجهة القراءة والنسخ.</span>";
+
+  return statusBox;
+}
+
+
 // ======================================
-// 5) تقرير الحوكمة العام — يدوي عند الطلب فقط
+// 5) فتح مركز التقارير والتقارير الفرعية
+// ======================================
+
+function openGovernanceReportCenter(containerId) {
+  if (typeof window.renderGovernanceReportCenter !== "function") {
+    alert("governance-report-center.js غير محمّل.");
+    return null;
+  }
+
+  let center = document.getElementById("governance-report-center");
+
+  if (!center) {
+    center = window.renderGovernanceReportCenter(containerId || "governance-actions");
+  }
+
+  if (center && center.scrollIntoView) {
+    setTimeout(function () {
+      center.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  }
+
+  return center;
+}
+
+
+function openGovernanceSectionReport(section) {
+  openGovernanceReportCenter("governance-actions");
+
+  if (typeof window.showGovernanceSectionReport === "function") {
+    window.showGovernanceSectionReport(section);
+    return;
+  }
+
+  const report = window.runGovernanceAudit();
+
+  const fallbackMap = {
+    departments: report.departments,
+    knowledge: report.knowledge,
+    gates: report.gates,
+    guards: report.guards,
+    familyMemory: report.familyMemory
+  };
+
+  renderGovernanceResult(
+    "📋 تقرير " + section,
+    fallbackMap[section] || report
+  );
+}
+
+
+// ======================================
+// 6) تقرير الحوكمة العام — خام عند الحاجة فقط
 // ======================================
 
 window.runGovernanceAudit = function () {
   const report = {
-    method: "Nooraniya Governance Audit V3 Sovereign",
+    method: "Nooraniya Governance Audit V4 Sovereign",
     charter: GOVERNANCE_CORE_APP_CHARTER,
     createdAt: new Date().toISOString(),
 
@@ -347,7 +391,10 @@ window.runGovernanceAudit = function () {
     familyMemory:
       typeof window.auditPhonemeFamilyAndCumulativeMemoryGovernance === "function"
         ? window.auditPhonemeFamilyAndCumulativeMemoryGovernance()
-        : { ok: false, message: "فحص العائلة والذاكرة التراكمية غير متاح." }
+        : {
+            ok: false,
+            message: "فحص العائلة والذاكرة التراكمية غير متاح."
+          }
   };
 
   report.summary = buildGovernanceSummary(report);
@@ -358,7 +405,47 @@ window.runGovernanceAudit = function () {
 
 
 // ======================================
-// 6) بناء ملخص الحوكمة
+// 7) عرض خام احتياطي عند غياب مركز التقارير
+// ======================================
+
+function renderGovernanceResult(title, data) {
+  let box = document.getElementById("governance-result-box");
+
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "governance-result-box";
+    box.style.background = "#020617";
+    box.style.color = "#e5e7eb";
+    box.style.border = "1px solid #38bdf8";
+    box.style.borderRadius = "12px";
+    box.style.padding = "12px";
+    box.style.margin = "16px auto";
+    box.style.width = "92%";
+    box.style.maxHeight = "420px";
+    box.style.overflow = "auto";
+    box.style.direction = "ltr";
+    box.style.textAlign = "left";
+
+    const container = document.getElementById("governance-actions");
+    if (container) container.appendChild(box);
+    else document.body.appendChild(box);
+  }
+
+  box.innerHTML =
+    "<h3 style='direction:rtl;text-align:right;color:#38bdf8;'>" +
+    escapeGovernanceCoreHtml(title) +
+    "</h3><pre style='white-space:pre-wrap;font-size:12px;'>" +
+    escapeGovernanceCoreHtml(JSON.stringify(data, null, 2)) +
+    "</pre>";
+
+  box.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  return box;
+}
+
+
+// ======================================
+// 8) بناء ملخص الحوكمة
 // ======================================
 
 function buildGovernanceSummary(report) {
@@ -374,11 +461,15 @@ function buildGovernanceSummary(report) {
 
   if (report.knowledge) {
     totalProblems += Number(report.knowledge.orphanKnowledgeCount || 0);
-    totalProblems += Array.isArray(report.knowledge.warnings) ? report.knowledge.warnings.length : 0;
+    totalProblems += Array.isArray(report.knowledge.warnings)
+      ? report.knowledge.warnings.length
+      : 0;
   }
 
   if (report.gates) {
-    totalProblems += Array.isArray(report.gates.warnings) ? report.gates.warnings.length : 0;
+    totalProblems += Array.isArray(report.gates.warnings)
+      ? report.gates.warnings.length
+      : 0;
   }
 
   if (report.guards) {
@@ -401,47 +492,68 @@ function buildGovernanceSummary(report) {
 
 
 // ======================================
-// 7) مراجعات حوكمية يدوية
+// 9) مراجعات حوكمية يدوية
 // ======================================
 
 window.reviewNewFileRequest = function (request) {
-  if (typeof window.gateNewFile !== "function") return { ok: false, message: "decision-gates.js غير محمّل." };
+  if (typeof window.gateNewFile !== "function") {
+    return { ok: false, message: "decision-gates.js غير محمّل." };
+  }
+
   return window.gateNewFile(request);
 };
 
 window.reviewNewDepartmentRequest = function (request) {
-  if (typeof window.gateNewDepartment !== "function") return { ok: false, message: "decision-gates.js غير محمّل." };
+  if (typeof window.gateNewDepartment !== "function") {
+    return { ok: false, message: "decision-gates.js غير محمّل." };
+  }
+
   return window.gateNewDepartment(request);
 };
 
 window.reviewTrainingSampleRequest = function (request) {
-  if (typeof window.gateTrainingSample !== "function") return { ok: false, message: "بوابة عينة التدريب غير محمّلة." };
+  if (typeof window.gateTrainingSample !== "function") {
+    return { ok: false, message: "بوابة عينة التدريب غير محمّلة." };
+  }
+
   return window.gateTrainingSample(request);
 };
 
 window.reviewLabAdoptionRequest = function (request) {
-  if (typeof window.gateLabAdoption !== "function") return { ok: false, message: "decision-gates.js غير محمّل." };
+  if (typeof window.gateLabAdoption !== "function") {
+    return { ok: false, message: "decision-gates.js غير محمّل." };
+  }
+
   return window.gateLabAdoption(request);
 };
 
 window.reviewPhonemeFamilyComparison = function (request) {
-  if (typeof window.gatePhonemeFamilyComparison !== "function") return { ok: false, message: "بوابة العائلة الإدراكية غير محمّلة." };
+  if (typeof window.gatePhonemeFamilyComparison !== "function") {
+    return { ok: false, message: "بوابة العائلة الإدراكية غير محمّلة." };
+  }
+
   return window.gatePhonemeFamilyComparison(request);
 };
 
 window.reviewCumulativeMemoryDecision = function (request) {
-  if (typeof window.gateCumulativeMemoryReview !== "function") return { ok: false, message: "بوابة الذاكرة التراكمية غير محمّلة." };
+  if (typeof window.gateCumulativeMemoryReview !== "function") {
+    return { ok: false, message: "بوابة الذاكرة التراكمية غير محمّلة." };
+  }
+
   return window.gateCumulativeMemoryReview(request);
 };
 
 window.reviewMatchResultAdoption = function (request) {
-  if (typeof window.gateMatchResultAdoption !== "function") return { ok: false, message: "بوابة اعتماد نتيجة المطابقة غير محمّلة." };
+  if (typeof window.gateMatchResultAdoption !== "function") {
+    return { ok: false, message: "بوابة اعتماد نتيجة المطابقة غير محمّلة." };
+  }
+
   return window.gateMatchResultAdoption(request);
 };
 
 
 // ======================================
-// 8) سؤال الحوكمة السريع
+// 10) سؤال الحوكمة السريع
 // ======================================
 
 window.quickGovernanceQuestion = function (idea) {
@@ -468,16 +580,15 @@ window.quickGovernanceQuestion = function (idea) {
 
 
 // ======================================
-// 9) زر آمن للوحة الحوكمة
+// 11) زر آمن للوحة الحوكمة
 // ======================================
+
 function addGovernanceButton(container, label, handler) {
   const btn = document.createElement("button");
   btn.type = "button";
   btn.innerText = label;
 
   btn.onclick = function () {
-    alert("تم الضغط على زر الحوكمة: " + label);
-
     try {
       handler();
     } catch (err) {
@@ -488,3 +599,22 @@ function addGovernanceButton(container, label, handler) {
 
   container.appendChild(btn);
 }
+
+
+// ======================================
+// 12) أدوات مساعدة
+// ======================================
+
+function escapeGovernanceCoreHtml(value) {
+  return String(value == null ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+
+window.GOVERNANCE_CORE_APP_CHARTER = GOVERNANCE_CORE_APP_CHARTER;
+
+console.log("🧠 منسق الحوكمة جاهز V4 — التقارير عبر مركز المجلس");
