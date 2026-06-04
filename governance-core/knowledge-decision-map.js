@@ -1,9 +1,10 @@
 // ======================================
 // governance-core/knowledge-decision-map.js
-// خريطة ربط المعرفة بالقرار — نسخة حوكمية سيادية
+// خريطة ربط المعرفة بالقرار — نسخة حوكمية سيادية V3
+// مستوعبة لإضافات: phoneme-family-map و phoneme-cumulative-memory
 // ======================================
 
-console.log("🧭 knowledge-decision-map.js جاهز — Sovereign Governance Mode");
+console.log("🧭 knowledge-decision-map.js جاهز — V3 Sovereign Knowledge/Decision Map");
 
 
 // ======================================
@@ -27,6 +28,9 @@ const KNOWLEDGE_DECISION_CHARTER = {
 
   rule:
     "كل معرفة يجب أن تجد طريقها إلى قرار، وكل قرار يجب أن يراجع المعرفة المتاحة.",
+
+  integrationRule:
+    "أي ملف يظهر في index فرعي ولا يظهر في خريطة المعرفة والقرار إذا كان ينتج معرفة فهو معرفة عابرة من خلف العداد.",
 
   warning:
     "أي معرفة لا تخدم قرارًا تبقى معلقة، وأي قرار لا يستدعي المعرفة يبقى غير إدراكي."
@@ -60,6 +64,36 @@ const DECISION_TYPES = {
     id: "match-phoneme",
     name: "مطابقة الحرف",
     description: "تحديد هل التسجيل يطابق الهوية المرجعية للحرف."
+  },
+
+  comparePhonemeFamily: {
+    id: "compare-phoneme-family",
+    name: "مقارنة العائلة الإدراكية",
+    description: "تحديد المنافسين الأقرب للحرف قبل إعلان الحسم."
+  },
+
+  reviewCumulativeMemory: {
+    id: "review-cumulative-memory",
+    name: "مراجعة الذاكرة التراكمية",
+    description: "مراجعة تاريخ المحاولات والذاكرة السابقة قبل اعتماد القرار."
+  },
+
+  approveMatchResult: {
+    id: "approve-match-result",
+    name: "اعتماد نتيجة المطابقة",
+    description: "تحويل نتيجة الاختبار من نجاح تشغيلي إلى حكم إدراكي معتمد أو غير معتمد."
+  },
+
+  buildCognitiveGenome: {
+    id: "build-cognitive-genome",
+    name: "بناء الجينوم المركزي",
+    description: "بناء هوية إدراكية مركزية للحرف أو للحالة الصوتية."
+  },
+
+  buildTimelineGenome: {
+    id: "build-timeline-genome",
+    name: "بناء الجينوم الزمني",
+    description: "تحويل المسار الزمني للصوت إلى دليل قرار لا إلى وصف فقط."
   },
 
   splitSegment: {
@@ -102,9 +136,7 @@ const KNOWLEDGE_DECISION_MAP = {
   trainingRecorder: {
     id: "training-recorder",
     sourceDepartment: "training-core",
-    sourceFiles: [
-      "training-core/training-recorder.js"
-    ],
+    sourceFiles: ["training-core/training-recorder.js"],
     knowledgeType: "تسجيل تدريبي خام",
     mustServe: [
       "prepare-training-sample",
@@ -112,6 +144,8 @@ const KNOWLEDGE_DECISION_MAP = {
       "identify-phoneme"
     ],
     status: "active",
+    governanceImpact:
+      "يثبت أن العينة جاءت عبر تسجيل واضح لا عبر مصدر مجهول.",
     note:
       "التسجيل لا يصبح معرفة حتى يمر عبر فحص واضح، ولا يجوز أن يتحول إلى حكم على الهوية وحده."
   },
@@ -119,9 +153,7 @@ const KNOWLEDGE_DECISION_MAP = {
   audioLab: {
     id: "audio-lab",
     sourceDepartment: "training-core",
-    sourceFiles: [
-      "training-core/audio-lab.js"
-    ],
+    sourceFiles: ["training-core/audio-lab.js"],
     knowledgeType: "غرفة عمليات صوتية ومناطق موجية",
     mustServe: [
       "prepare-training-sample",
@@ -129,43 +161,194 @@ const KNOWLEDGE_DECISION_MAP = {
       "validate-signal"
     ],
     status: "active",
-    note:
-      "غرفة الصوت تساعد في العرض والتجهيز، لكنها لا تتجاوز حكم الإدراك والحوكمة."
+    governanceImpact:
+      "يعرض التسجيل والموجة دون أن ينتزع سلطة الحكم من الإدراك."
   },
 
   signalValidation: {
     id: "signal-validation",
     sourceDepartment: "phoneme-core",
-    sourceFiles: [
-      "phoneme-core/phoneme-signal-validator.js"
-    ],
+    sourceFiles: ["phoneme-core/phoneme-signal-validator.js"],
     knowledgeType: "فحص جودة الإشارة",
     mustServe: [
       "validate-signal",
       "prepare-training-sample",
       "identify-phoneme",
-      "match-phoneme"
+      "match-phoneme",
+      "approve-match-result"
     ],
     status: "active",
+    governanceImpact:
+      "يمنع بناء قرار إدراكي على تسجيل ضعيف أو مشوش.",
     note:
       "أي جينوم أو ذاكرة مبنية على تسجيل ضعيف تحمل ضعفًا في أصل القرار."
   },
 
-  phonemeMemory: {
-    id: "phoneme-memory",
+  phonemeTrainingPack: {
+    id: "phoneme-training-pack",
     sourceDepartment: "phoneme-core",
-    sourceFiles: [
-      "phoneme-core/phoneme-memory-trainer.js"
+    sourceFiles: ["phoneme-core/phoneme-training-pack.js"],
+    knowledgeType: "تعريف حقيبة الحرف وحالاته التدريبية",
+    mustServe: [
+      "prepare-training-sample",
+      "identify-phoneme",
+      "build-cognitive-genome",
+      "build-timeline-genome"
     ],
-    knowledgeType: "ذاكرة إدراكية لونية للحرف",
+    status: "active",
+    governanceImpact:
+      "يمنع بناء ذاكرة أو جينوم بلا حقيبة وحالات واضحة."
+  },
+
+  phonemeColors: {
+    id: "phoneme-colors",
+    sourceDepartment: "phoneme-core",
+    sourceFiles: ["phoneme-core/phoneme-colors.js"],
+    knowledgeType: "ألوان إدراكية للحروف",
     mustServe: [
       "identify-phoneme",
       "match-phoneme",
       "improve-memory"
     ],
     status: "active",
+    governanceImpact:
+      "يربط اللون بالذاكرة الإدراكية لا بالزينة البصرية فقط."
+  },
+
+  phonemeColorMemory: {
+    id: "phoneme-color-memory",
+    sourceDepartment: "phoneme-core",
+    sourceFiles: ["phoneme-core/phoneme-color-memory.js"],
+    knowledgeType: "ذاكرة لون الحرف",
+    mustServe: [
+      "identify-phoneme",
+      "match-phoneme",
+      "review-cumulative-memory"
+    ],
+    status: "active",
+    governanceImpact:
+      "يمنع أن يبقى اللون وصفًا بلا أثر."
+  },
+
+  phonemeMemory: {
+    id: "phoneme-memory",
+    sourceDepartment: "phoneme-core",
+    sourceFiles: ["phoneme-core/phoneme-memory-trainer.js"],
+    knowledgeType: "ذاكرة إدراكية للحرف",
+    mustServe: [
+      "identify-phoneme",
+      "match-phoneme",
+      "review-cumulative-memory",
+      "approve-match-result",
+      "improve-memory"
+    ],
+    status: "active",
+    governanceImpact:
+      "تجعل الذاكرة شاهدة على القرار لا تقريرًا منفصلًا.",
     note:
       "ذاكرة لون الحرف ليست زينة؛ هي أثر إدراكي يجب أن يخدم الحسم."
+  },
+
+  phonemeCumulativeMemory: {
+    id: "phoneme-cumulative-memory",
+    sourceDepartment: "phoneme-core",
+    sourceFiles: ["phoneme-core/phoneme-cumulative-memory.js"],
+    knowledgeType: "ذاكرة تراكمية إدراكية للحرف",
+    mustServe: [
+      "review-cumulative-memory",
+      "match-phoneme",
+      "approve-match-result",
+      "identify-phoneme",
+      "improve-memory"
+    ],
+    status: "active",
+    governanceImpact:
+      "تمنع اعتماد آخر تسجيل كحقيقة مطلقة، وتحفظ أثر المحاولات السابقة وتاريخها.",
+    note:
+      "هذه المعرفة أضيفت مؤخرًا ويجب ألا تمر من خلف العداد."
+  },
+
+  phonemeFamilyMap: {
+    id: "phoneme-family-map",
+    sourceDepartment: "phoneme-core",
+    sourceFiles: ["phoneme-core/phoneme-family-map.js"],
+    knowledgeType: "خريطة العائلات الإدراكية والمنافسين",
+    mustServe: [
+      "compare-phoneme-family",
+      "match-phoneme",
+      "identify-phoneme",
+      "approve-match-result",
+      "split-segment"
+    ],
+    status: "active",
+    governanceImpact:
+      "تمنع إعلان نجاح الحرف بلا منافس قريب ولا هامش فصل حقيقي.",
+    note:
+      "هذه المعرفة أضيفت مؤخرًا ويجب أن تظهر في قرار المطابقة لا في الاندكس فقط."
+  },
+
+  cognitiveGenome: {
+    id: "cognitive-genome",
+    sourceDepartment: "phoneme-core",
+    sourceFiles: ["phoneme-core/phoneme-cognitive-engine.js"],
+    knowledgeType: "جينوم إدراكي مركزي",
+    mustServe: [
+      "build-cognitive-genome",
+      "identify-phoneme",
+      "match-phoneme",
+      "approve-match-result",
+      "split-segment"
+    ],
+    status: "active",
+    governanceImpact:
+      "يحوّل تحليل الحرف إلى هوية قابلة للمراجعة."
+  },
+
+  timelineGenome: {
+    id: "timeline-genome",
+    sourceDepartment: "phoneme-core",
+    sourceFiles: ["phoneme-core/phoneme-timeline-engine.js"],
+    knowledgeType: "جينوم زمني للحرف",
+    mustServe: [
+      "build-timeline-genome",
+      "identify-phoneme",
+      "match-phoneme",
+      "approve-match-result",
+      "split-segment"
+    ],
+    status: "active",
+    governanceImpact:
+      "يفحص أن الزمن يصف القرار ولا يحكم وحده."
+  },
+
+  phonemeIdentity: {
+    id: "phoneme-identity",
+    sourceDepartment: "phoneme-core",
+    sourceFiles: ["phoneme-core/phoneme-identity-engine.js"],
+    knowledgeType: "هوية الحرف",
+    mustServe: [
+      "identify-phoneme",
+      "match-phoneme"
+    ],
+    status: "active",
+    governanceImpact:
+      "يثبت أن الحرف هوية لا عينة مفردة."
+  },
+
+  phonemeMatch: {
+    id: "phoneme-match",
+    sourceDepartment: "phoneme-core",
+    sourceFiles: ["phoneme-core/phoneme-match-engine.js"],
+    knowledgeType: "نتيجة مطابقة وفصل",
+    mustServe: [
+      "match-phoneme",
+      "compare-phoneme-family",
+      "approve-match-result",
+      "improve-memory"
+    ],
+    status: "active",
+    governanceImpact:
+      "يعطي النتيجة التشغيلية، لكنه لا يُعتمد إدراكيًا إلا بمنافس وهامش وذاكرة."
   },
 
   baMasterIdentity: {
@@ -182,20 +365,31 @@ const KNOWLEDGE_DECISION_MAP = {
       "split-segment"
     ],
     status: "active",
-    note:
-      "هوية الباء لا يجوز أن تبقى تقريرًا؛ يجب أن تؤثر في المطابقة والفصل."
+    governanceImpact:
+      "يجعل الهوية المرجعية مؤثرة في القرار لا ملفًا صامتًا."
+  },
+
+  baIdentityMatch: {
+    id: "ba-identity-match",
+    sourceDepartment: "phoneme-core",
+    sourceFiles: ["phoneme-core/ba-identity-match-engine.js"],
+    knowledgeType: "مطابقة هوية الباء",
+    mustServe: [
+      "match-phoneme",
+      "approve-match-result"
+    ],
+    status: "active"
   },
 
   spectralSeal: {
     id: "spectral-seal",
     sourceDepartment: "phoneme-core",
-    sourceFiles: [
-      "phoneme-core/spectral-seal-engine.js"
-    ],
+    sourceFiles: ["phoneme-core/spectral-seal-engine.js"],
     knowledgeType: "ختم طيفي",
     mustServe: [
       "match-phoneme",
-      "identify-phoneme"
+      "identify-phoneme",
+      "approve-match-result"
     ],
     status: "active"
   },
@@ -203,9 +397,7 @@ const KNOWLEDGE_DECISION_MAP = {
   pureCore: {
     id: "pure-core",
     sourceDepartment: "phoneme-core",
-    sourceFiles: [
-      "phoneme-core/core-purifier-engine.js"
-    ],
+    sourceFiles: ["phoneme-core/core-purifier-engine.js"],
     knowledgeType: "نواة طيفية نقية",
     mustServe: [
       "match-phoneme",
@@ -217,29 +409,29 @@ const KNOWLEDGE_DECISION_MAP = {
 
   burstSignature: {
     id: "burst-signature",
-    sourceDepartment: "analysis-core",
-    sourceFiles: [
-      "analysis-core/burst-signature-engine.js"
-    ],
+    sourceDepartment: "phoneme-core",
+    sourceFiles: ["phoneme-core/burst-signature-engine.js"],
     knowledgeType: "بصمة انفجار",
     mustServe: [
       "identify-phoneme",
       "match-phoneme",
-      "split-segment"
+      "split-segment",
+      "approve-match-result"
     ],
-    status: "active"
+    status: "active",
+    note:
+      "ملف بصمة الانفجار موجود حاليًا في phoneme-core حسب واقع الاندكس الفرعي الأخير."
   },
 
   burstOnset: {
     id: "burst-onset",
     sourceDepartment: "analysis-core",
-    sourceFiles: [
-      "analysis-core/burst-onset-engine.js"
-    ],
+    sourceFiles: ["analysis-core/burst-onset-engine.js"],
     knowledgeType: "بداية حدث صوتي",
     mustServe: [
       "split-segment",
-      "match-phoneme"
+      "match-phoneme",
+      "build-timeline-genome"
     ],
     status: "active"
   },
@@ -247,9 +439,7 @@ const KNOWLEDGE_DECISION_MAP = {
   commonPayload: {
     id: "common-payload",
     sourceDepartment: "phoneme-core",
-    sourceFiles: [
-      "phoneme-core/common-payload-finder.js"
-    ],
+    sourceFiles: ["phoneme-core/common-payload-finder.js"],
     knowledgeType: "المحمول المشترك للحرف",
     mustServe: [
       "identify-phoneme",
@@ -262,10 +452,20 @@ const KNOWLEDGE_DECISION_MAP = {
   lockedPayload: {
     id: "locked-payload",
     sourceDepartment: "segment-core",
-    sourceFiles: [
-      "segment-core/payload-lock-engine.js"
-    ],
+    sourceFiles: ["segment-core/payload-lock-engine.js"],
     knowledgeType: "تثبيت المحمول",
+    mustServe: [
+      "split-segment",
+      "merge-segment"
+    ],
+    status: "active"
+  },
+
+  payloadExtraction: {
+    id: "payload-extraction",
+    sourceDepartment: "segment-core",
+    sourceFiles: ["segment-core/payload-extractor-engine.js"],
+    knowledgeType: "استخراج المحمول",
     mustServe: [
       "split-segment",
       "merge-segment"
@@ -276,9 +476,7 @@ const KNOWLEDGE_DECISION_MAP = {
   purifiedPayload: {
     id: "purified-payload",
     sourceDepartment: "segment-core",
-    sourceFiles: [
-      "segment-core/payload-purifier-engine.js"
-    ],
+    sourceFiles: ["segment-core/payload-purifier-engine.js"],
     knowledgeType: "تنظيف المحمول",
     mustServe: [
       "split-segment",
@@ -291,9 +489,7 @@ const KNOWLEDGE_DECISION_MAP = {
   payloadBoundary: {
     id: "payload-boundary",
     sourceDepartment: "segment-core",
-    sourceFiles: [
-      "segment-core/phoneme-boundary-engine.js"
-    ],
+    sourceFiles: ["segment-core/phoneme-boundary-engine.js"],
     knowledgeType: "حدود الحامل والمحمول",
     mustServe: [
       "split-segment",
@@ -305,15 +501,14 @@ const KNOWLEDGE_DECISION_MAP = {
   confusionMatrix: {
     id: "confusion-matrix",
     sourceDepartment: "memory-core",
-    sourceFiles: [
-      "memory-core/cognitive-confusion-matrix.js"
-    ],
+    sourceFiles: ["memory-core/cognitive-confusion-matrix.js"],
     knowledgeType: "ذاكرة الالتباس",
     mustServe: [
       "identify-phoneme",
       "match-phoneme",
       "split-segment",
-      "improve-memory"
+      "improve-memory",
+      "approve-match-result"
     ],
     status: "forming",
     note:
@@ -323,14 +518,13 @@ const KNOWLEDGE_DECISION_MAP = {
   cognitiveStatistics: {
     id: "cognitive-statistics",
     sourceDepartment: "memory-core",
-    sourceFiles: [
-      "memory-core/cognitive-statistics-engine.js"
-    ],
+    sourceFiles: ["memory-core/cognitive-statistics-engine.js"],
     knowledgeType: "إحصاء إدراكي تراكمي",
     mustServe: [
       "improve-memory",
       "identify-phoneme",
-      "match-phoneme"
+      "match-phoneme",
+      "review-cumulative-memory"
     ],
     status: "forming"
   },
@@ -338,9 +532,7 @@ const KNOWLEDGE_DECISION_MAP = {
   mergeSplitLab: {
     id: "merge-split-lab",
     sourceDepartment: "operation-labs",
-    sourceFiles: [
-      "operation-labs/phoneme-merge-split-engine.js"
-    ],
+    sourceFiles: ["operation-labs/phoneme-merge-split-engine.js"],
     knowledgeType: "تجربة فصل ودمج",
     mustServe: [
       "split-segment",
@@ -355,9 +547,7 @@ const KNOWLEDGE_DECISION_MAP = {
   weightedJoinZone: {
     id: "weighted-join-zone",
     sourceDepartment: "operation-labs",
-    sourceFiles: [
-      "operation-labs/weighted-join-zone.js"
-    ],
+    sourceFiles: ["operation-labs/weighted-join-zone.js"],
     knowledgeType: "تجربة منطقة اشتباك موزون",
     mustServe: [
       "merge-segment",
@@ -410,6 +600,13 @@ function getKnowledgeByDepartment(departmentId) {
 }
 
 
+function getKnowledgeBySourceFile(filePath) {
+  return Object.values(KNOWLEDGE_DECISION_MAP).filter(function (item) {
+    return (item.sourceFiles || []).includes(filePath);
+  });
+}
+
+
 // ======================================
 // 5) فحص قرار: هل لديه معرفة مساندة؟
 // ======================================
@@ -427,7 +624,8 @@ function auditDecisionKnowledge(decisionId) {
         id: k.id,
         type: k.knowledgeType,
         department: k.sourceDepartment,
-        status: k.status
+        status: k.status,
+        governanceImpact: k.governanceImpact || ""
       };
     }),
     message: knowledge.length
@@ -522,11 +720,17 @@ function auditKnowledgeDecisionMap() {
     const decision = DECISION_TYPES[key];
 
     if (!report.decisions[decision.id]) {
-      report.warnings.push(
-        "قرار بلا معرفة مساندة: " + decision.id
-      );
+      report.warnings.push("قرار بلا معرفة مساندة: " + decision.id);
     }
   });
+
+  if (!getDecisionsForKnowledge("phoneme-family-map").length) {
+    report.warnings.push("خريطة العائلة الإدراكية لا تخدم قرارًا مسجلًا.");
+  }
+
+  if (!getDecisionsForKnowledge("phoneme-cumulative-memory").length) {
+    report.warnings.push("الذاكرة التراكمية لا تخدم قرارًا مسجلًا.");
+  }
 
   console.log("🧭 تقرير خريطة المعرفة والقرار:", report);
   return report;
@@ -548,6 +752,7 @@ window.getKnowledgeDecisionMap = getKnowledgeDecisionMap;
 window.getKnowledgeForDecision = getKnowledgeForDecision;
 window.getDecisionsForKnowledge = getDecisionsForKnowledge;
 window.getKnowledgeByDepartment = getKnowledgeByDepartment;
+window.getKnowledgeBySourceFile = getKnowledgeBySourceFile;
 
 window.auditDecisionKnowledge = auditDecisionKnowledge;
 window.auditKnowledgeUsage = auditKnowledgeUsage;
