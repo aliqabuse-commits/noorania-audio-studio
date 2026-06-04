@@ -1,39 +1,15 @@
 // ================================
 // nooraniya-main-orchestrator.js
-// المنظم الرئيسي الآمن للنورانية العالمية
-// ينسق الإدارات ويراقب التحميل والعرض العام
-// لا يشغل المحركات
-// لا يبني معرفة
-// لا يتخذ قرارًا إدراكيًا
+// المنظم العام للنورانية العالمية
+// تحميل الإدارات + فتح الصفحات + استدعاء renderFunction
+// لا يعيد المستخدم للرئيسية بعد فتح الإدارة
 // ================================
 
-console.log("🌍 nooraniya-main-orchestrator.js جاهز — Safe Main Orchestrator");
+console.log("🧭 nooraniya-main-orchestrator.js جاهز — Stable Navigation");
 
-window.NOORANIYA_MAIN_STATE = {
-  status: "idle",
-  startedAt: null,
-  completedAt: null,
-  activeView: null,
-  departments: {},
-  summary: {}
-};
-
-window.NOORANIYA_MAIN_ORCHESTRATOR_CHARTER = {
-  title: "دستور المنظم الرئيسي",
-  law:
-    "المنظم العام ينسق ولا يحكم، يفتح العرض العام ولا يشغل المحركات، ويراقب أن كل إدارة تحمل نفسها وتفحص نفسها عبر منظمها الفرعي.",
-  principles: [
-    "index.html يعرض الواجهات فقط.",
-    "project-index.js يعرف المشروع.",
-    "department-index.js يعرف الإدارة ويحمّل ملفاتها.",
-    "department-app.js يسجل ويفحص ويبني لوحة الإدارة.",
-    "nooraniya-main-orchestrator.js ينسق ويراقب ويفتح العرض العام.",
-    "المحركات تعمل عند الطلب فقط.",
-    "لا تشغيل تلقائي للمحركات.",
-    "لا معرفة بلا قرار.",
-    "لا قرار بلا مراجعة معرفة."
-  ]
-};
+window.NOORANIYA_CURRENT_VIEW = "homeView";
+window.NOORANIYA_CURRENT_DEPARTMENT = null;
+window.NOORANIYA_ORCHESTRATOR_READY = false;
 
 function getNooraniyaViewIds() {
   return [
@@ -61,8 +37,6 @@ window.hideAllNooraniyaViews = function () {
 };
 
 window.showNooraniyaView = function (viewId) {
-  window.hideAllNooraniyaViews();
-
   const view = document.getElementById(viewId);
 
   if (!view) {
@@ -70,143 +44,14 @@ window.showNooraniyaView = function (viewId) {
     return false;
   }
 
-  view.style.display = "block";
-  window.NOORANIYA_MAIN_STATE.activeView = viewId;
+  window.hideAllNooraniyaViews();
 
-  window.scrollTo({
-    top: 0,
-    behavior: "auto"
-  });
+  view.style.display = "block";
+  window.NOORANIYA_CURRENT_VIEW = viewId;
+
+  window.scrollTo({ top: 0, behavior: "auto" });
 
   return true;
-};
-
-function getSafeProjectIndex() {
-  if (typeof window.getProjectIndex !== "function") {
-    return null;
-  }
-
-  return window.getProjectIndex();
-}
-
-async function loadDepartmentByRecord(dept) {
-  const result = {
-    id: dept.id,
-    name: dept.name,
-    order: dept.order,
-    status: "pending",
-
-    viewId: dept.viewId,
-    panelContainerId: dept.panelContainerId,
-
-    indexFunction: dept.indexFunction,
-    loadFunction: dept.loadFunction,
-    appFunction: dept.appFunction,
-    renderFunction: dept.renderFunction,
-
-    indexAvailable: false,
-    loadAvailable: false,
-    appAvailable: false,
-    renderAvailable: false,
-
-    index: null,
-    loadReport: null,
-    appReport: null,
-    renderReport: null,
-
-    error: null
-  };
-
-  try {
-    if (typeof window[dept.indexFunction] === "function") {
-      result.indexAvailable = true;
-      result.index = window[dept.indexFunction]();
-    }
-
-    if (typeof window[dept.loadFunction] === "function") {
-      result.loadAvailable = true;
-      result.loadReport = await window[dept.loadFunction]();
-    }
-
-    if (typeof window[dept.appFunction] === "function") {
-      result.appAvailable = true;
-      result.appReport = window[dept.appFunction]();
-    }
-
-    if (typeof window[dept.renderFunction] === "function") {
-      result.renderAvailable = true;
-    }
-
-    result.status =
-      result.indexAvailable &&
-      result.loadAvailable &&
-      result.appAvailable &&
-      result.renderAvailable
-        ? "ready"
-        : "needs-attention";
-
-  } catch (err) {
-    result.status = "error";
-    result.error = err.message;
-    console.error("❌ خطأ أثناء تجهيز الإدارة:", dept.id, err);
-  }
-
-  return result;
-}
-
-window.runNooraniyaMainOrchestrator = async function () {
-  const project = getSafeProjectIndex();
-  const state = window.NOORANIYA_MAIN_STATE;
-
-  state.status = "running";
-  state.startedAt = new Date().toISOString();
-  state.completedAt = null;
-  state.departments = {};
-  state.summary = {
-    total: 0,
-    ready: 0,
-    needsAttention: 0,
-    errors: 0
-  };
-
-  if (!project || !Array.isArray(project.departments)) {
-    state.status = "failed";
-    state.error = "project-index-missing-or-invalid";
-    console.error("❌ project-index غير موجود أو غير صالح");
-    return state;
-  }
-
-  const departments = project.departments
-    .slice()
-    .sort(function (a, b) {
-      return Number(a.order || 999) - Number(b.order || 999);
-    });
-
-  for (const dept of departments) {
-    const report = await loadDepartmentByRecord(dept);
-
-    state.departments[dept.id] = report;
-    state.summary.total++;
-
-    if (report.status === "ready") {
-      state.summary.ready++;
-    } else if (report.status === "error") {
-      state.summary.errors++;
-    } else {
-      state.summary.needsAttention++;
-    }
-  }
-
-  state.completedAt = new Date().toISOString();
-
-  state.status =
-    state.summary.errors || state.summary.needsAttention
-      ? "needs-attention"
-      : "healthy";
-
-  console.log("🌍 تقرير المنظم الرئيسي:", state);
-
-  return state;
 };
 
 window.openNooraniyaDepartment = async function (departmentId) {
@@ -216,56 +61,64 @@ window.openNooraniyaDepartment = async function (departmentId) {
       : null;
 
   if (!dept) {
-    alert("الإدارة غير موجودة في project-index: " + departmentId);
+    alert("الإدارة غير مسجلة في project-index.js: " + departmentId);
     return null;
   }
 
-  let report = window.NOORANIYA_MAIN_STATE.departments[departmentId];
+  window.NOORANIYA_CURRENT_DEPARTMENT = departmentId;
 
-  if (!report || report.status !== "ready") {
-    report = await loadDepartmentByRecord(dept);
-    window.NOORANIYA_MAIN_STATE.departments[departmentId] = report;
+  if (dept.loadFunction && typeof window[dept.loadFunction] === "function") {
+    await window[dept.loadFunction]();
   }
 
   window.showNooraniyaView(dept.viewId);
 
-  if (typeof window[dept.renderFunction] === "function") {
-    report.renderAvailable = true;
-    report.renderReport = window[dept.renderFunction](dept.panelContainerId);
-  } else {
-    report.renderAvailable = false;
-    console.warn("⚠️ renderFunction غير متاحة:", dept.renderFunction);
+  let report = null;
+
+  if (dept.appFunction && typeof window[dept.appFunction] === "function") {
+    report = window[dept.appFunction]();
   }
 
-  return report;
+  if (dept.renderFunction && typeof window[dept.renderFunction] === "function") {
+    window[dept.renderFunction](dept.panelContainerId);
+  }
+
+  return {
+    department: departmentId,
+    viewId: dept.viewId,
+    report: report
+  };
 };
 
-window.getNooraniyaMainState = function () {
-  return window.NOORANIYA_MAIN_STATE;
-};
-
-window.auditNooraniyaViews = function () {
-  const ids = getNooraniyaViewIds();
+window.runNooraniyaMainOrchestrator = async function () {
+  window.NOORANIYA_ORCHESTRATOR_READY = true;
 
   const report = {
-    type: "view-audit",
-    total: ids.length,
-    existing: [],
-    missing: [],
-    checkedAt: new Date().toISOString()
+    project:
+      typeof window.getProjectIndex === "function"
+        ? window.getProjectIndex()
+        : null,
+    departments:
+      typeof window.getProjectDepartments === "function"
+        ? window.getProjectDepartments()
+        : [],
+    ready: true,
+    note:
+      "المنظم العام جاهز. لا يفتح الإدارات تلقائيًا ولا يعيد الصفحة للرئيسية بعد فتح إدارة."
   };
 
-  ids.forEach(function (id) {
-    if (document.getElementById(id)) {
-      report.existing.push(id);
-    } else {
-      report.missing.push(id);
-    }
-  });
-
-  report.ok = report.missing.length === 0;
-
-  console.log("🖥️ تقرير صفحات العرض:", report);
+  console.log("🧭 تقرير المنظم العام:", report);
 
   return report;
 };
+
+window.goHome = function () {
+  window.NOORANIYA_CURRENT_DEPARTMENT = null;
+  window.showNooraniyaView("homeView");
+
+  if (typeof window.renderHome === "function") {
+    window.renderHome();
+  }
+};
+
+console.log("🧭 المنظم العام مستقر — لا رجوع تلقائي للرئيسية");
