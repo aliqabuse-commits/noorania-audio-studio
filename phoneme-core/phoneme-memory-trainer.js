@@ -1,10 +1,23 @@
 // ================================
 // phoneme-core/phoneme-memory-trainer.js
-// مدرب الذاكرة الإدراكية اللونية للحروف — V2
+// مدرب الذاكرة الإدراكية اللونية للحروف — V3
+// خدمة القرار + الحوكمة + خلية النحل
 // يقرأ الذاكرة القديمة + الذاكرة التراكمية + يبني ذاكرة عند عدم وجودها
+// يبني توقيعًا عامًا وتوقيعًا لكل حالة
 // ================================
 
-console.log("🎨 phoneme-memory-trainer.js جاهز V2");
+console.log("🎨 phoneme-memory-trainer.js جاهز V3 — Decision Governed Memory");
+
+const MEMORY_TRAINER_VERSION = "V3-decision-governed";
+
+const MEMORY_FEATURE_KEYS = [
+  "centroid",
+  "spread",
+  "energy",
+  "zcr",
+  "duration",
+  "burstiness"
+];
 
 
 // ======================================
@@ -72,6 +85,12 @@ function buildFallbackMemoryFromPack(phonemeKey) {
       hex: colorBinding?.hex || pack.colorHex || "#38BDF8",
       name: colorBinding?.colorName || pack.colorName || "Noorani Color"
     },
+    pack: {
+      key: pack.key || phonemeKey,
+      letter: pack.letter,
+      name: pack.name,
+      traits: pack.traits || {}
+    },
     concept: {
       goal: "بناء ذاكرة إدراكية تراكمية للحرف من تسجيلاته.",
       rule: "لا تُمسح الذاكرة عند إعادة التسجيل، بل تضاف العينة الجديدة إلى الأثر السابق."
@@ -102,6 +121,16 @@ function normalizeMemoryForTrainer(phonemeKey, memory) {
       hex: colorBinding?.hex || pack?.colorHex || "#38BDF8",
       name: colorBinding?.colorName || pack?.colorName || "Noorani Color"
     },
+    pack:
+      memory.pack ||
+      (pack
+        ? {
+            key: pack.key || phonemeKey,
+            letter: pack.letter,
+            name: pack.name,
+            traits: pack.traits || {}
+          }
+        : null),
     concept: memory.concept || {
       goal: "تثبيت ذاكرة إدراكية للحرف.",
       rule: "التسجيل الجديد لا يمحو الذاكرة السابقة."
@@ -129,23 +158,25 @@ async function trainPhonemeMemory(phonemeKey) {
 
     if (!memory && !pack) {
       alert("لا توجد حقيبة ولا ذاكرة لهذا الحرف: " + phonemeKey);
-      return;
+      return null;
     }
 
     const units =
       pack && pack.positions
         ? pack.positions.map(function (p) {
             return {
+              id: p.id || p.file.replace(/\.[^.]+$/, ""),
               text: p.text,
               file: p.file,
-              role: p.role
+              role: p.role,
+              description: p.description || ""
             };
           })
         : (memory.trainingUnits || []);
 
     if (!units.length) {
       alert("لا توجد وحدات تدريبية لهذا الحرف: " + phonemeKey);
-      return;
+      return null;
     }
 
     const missing = await findMissingTrainingFiles(units);
@@ -157,7 +188,7 @@ async function trainPhonemeMemory(phonemeKey) {
           missing.join("\n") +
           "\n\nابدأ أولًا بزر: 🎙 تدريب هذا الحرف إدراكيًا"
       );
-      return;
+      return null;
     }
 
     showPhonemeTrainingLoading("جاري بناء ذاكرة لون " + memory.label + "...");
@@ -179,15 +210,22 @@ async function trainPhonemeMemory(phonemeKey) {
       );
 
       samples.push({
+        id: unit.id || unit.file.replace(/\.[^.]+$/, ""),
         text: unit.text,
         file: unit.file,
         role: unit.role,
+        description: unit.description || "",
         duration: decoded.samples.length / decoded.sampleRate,
         features
       });
     }
 
     const identity = buildPerceptualIdentity(memory, samples);
+    identity.governance = buildMemoryGovernanceDecision(
+      phonemeKey,
+      memory,
+      identity
+    );
 
     savePerceptualIdentityEverywhere(phonemeKey, identity);
 
@@ -201,7 +239,9 @@ async function trainPhonemeMemory(phonemeKey) {
         "\nاللون: " +
         memory.color.name +
         "\nالثقة الإدراكية: " +
-        identity.confidence.toFixed(4)
+        Number(identity.confidence || 0).toFixed(4) +
+        "\nحكم الذاكرة: " +
+        identity.governance.decision
     );
 
     return identity;
@@ -233,6 +273,25 @@ function savePerceptualIdentityEverywhere(phonemeKey, identity) {
     JSON.stringify(identity, null, 2)
   );
 
+  let cumulative = null;
+
+  if (typeof addPerceptualIdentityToCumulativeMemory === "function") {
+    cumulative = addPerceptualIdentityToCumulativeMemory(
+      phonemeKey,
+      identity
+    );
+  } else {
+    cumulative = addPerceptualIdentityFallback(phonemeKey, identity);
+  }
+
+  const cumulativeValue = JSON.stringify(cumulative, null, 2);
+
+  localStorage.setItem(phonemeKey + "_cumulative_memory", cumulativeValue);
+  localStorage.setItem("cognitive_memory_" + phonemeKey, cumulativeValue);
+}
+
+
+function addPerceptualIdentityFallback(phonemeKey, identity) {
   const oldRaw = localStorage.getItem(phonemeKey + "_cumulative_memory");
   let cumulative = null;
 
@@ -246,7 +305,7 @@ function savePerceptualIdentityEverywhere(phonemeKey, identity) {
 
   if (!cumulative) {
     cumulative = {
-      method: "Noorani Cumulative Phoneme Memory V1",
+      method: "Noorani Cumulative Phoneme Memory V2",
       phonemeKey: phonemeKey,
       key: phonemeKey,
       phoneme: identity.phoneme,
@@ -255,6 +314,8 @@ function savePerceptualIdentityEverywhere(phonemeKey, identity) {
       samplesCount: 0,
       samples: [],
       attemptHistory: [],
+      cumulativePerceptualSignature: {},
+      cumulativePerceptualSignatureByState: {},
       createdAt: new Date().toISOString(),
       updatedAt: null
     };
@@ -268,31 +329,34 @@ function savePerceptualIdentityEverywhere(phonemeKey, identity) {
     createdAt: new Date().toISOString(),
     source: "phoneme-memory-trainer",
     phonemeKey: phonemeKey,
-    identity: identity
+    identity: identity,
+    perceptualSignature: identity.perceptualSignature,
+    perceptualSignatureByState: identity.perceptualSignatureByState,
+    governance: identity.governance
   };
 
   cumulative.samples.push(sample);
+
   cumulative.attemptHistory.push({
     id: sample.id,
     createdAt: sample.createdAt,
     source: sample.source,
-    accepted: true,
-    confidence: identity.confidence
+    accepted: identity.governance?.decision !== "rejected",
+    confidence: identity.confidence,
+    decision: identity.governance?.decision || "unknown",
+    decisionReason: identity.governance?.reason || ""
   });
 
   cumulative.samplesCount = cumulative.samples.length;
   cumulative.latestPerceptualIdentity = identity;
+  cumulative.latestMemoryGovernance = identity.governance || null;
   cumulative.updatedAt = new Date().toISOString();
+  cumulative.cumulativePerceptualSignature =
+    buildCumulativePerceptualSignature(cumulative.samples);
+  cumulative.cumulativePerceptualSignatureByState =
+    buildCumulativePerceptualSignatureByState(cumulative.samples);
 
-  localStorage.setItem(
-    phonemeKey + "_cumulative_memory",
-    JSON.stringify(cumulative, null, 2)
-  );
-
-  localStorage.setItem(
-    "cognitive_memory_" + phonemeKey,
-    JSON.stringify(cumulative, null, 2)
-  );
+  return cumulative;
 }
 
 
@@ -318,24 +382,12 @@ async function findMissingTrainingFiles(units) {
 // 6) بناء الهوية الإدراكية
 // ======================================
 function buildPerceptualIdentity(memory, samples) {
-  const centroidValues = [];
-  const spreadValues = [];
-  const energyValues = [];
-  const zcrValues = [];
-  const durationValues = [];
-  const burstValues = [];
+  const values = buildFeatureValueBuckets(samples);
 
-  samples.forEach(function (sample) {
-    centroidValues.push(sample.features.centroid);
-    spreadValues.push(sample.features.spread);
-    energyValues.push(sample.features.energy);
-    zcrValues.push(sample.features.zcr);
-    durationValues.push(sample.duration);
-    burstValues.push(sample.features.burstiness);
-  });
+  const identity = {
+    method: "Phoneme Color Memory Trainer V3",
+    version: MEMORY_TRAINER_VERSION,
 
-  return {
-    method: "Phoneme Color Memory Trainer V2",
     phonemeKey:
       memory.key ||
       memory.phonemeKey ||
@@ -345,69 +397,31 @@ function buildPerceptualIdentity(memory, samples) {
     phoneme: memory.phoneme,
     label: memory.label,
     color: memory.color,
+    pack: memory.pack || null,
 
     trainingUnits: samples.map(function (s) {
       return {
+        id: s.id,
         text: s.text,
         file: s.file,
         role: s.role,
+        description: s.description,
         duration: roundMemory(s.duration),
         centroid: roundMemory(s.features.centroid),
         spread: roundMemory(s.features.spread),
         energy: roundMemory(s.features.energy),
         zcr: roundMemory(s.features.zcr),
-        burstiness: roundMemory(s.features.burstiness)
+        burstiness: roundMemory(s.features.burstiness),
+        activeRatio: roundMemory(s.features.activeRatio || 0)
       };
     }),
 
-    perceptualSignature: {
-      centroid: {
-        mean: roundMemory(averageMemory(centroidValues)),
-        variance: roundMemory(varianceMemory(centroidValues)),
-        min: roundMemory(Math.min.apply(null, centroidValues)),
-        max: roundMemory(Math.max.apply(null, centroidValues))
-      },
-      spread: {
-        mean: roundMemory(averageMemory(spreadValues)),
-        variance: roundMemory(varianceMemory(spreadValues)),
-        min: roundMemory(Math.min.apply(null, spreadValues)),
-        max: roundMemory(Math.max.apply(null, spreadValues))
-      },
-      energy: {
-        mean: roundMemory(averageMemory(energyValues)),
-        variance: roundMemory(varianceMemory(energyValues)),
-        min: roundMemory(Math.min.apply(null, energyValues)),
-        max: roundMemory(Math.max.apply(null, energyValues))
-      },
-      zcr: {
-        mean: roundMemory(averageMemory(zcrValues)),
-        variance: roundMemory(varianceMemory(zcrValues)),
-        min: roundMemory(Math.min.apply(null, zcrValues)),
-        max: roundMemory(Math.max.apply(null, zcrValues))
-      },
-      duration: {
-        mean: roundMemory(averageMemory(durationValues)),
-        variance: roundMemory(varianceMemory(durationValues)),
-        min: roundMemory(Math.min.apply(null, durationValues)),
-        max: roundMemory(Math.max.apply(null, durationValues))
-      },
-      burstiness: {
-        mean: roundMemory(averageMemory(burstValues)),
-        variance: roundMemory(varianceMemory(burstValues)),
-        min: roundMemory(Math.min.apply(null, burstValues)),
-        max: roundMemory(Math.max.apply(null, burstValues))
-      }
-    },
+    perceptualSignature: buildPerceptualSignature(values),
+    perceptualSignatureByState: buildPerceptualSignatureByState(samples),
 
     samplesCount: samples.length,
 
-    confidence: calcPerceptualConfidence({
-      centroidValues,
-      spreadValues,
-      energyValues,
-      zcrValues,
-      burstValues
-    }),
+    confidence: calcPerceptualConfidence(values),
 
     concept: memory.concept || {
       goal: "تثبيت ذاكرة إدراكية للحرف.",
@@ -416,11 +430,139 @@ function buildPerceptualIdentity(memory, samples) {
 
     createdAt: new Date().toISOString()
   };
+
+  return identity;
+}
+
+
+function buildFeatureValueBuckets(samples) {
+  const buckets = {
+    centroidValues: [],
+    spreadValues: [],
+    energyValues: [],
+    zcrValues: [],
+    durationValues: [],
+    burstValues: [],
+    activeRatioValues: []
+  };
+
+  samples.forEach(function (sample) {
+    buckets.centroidValues.push(sample.features.centroid);
+    buckets.spreadValues.push(sample.features.spread);
+    buckets.energyValues.push(sample.features.energy);
+    buckets.zcrValues.push(sample.features.zcr);
+    buckets.durationValues.push(sample.duration);
+    buckets.burstValues.push(sample.features.burstiness);
+    buckets.activeRatioValues.push(sample.features.activeRatio || 0);
+  });
+
+  return buckets;
+}
+
+
+function buildPerceptualSignature(values) {
+  return {
+    centroid: memoryStat(values.centroidValues),
+    spread: memoryStat(values.spreadValues),
+    energy: memoryStat(values.energyValues),
+    zcr: memoryStat(values.zcrValues),
+    duration: memoryStat(values.durationValues),
+    burstiness: memoryStat(values.burstValues),
+    activeRatio: memoryStat(values.activeRatioValues)
+  };
+}
+
+
+function buildPerceptualSignatureByState(samples) {
+  const byState = {};
+
+  samples.forEach(function (s) {
+    const stateKey = s.id || s.file.replace(/\.[^.]+$/, "");
+
+    byState[stateKey] = {
+      text: s.text,
+      file: s.file,
+      role: s.role,
+      duration: memoryStat([s.duration]),
+      centroid: memoryStat([s.features.centroid]),
+      spread: memoryStat([s.features.spread]),
+      energy: memoryStat([s.features.energy]),
+      zcr: memoryStat([s.features.zcr]),
+      burstiness: memoryStat([s.features.burstiness]),
+      activeRatio: memoryStat([s.features.activeRatio || 0])
+    };
+  });
+
+  return byState;
 }
 
 
 // ======================================
-// 7) استخراج الخصائص
+// 7) حوكمة الذاكرة وخدمة القرار
+// ======================================
+function buildMemoryGovernanceDecision(phonemeKey, memory, identity) {
+  const weakStates = [];
+  const stateKeys = Object.keys(identity.perceptualSignatureByState || {});
+
+  stateKeys.forEach(function (stateKey) {
+    const state = identity.perceptualSignatureByState[stateKey];
+
+    const warnings = [];
+
+    if ((state.energy?.mean || 0) <= 0) warnings.push("zero-energy");
+    if ((state.duration?.mean || 0) > 5) warnings.push("duration-too-long");
+    if ((state.centroid?.mean || 0) <= 0) warnings.push("invalid-centroid");
+
+    if (warnings.length) {
+      weakStates.push({
+        stateKey,
+        warnings
+      });
+    }
+  });
+
+  const confidence = Number(identity.confidence || 0);
+  const hasAllStates =
+    Array.isArray(memory.trainingUnits) &&
+    memory.trainingUnits.length === stateKeys.length;
+
+  let decision = "usable-for-memory";
+  let reason = "الذاكرة صالحة لخدمة القرار، لكنها لا تعتمد وحدها.";
+
+  if (!stateKeys.length) {
+    decision = "rejected";
+    reason = "لا توجد حالات تدريبية محفوظة.";
+  } else if (weakStates.length) {
+    decision = "needs-review";
+    reason = "بعض حالات الذاكرة ضعيفة وتحتاج مراجعة التسجيل أو التحليل.";
+  } else if (confidence < 0.55) {
+    decision = "not-certified";
+    reason = "الثقة الإحصائية ضعيفة ولا تكفي للحكم.";
+  } else if (!hasAllStates) {
+    decision = "incomplete";
+    reason = "لم تكتمل كل حالات الحقيبة.";
+  }
+
+  return {
+    authority: "governance-core",
+    department: "phoneme-core",
+    decision,
+    reason,
+    confidence: roundMemory(confidence),
+    statesCount: stateKeys.length,
+    weakStates,
+    memorySamplesCount:
+      (typeof getAnyStoredPhonemeMemory === "function"
+        ? getAnyStoredPhonemeMemory(phonemeKey)?.samplesCount
+        : 0) || 0,
+    principle:
+      "الذاكرة تؤيد أو تعارض القرار، ولا تستبدل الجينوم ولا العائلة."
+  };
+}
+
+
+// ======================================
+// 8) استخراج الخصائص
 // ======================================
 function extractPerceptualFeatures(samples, sampleRate) {
   const active = detectMemoryActiveRange(samples);
@@ -444,7 +586,8 @@ function extractPerceptualFeatures(samples, sampleRate) {
     zcr,
     centroid,
     spread,
-    burstiness
+    burstiness,
+    activeRatio: active.activeRatio
   };
 }
 
@@ -466,18 +609,18 @@ function detectMemoryActiveRange(samples) {
   if (!energies.length) {
     return {
       start: 0,
-      end: samples.length
+      end: samples.length,
+      activeRatio: 1
     };
   }
 
-  const maxEnergy = Math.max.apply(
-    null,
-    energies.map(function (e) {
-      return e.energy;
-    })
-  );
+  const energyValues = energies.map(function (e) {
+    return e.energy;
+  });
 
-  const threshold = maxEnergy * 0.12;
+  const maxEnergy = Math.max.apply(null, energyValues);
+  const noiseFloor = percentileMemory(energyValues, 0.15);
+  const threshold = noiseFloor + Math.max(0, maxEnergy - noiseFloor) * 0.16;
 
   let startSample = 0;
   let endSample = samples.length;
@@ -498,13 +641,14 @@ function detectMemoryActiveRange(samples) {
 
   return {
     start: startSample,
-    end: endSample
+    end: endSample,
+    activeRatio: (endSample - startSample) / Math.max(1, samples.length)
   };
 }
 
 
 // ======================================
-// 8) الطيف والحسابات
+// 9) الطيف والحسابات
 // ======================================
 function memorySpectrum(segment, sampleRate) {
   const size = nextPowerOfTwoMemory(segment.length);
@@ -608,18 +752,94 @@ function calcPerceptualConfidence(values) {
   const burstScore =
     1 / (1 + varianceMemory(values.burstValues));
 
+  const activeScore =
+    1 / (1 + varianceMemory(values.activeRatioValues || []) * 10);
+
   return (
-    centroidScore * 0.25 +
-    spreadScore * 0.2 +
+    centroidScore * 0.22 +
+    spreadScore * 0.18 +
     energyScore * 0.15 +
-    zcrScore * 0.15 +
-    burstScore * 0.25
+    zcrScore * 0.12 +
+    burstScore * 0.23 +
+    activeScore * 0.10
   );
 }
 
 
 // ======================================
-// 9) عرض تقرير الذاكرة
+// 10) بناء التراكمات الاحتياطية
+// ======================================
+function buildCumulativePerceptualSignature(samples) {
+  const result = {};
+
+  MEMORY_FEATURE_KEYS.forEach(function (featureKey) {
+    const values = [];
+
+    samples.forEach(function (sample) {
+      const sig =
+        sample.perceptualSignature ||
+        sample.identity?.perceptualSignature;
+
+      if (
+        sig &&
+        sig[featureKey] &&
+        typeof sig[featureKey].mean === "number"
+      ) {
+        values.push(sig[featureKey].mean);
+      }
+    });
+
+    result[featureKey] = memoryStat(values);
+  });
+
+  return result;
+}
+
+
+function buildCumulativePerceptualSignatureByState(samples) {
+  const byState = {};
+
+  samples.forEach(function (sample) {
+    const stateMap =
+      sample.perceptualSignatureByState ||
+      sample.identity?.perceptualSignatureByState ||
+      {};
+
+    Object.keys(stateMap).forEach(function (stateKey) {
+      if (!byState[stateKey]) byState[stateKey] = {};
+
+      MEMORY_FEATURE_KEYS.forEach(function (featureKey) {
+        const stat = stateMap[stateKey][featureKey];
+
+        if (!stat || typeof stat.mean !== "number") return;
+
+        if (!byState[stateKey][featureKey]) {
+          byState[stateKey][featureKey] = [];
+        }
+
+        byState[stateKey][featureKey].push(stat.mean);
+      });
+    });
+  });
+
+  const result = {};
+
+  Object.keys(byState).forEach(function (stateKey) {
+    result[stateKey] = {};
+
+    Object.keys(byState[stateKey]).forEach(function (featureKey) {
+      result[stateKey][featureKey] = memoryStat(
+        byState[stateKey][featureKey]
+      );
+    });
+  });
+
+  return result;
+}
+
+
+// ======================================
+// 11) عرض تقرير الذاكرة
 // ======================================
 function renderPhonemeMemoryReport(identity) {
   if (identity && identity.latestPerceptualIdentity) {
@@ -669,6 +889,15 @@ function renderPhonemeMemoryReport(identity) {
       <b>${Number(identity.confidence || 0).toFixed(4)}</b>
     </div>
 
+    <div>
+      حكم الذاكرة:
+      <b style="color:#facc15;">${identity.governance?.decision || "غير محدد"}</b>
+    </div>
+
+    <div style="font-size:13px;color:#cbd5e1;">
+      ${identity.governance?.reason || ""}
+    </div>
+
     <hr style="border-color:#1f2937;">
 
     <div style="font-weight:bold;margin:8px 0;">
@@ -690,6 +919,7 @@ function renderPhonemeMemoryReport(identity) {
           <div>energy: ${u.energy}</div>
           <div>zcr: ${u.zcr}</div>
           <div>burstiness: ${u.burstiness}</div>
+          <div>activeRatio: ${u.activeRatio}</div>
         </div>
       `;
       })
@@ -704,13 +934,13 @@ function renderPhonemeMemoryReport(identity) {
   if (typeof renderToUnifiedPanel === "function") {
     renderToUnifiedPanel(html);
   } else {
-    console.warn("⚠️ مدير التقارير الموحد غير متاح لعرض الذاكرة الإدراكية.");
+    console.warn("⚠️ مدير التقارير الموحد غير متاح لعَرض الذاكرة الإدراكية.");
   }
 }
 
 
 // ======================================
-// 10) قراءة الصوت مع بقاء التسجيل بعد تحديث الصفحة
+// 12) قراءة الصوت مع بقاء التسجيل بعد تحديث الصفحة
 // ======================================
 function getAudioPromiseForMemory(key, timeoutMs) {
   timeoutMs = timeoutMs || 3000;
@@ -844,7 +1074,7 @@ async function decodeBlobToMonoForMemory(blob) {
 
 
 // ======================================
-// 11) شاشة التحميل
+// 13) شاشة التحميل
 // ======================================
 function showPhonemeTrainingLoading(text) {
   let box = document.getElementById("global-loading");
@@ -885,7 +1115,7 @@ function hidePhonemeTrainingLoading() {
 
 
 // ======================================
-// 12) أدوات رياضية
+// 14) أدوات رياضية
 // ======================================
 function calcMemoryRms(frame) {
   if (!frame.length) return 0;
@@ -918,6 +1148,29 @@ function calcMemoryZcr(frame) {
 }
 
 
+function memoryStat(values) {
+  const clean = values.filter(function (v) {
+    return typeof v === "number" && Number.isFinite(v);
+  });
+
+  if (!clean.length) {
+    return {
+      mean: 0,
+      variance: 0,
+      min: 0,
+      max: 0
+    };
+  }
+
+  return {
+    mean: roundMemory(averageMemory(clean)),
+    variance: roundMemory(varianceMemory(clean)),
+    min: roundMemory(Math.min.apply(null, clean)),
+    max: roundMemory(Math.max.apply(null, clean))
+  };
+}
+
+
 function averageMemory(arr) {
   if (!arr.length) return 0;
 
@@ -938,6 +1191,22 @@ function varianceMemory(arr) {
       return d * d;
     })
   );
+}
+
+
+function percentileMemory(values, ratio) {
+  if (!values.length) return 0;
+
+  const sorted = values.slice().sort(function (a, b) {
+    return a - b;
+  });
+
+  const index = Math.max(
+    0,
+    Math.min(sorted.length - 1, Math.floor(sorted.length * ratio))
+  );
+
+  return sorted[index];
 }
 
 
@@ -965,12 +1234,17 @@ function roundMemory(num) {
 
 
 // ======================================
-// 13) التصدير العام
+// 15) التصدير العام
 // ======================================
 window.trainPhonemeMemory = trainPhonemeMemory;
 window.renderPhonemeMemoryReport = renderPhonemeMemoryReport;
 window.getAudioPromiseForMemory = getAudioPromiseForMemory;
 window.getMemoryForTraining = getMemoryForTraining;
 window.savePerceptualIdentityEverywhere = savePerceptualIdentityEverywhere;
+window.buildPerceptualIdentity = buildPerceptualIdentity;
+window.buildMemoryGovernanceDecision = buildMemoryGovernanceDecision;
+window.buildCumulativePerceptualSignature = buildCumulativePerceptualSignature;
+window.buildCumulativePerceptualSignatureByState =
+  buildCumulativePerceptualSignatureByState;
 
-console.log("🎨 مدرب الذاكرة الإدراكية جاهز V2");
+console.log("🎨 مدرب الذاكرة الإدراكية جاهز V3 كامل");
