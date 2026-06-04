@@ -31,6 +31,7 @@ window.NOORANIYA_GOVERNANCE_CORE = {
     "governance-core/knowledge-decision-map.js",
     "governance-core/decision-gates.js",
     "governance-core/governance-audit-guards.js",
+    "governance-core/governance-report-center.js",
     "governance-core/governance-core-app.js"
   ],
 
@@ -40,7 +41,8 @@ window.NOORANIYA_GOVERNANCE_CORE = {
     "decision-gates",
     "governance-audit-guards",
     "department-index-alignment",
-    "family-memory-governance-audit"
+    "family-memory-governance-audit",
+    "governance-report-center"
   ],
 
   decisions: [
@@ -51,7 +53,8 @@ window.NOORANIYA_GOVERNANCE_CORE = {
     "هل توجد معرفة يتيمة؟",
     "هل الاندكس الفرعي منسجم مع خريطة المعرفة؟",
     "هل الإضافة الجديدة ظهرت في البوابات والتدقيق؟",
-    "هل نتيجة المطابقة تملك عائلة وذاكرة وهامش فصل قبل اعتمادها؟"
+    "هل نتيجة المطابقة تملك عائلة وذاكرة وهامش فصل قبل اعتمادها؟",
+    "هل تقارير الحوكمة قابلة للقراءة والنسخ واتخاذ القرار؟"
   ],
 
   serves: [
