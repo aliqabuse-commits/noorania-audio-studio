@@ -449,12 +449,14 @@ window.quickGovernanceQuestion = function (idea) {
 // ======================================
 // 9) زر آمن للوحة الحوكمة
 // ======================================
-
 function addGovernanceButton(container, label, handler) {
   const btn = document.createElement("button");
+  btn.type = "button";
   btn.innerText = label;
 
   btn.onclick = function () {
+    alert("تم الضغط على زر الحوكمة: " + label);
+
     try {
       handler();
     } catch (err) {
