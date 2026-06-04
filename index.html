@@ -367,20 +367,20 @@
     }
 
     window.addEventListener("DOMContentLoaded", async function () {
-     alert("INDEX HTML LOADED NOW");
-      if (typeof renderHome === "function") {
-       
-        renderHome();
-      }
+  if (typeof renderHome === "function") {
+    renderHome();
+  }
 
-      if (typeof runNooraniyaMainOrchestrator === "function") {
-        await runNooraniyaMainOrchestrator();
-      }
+  if (typeof runNooraniyaMainOrchestrator === "function") {
+    await runNooraniyaMainOrchestrator();
+  }
 
-      if (typeof showNooraniyaView === "function") {
-        showNooraniyaView("homeView");
-      }
-    });
+  if (!window.NOORANIYA_CURRENT_VIEW || window.NOORANIYA_CURRENT_VIEW === "homeView") {
+    if (typeof showNooraniyaView === "function") {
+      showNooraniyaView("homeView");
+    }
+  }
+});
   </script>
 </body>
 </html>
