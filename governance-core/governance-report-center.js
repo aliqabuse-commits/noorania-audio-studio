@@ -427,13 +427,43 @@ function summarizeFamilyMemorySection(data) {
 // ======================================
 
 function buildDepartmentGovernanceReport(departmentId) {
-  const dept = typeof window.getDepartmentById === "function"
-    ? window.getDepartmentById(departmentId)
-    : null;
+  const dept =
+    typeof window.getDepartmentById === "function"
+      ? window.getDepartmentById(departmentId)
+      : null;
 
-  const knowledge = typeof window.getKnowledgeByDepartment === "function"
-    ? window.getKnowledgeByDepartment(departmentId)
-    : [];
+  const index = getDepartmentIndexById(departmentId);
+
+  const mapKnowledge =
+    typeof window.getKnowledgeByDepartment === "function"
+      ? window.getKnowledgeByDepartment(departmentId) || []
+      : [];
+
+  const indexKnowledge =
+    index && Array.isArray(index.knowledge)
+      ? index.knowledge.map(function (id) {
+          return {
+            id: id,
+            knowledgeType: "معرفة معلنة في الاندكس الفرعي",
+            status: "index-declared",
+            sourceFiles: [],
+            mustServe: []
+          };
+        })
+      : [];
+
+  const merged = {};
+  mapKnowledge.forEach(function (item) {
+    merged[item.id] = item;
+  });
+
+  indexKnowledge.forEach(function (item) {
+    if (!merged[item.id]) {
+      merged[item.id] = item;
+    }
+  });
+
+  const knowledge = Object.values(merged);
 
   const decisionsMap = {};
 
@@ -444,10 +474,8 @@ function buildDepartmentGovernanceReport(departmentId) {
     });
   });
 
-  const index = getDepartmentIndexById(departmentId);
-
   const report = {
-    method: "Department Governance Report V1",
+    method: "Department Governance Report V1.1",
     departmentId,
     department: dept || null,
     indexLoaded: !!index,
@@ -465,8 +493,8 @@ function buildDepartmentGovernanceReport(departmentId) {
     knowledge: knowledge.map(function (item) {
       return {
         id: item.id,
-        type: item.knowledgeType,
-        status: item.status,
+        type: item.knowledgeType || item.type || "معرفة غير مصنفة",
+        status: item.status || "unknown",
         sourceFiles: item.sourceFiles || [],
         mustServe: item.mustServe || []
       };
@@ -481,9 +509,23 @@ function buildDepartmentGovernanceReport(departmentId) {
     createdAt: new Date().toISOString()
   };
 
-  if (!dept) report.warnings.push("الإدارة غير موجودة في department-registry.js.");
-  if (!index) report.warnings.push("اندكس الإدارة غير محمل أو غير قابل للقراءة الآن.");
-  if (!knowledge.length) report.warnings.push("لا توجد معرفة مسجلة لهذه الإدارة في خريطة المعرفة والقرار.");
+  if (!dept) {
+    report.warnings.push("الإدارة غير موجودة في department-registry.js.");
+  }
+
+  if (!index) {
+    report.warnings.push("اندكس الإدارة غير محمل أو غير قابل للقراءة الآن.");
+  }
+
+  if (!knowledge.length) {
+    report.warnings.push("لا توجد معرفة مسجلة أو معلنة لهذه الإدارة.");
+  }
+
+  if (mapKnowledge.length === 0 && indexKnowledge.length > 0) {
+    report.warnings.push(
+      "هذه الإدارة تملك معرفة في الاندكس، لكنها غير مكتملة الربط في خريطة المعرفة والقرار."
+    );
+  }
 
   report.ok = report.warnings.length === 0;
 
