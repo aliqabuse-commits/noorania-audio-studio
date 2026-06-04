@@ -247,6 +247,7 @@ function renderGovernanceResult(title, data) {
   box.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
   addGovernanceButton(container, "🏛️ تقرير الحوكمة العام", function () {
+    alert("تم الضغط على زر تقرير الحوكمة");
   if (typeof window.runGovernanceAudit === "function") {
     const report = window.runGovernanceAudit();
     renderGovernanceResult("🏛️ تقرير الحوكمة العام", report);
