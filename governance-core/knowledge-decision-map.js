@@ -1,10 +1,10 @@
 // ======================================
 // governance-core/knowledge-decision-map.js
-// خريطة ربط المعرفة بالقرار — نسخة حوكمية سيادية V3
-// مستوعبة لإضافات: phoneme-family-map و phoneme-cumulative-memory
+// خريطة ربط المعرفة بالقرار — نسخة حوكمية سيادية V4
+// تثبيت معارف إدارة الحوكمة السبعة أولًا
 // ======================================
 
-console.log("🧭 knowledge-decision-map.js جاهز — V3 Sovereign Knowledge/Decision Map");
+console.log("🧭 knowledge-decision-map.js جاهز — V4 Sovereign Knowledge/Decision Map");
 
 
 // ======================================
@@ -42,6 +42,42 @@ const KNOWLEDGE_DECISION_CHARTER = {
 // ======================================
 
 const DECISION_TYPES = {
+  governanceReview: {
+    id: "governance-review",
+    name: "مراجعة الحوكمة",
+    description: "مراجعة سلامة ربط المعرفة بالقرار داخل إدارة الحوكمة."
+  },
+
+  auditDepartment: {
+    id: "audit-department",
+    name: "تدقيق إدارة",
+    description: "فحص انسجام الإدارة مع سجل الحوكمة والاندكس والخريطة."
+  },
+
+  auditKnowledgeDecision: {
+    id: "audit-knowledge-decision",
+    name: "تدقيق خريطة المعرفة والقرار",
+    description: "فحص أن كل معرفة تخدم قرارًا وأن كل قرار يراجع معرفة."
+  },
+
+  auditIndexAlignment: {
+    id: "audit-index-alignment",
+    name: "تدقيق مواءمة الاندكسات",
+    description: "فحص تطابق معارف الاندكسات مع خريطة المعرفة والقرار."
+  },
+
+  auditDecisionGates: {
+    id: "audit-decision-gates",
+    name: "تدقيق بوابات القرار",
+    description: "فحص أن بوابات القرار تسأل عن الأثر والمعرفة والوجهة قبل السماح بالمرور."
+  },
+
+  auditGovernanceGuards: {
+    id: "audit-governance-guards",
+    name: "تدقيق حراس الحوكمة",
+    description: "فحص أن حراس الحوكمة يكشفون الانحراف ولا يخفونه."
+  },
+
   prepareTrainingSample: {
     id: "prepare-training-sample",
     name: "تجهيز عينة التدريب",
@@ -111,7 +147,9 @@ const DECISION_TYPES = {
   evaluateReading: {
     id: "evaluate-reading",
     name: "تقييم القراءة",
-    description: "الحكم على جودة الأداء القرائي."
+    description: "الحكم على جودة الأداء القرائي.",
+    status: "deferred",
+    note: "مؤجل حوكمياً حتى تُسجل معارف تقييم القراءة صراحة."
   },
 
   improveMemory: {
@@ -133,6 +171,111 @@ const DECISION_TYPES = {
 // ======================================
 
 const KNOWLEDGE_DECISION_MAP = {
+  departmentRegistry: {
+    id: "department-registry",
+    sourceDepartment: "governance-core",
+    sourceFiles: ["governance-core/department-registry.js"],
+    knowledgeType: "سجل الإدارات",
+    mustServe: [
+      "governance-review",
+      "audit-department"
+    ],
+    status: "active",
+    governanceImpact:
+      "يثبت الإدارات المالكة وحدود السلطة والمسؤولية داخل المشروع."
+  },
+
+  knowledgeDecisionMap: {
+    id: "knowledge-decision-map",
+    sourceDepartment: "governance-core",
+    sourceFiles: ["governance-core/knowledge-decision-map.js"],
+    knowledgeType: "خريطة ربط المعرفة بالقرار",
+    mustServe: [
+      "governance-review",
+      "audit-knowledge-decision",
+      "audit-index-alignment"
+    ],
+    status: "active",
+    governanceImpact:
+      "تمنع وجود معرفة لا تخدم قرارًا أو قرار لا يراجع معرفة."
+  },
+
+  decisionGates: {
+    id: "decision-gates",
+    sourceDepartment: "governance-core",
+    sourceFiles: ["governance-core/decision-gates.js"],
+    knowledgeType: "بوابات القرار الحوكمي",
+    mustServe: [
+      "governance-review",
+      "audit-decision-gates"
+    ],
+    status: "active",
+    governanceImpact:
+      "تمنع مرور الملفات أو القرارات أو التجارب دون سؤال الأثر والمالك والوجهة."
+  },
+
+  governanceAuditGuards: {
+    id: "governance-audit-guards",
+    sourceDepartment: "governance-core",
+    sourceFiles: ["governance-core/governance-audit-guards.js"],
+    knowledgeType: "حراس التدقيق الحوكمي",
+    mustServe: [
+      "governance-review",
+      "audit-governance-guards",
+      "audit-index-alignment"
+    ],
+    status: "active",
+    governanceImpact:
+      "يكشف التداخلات والمعارف اليتيمة وانحراف الاندكسات عن الخريطة."
+  },
+
+  departmentIndexAlignment: {
+    id: "department-index-alignment",
+    sourceDepartment: "governance-core",
+    sourceFiles: ["governance-core/governance-audit-guards.js"],
+    knowledgeType: "مواءمة الاندكسات الفرعية مع خريطة الحوكمة",
+    mustServe: [
+      "governance-review",
+      "audit-index-alignment"
+    ],
+    status: "active",
+    governanceImpact:
+      "يكشف أي معرفة موجودة في index فرعي ولا تظهر في خريطة المعرفة والقرار."
+  },
+
+  familyMemoryGovernanceAudit: {
+    id: "family-memory-governance-audit",
+    sourceDepartment: "governance-core",
+    sourceFiles: ["governance-core/governance-audit-guards.js"],
+    knowledgeType: "تدقيق حضور العائلة والذاكرة التراكمية في القرار",
+    mustServe: [
+      "governance-review",
+      "approve-match-result",
+      "review-cumulative-memory",
+      "compare-phoneme-family"
+    ],
+    status: "active",
+    governanceImpact:
+      "يتأكد أن خريطة العائلة والذاكرة التراكمية لا تمران من خلف العداد."
+  },
+
+  governanceReportCenter: {
+    id: "governance-report-center",
+    sourceDepartment: "governance-core",
+    sourceFiles: ["governance-core/governance-report-center.js"],
+    knowledgeType: "مركز تقارير المجلس الحوكمي",
+    mustServe: [
+      "governance-review",
+      "audit-department",
+      "audit-knowledge-decision",
+      "audit-index-alignment",
+      "audit-governance-guards"
+    ],
+    status: "active",
+    governanceImpact:
+      "يحوّل تقارير الحوكمة الطويلة إلى تقارير مجلس قابلة للقراءة والنسخ واتخاذ القرار."
+  },
+
   trainingRecorder: {
     id: "training-recorder",
     sourceDepartment: "training-core",
@@ -569,11 +712,9 @@ function getKnowledgeDecisionMap() {
   return KNOWLEDGE_DECISION_MAP;
 }
 
-
 function getDecisionTypes() {
   return DECISION_TYPES;
 }
-
 
 function getKnowledgeForDecision(decisionId) {
   return Object.values(KNOWLEDGE_DECISION_MAP).filter(function (item) {
@@ -581,24 +722,20 @@ function getKnowledgeForDecision(decisionId) {
   });
 }
 
-
 function getDecisionsForKnowledge(knowledgeId) {
   const item = Object.values(KNOWLEDGE_DECISION_MAP).find(function (k) {
     return k.id === knowledgeId;
   });
 
   if (!item) return [];
-
   return item.mustServe || [];
 }
-
 
 function getKnowledgeByDepartment(departmentId) {
   return Object.values(KNOWLEDGE_DECISION_MAP).filter(function (item) {
     return item.sourceDepartment === departmentId;
   });
 }
-
 
 function getKnowledgeBySourceFile(filePath) {
   return Object.values(KNOWLEDGE_DECISION_MAP).filter(function (item) {
@@ -612,6 +749,23 @@ function getKnowledgeBySourceFile(filePath) {
 // ======================================
 
 function auditDecisionKnowledge(decisionId) {
+  const decision = Object.values(DECISION_TYPES).find(function (d) {
+    return d.id === decisionId;
+  });
+
+  if (decision && decision.status === "deferred") {
+    return {
+      law: KNOWLEDGE_DECISION_CHARTER.rule,
+      decisionId,
+      supported: false,
+      deferred: true,
+      knowledgeCount: 0,
+      requiredKnowledge: [],
+      message:
+        "هذا القرار مؤجل حوكميًا ولا يدّعي الإدراك حتى تسجل له معرفة مساندة."
+    };
+  }
+
   const knowledge = getKnowledgeForDecision(decisionId);
 
   return {
@@ -719,6 +873,13 @@ function auditKnowledgeDecisionMap() {
   Object.keys(DECISION_TYPES).forEach(function (key) {
     const decision = DECISION_TYPES[key];
 
+    if (decision.status === "deferred") {
+      report.warnings.push(
+        "قرار مؤجل حوكميًا وليس خللًا تشغيليًا: " + decision.id
+      );
+      return;
+    }
+
     if (!report.decisions[decision.id]) {
       report.warnings.push("قرار بلا معرفة مساندة: " + decision.id);
     }
@@ -758,3 +919,5 @@ window.auditDecisionKnowledge = auditDecisionKnowledge;
 window.auditKnowledgeUsage = auditKnowledgeUsage;
 window.findOrphanKnowledge = findOrphanKnowledge;
 window.auditKnowledgeDecisionMap = auditKnowledgeDecisionMap;
+
+console.log("🧭 خريطة المعرفة والقرار جاهزة V4");
