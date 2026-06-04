@@ -420,4 +420,7 @@ window.evaluateMemoryDecisionSupport = evaluateMemoryDecisionSupport;
 window.createEmptyCumulativeMemory = createEmptyCumulativeMemory;
 
 console.log("🧠 الذاكرة التراكمية جاهزة — الأثر يعود إلى القرار");
+window.getPhonemeCumulativeMemory = getPhonemeCumulativeMemory;
+window.updatePhonemeCumulativeMemory = updatePhonemeCumulativeMemory;
 
+console.log("🧠 phoneme-cumulative-memory.js جاهز");
