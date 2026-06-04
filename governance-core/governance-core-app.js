@@ -213,7 +213,13 @@ window.renderGovernanceCorePanel = function (containerId) {
     "<br><b>خريطة العائلة:</b> " + report.sovereignChecks.phonemeFamilyMapGoverned +
     "<br><b>الذاكرة التراكمية:</b> " + report.sovereignChecks.phonemeCumulativeMemoryGoverned +
     "<br><span style='color:#94a3b8;'>الحوكمة تفحص ولا تشغل المحركات.</span>";
-
+addGovernanceButton(container, "📋 مركز تقارير الحوكمة", function () {
+  if (typeof window.renderGovernanceReportCenter === "function") {
+    window.renderGovernanceReportCenter("governance-actions");
+  } else {
+    alert("governance-report-center.js غير محمّل.");
+  }
+});
   container.appendChild(statusBox);
 function renderGovernanceResult(title, data) {
   let box = document.getElementById("governance-result-box");
