@@ -142,6 +142,19 @@ function savePhonemeCumulativeMemory(phonemeKey, memory) {
     localStorage.setItem(key, serialized);
   });
 
+  sendCumulativeMemoryKnowledgeSignal(
+    phonemeKey,
+    {
+      governance: normalized.governance,
+      layers: normalized.layers,
+      samplesCount: normalized.samplesCount,
+      latestSample: normalized.samples.length
+        ? normalized.samples[normalized.samples.length - 1]
+        : null
+    },
+    normalized.governance?.decisionStatus === "decision-ready" ? 1 : 0.5
+  );
+
   return normalized;
 }
 
@@ -407,9 +420,32 @@ function cumulativeStat(values) {
 function roundCumulative(num) {
   return Number(Number(num || 0).toFixed(4));
 }
-
 // ======================================
-// 7) التصدير العام
+// 7) إرسال أثر الذاكرة إلى الحوكمة
+// ======================================
+function sendCumulativeMemoryKnowledgeSignal(phonemeKey, memoryData, confidence) {
+  if (typeof window.recordKnowledgeSignal !== "function") return null;
+
+  return window.recordKnowledgeSignal({
+    knowledgeId: "phoneme-cumulative-memory",
+    sourceDepartment: "memory-core",
+    sourceFile: "memory-core/phoneme-cumulative-memory.js",
+    target: phonemeKey || "",
+    producedKnowledge: memoryData || null,
+    confidence: typeof confidence === "number" ? confidence : null,
+    servesDecision: [
+      "review-cumulative-memory",
+      "identify-phoneme",
+      "match-phoneme",
+      "approve-match-result",
+      "improve-memory",
+      "split-segment"
+    ],
+    notes: "إرسال الذاكرة التراكمية حتى تعود إلى القرار ولا تبقى أرشيفًا صامتًا."
+  });
+}
+// ======================================
+// 8) التصدير العام
 // ======================================
 window.PHONEME_CUMULATIVE_MEMORY_CHARTER = PHONEME_CUMULATIVE_MEMORY_CHARTER;
 window.loadPhonemeCumulativeMemory = loadPhonemeCumulativeMemory;
@@ -418,9 +454,9 @@ window.appendCumulativeMemorySample = appendCumulativeMemorySample;
 window.rebuildCumulativeMemoryLayers = rebuildCumulativeMemoryLayers;
 window.evaluateMemoryDecisionSupport = evaluateMemoryDecisionSupport;
 window.createEmptyCumulativeMemory = createEmptyCumulativeMemory;
-
+window.sendCumulativeMemoryKnowledgeSignal = sendCumulativeMemoryKnowledgeSignal;
 console.log("🧠 الذاكرة التراكمية جاهزة — الأثر يعود إلى القرار");
-window.getPhonemeCumulativeMemory = getPhonemeCumulativeMemory;
-window.updatePhonemeCumulativeMemory = updatePhonemeCumulativeMemory;
+// window.getPhonemeCumulativeMemory = getPhonemeCumulativeMemory;
+// window.updatePhonemeCumulativeMemory = updatePhonemeCumulativeMemory;
 
 console.log("🧠 phoneme-cumulative-memory.js جاهز");
