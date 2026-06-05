@@ -1143,20 +1143,7 @@ function auditAllDecisionInfluence() {
   const decisionIds = [];
 
   DECISION_TRACE_LOG.forEach(function (trace) {
-    if (!decisionIds.includes(trace.decisionId)) {
-      decisionIds.push(trace.decisionId);
-    }
-  });
 
-  return {
-    method: "Decision Influence Audit",
-    createdAt: new Date().toISOString(),
-    traceCount: DECISION_TRACE_LOG.length,
-    reports: decisionIds.map(function (id) {
-      return auditDecisionInfluence(id);
-    })
-  };
-}
 // ======================================
 // استقبال إشارات المعرفة من ملفات الإدارات
 // ======================================
