@@ -250,7 +250,16 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
     };
 
     saveCognitiveIdentityAndCumulativeMemory(phonemeKey, identity);
-
+sendCognitiveGenomeKnowledgeSignal(
+  phonemeKey,
+  {
+    genome: identity.genome,
+    genomeByState: identity.genomeByState,
+    governance: identity.governance,
+    familyDecision: identity.familyDecision
+  },
+  identity.governance?.evidence?.phaseQualityMean || null
+);
     renderCognitiveReport(identity);
 
     return identity;
