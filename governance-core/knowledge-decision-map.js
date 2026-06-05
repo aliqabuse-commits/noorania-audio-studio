@@ -5,7 +5,7 @@
 // لا تنشئ ملفًا جديدًا
 // ======================================
 
-alert("🧭 knowledge-decision-map.js TEST 777 LOADED");
+console.log("🧭 knowledge-decision-map.js TEST 777 LOADED");
 // ======================================
 // 1) الاستدعاء الدستوري
 // ======================================
@@ -1128,19 +1128,6 @@ function auditDecisionInfluence(decisionId) {
     invokedKnowledge: trace.invokedKnowledge,
     influentialKnowledge: trace.influentialKnowledge,
     missingKnowledge,
-    invokedButNotInfluential,
-    notes: trace.notes,
-    verdict:
-      trace.influentialKnowledge.length
-        ? "يوجد أثر معرفي مسجل داخل القرار."
-        : "تم تسجيل القرار، لكن لم تظهر معرفة مؤثرة بعد."
-  };
-}
-
-function auditAllDecisionInfluence() {
-  const decisionIds = [];
-
-  DECISION_TRACE_LOG.forEach(function (trace) {
 
 // ======================================
 // استقبال إشارات المعرفة من ملفات الإدارات
