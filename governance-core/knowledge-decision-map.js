@@ -1158,6 +1158,54 @@ function auditAllDecisionInfluence() {
   };
 }
 // ======================================
+// استقبال إشارات المعرفة من ملفات الإدارات
+// ======================================
+
+const KNOWLEDGE_SIGNAL_LOG = [];
+
+function recordKnowledgeSignal(signal) {
+  if (!signal || !signal.knowledgeId) {
+    return {
+      ok: false,
+      message: "لا يمكن تسجيل معرفة بلا knowledgeId."
+    };
+  }
+
+  const record = {
+    id: "knowledge-signal-" + Date.now(),
+    createdAt: new Date().toISOString(),
+    knowledgeId: signal.knowledgeId,
+    sourceDepartment: signal.sourceDepartment || "",
+    sourceFile: signal.sourceFile || "",
+    target: signal.target || "",
+    producedKnowledge: signal.producedKnowledge || null,
+    confidence: typeof signal.confidence === "number" ? signal.confidence : null,
+    servesDecision: signal.servesDecision || [],
+    notes: signal.notes || ""
+  };
+
+  KNOWLEDGE_SIGNAL_LOG.push(record);
+  console.log("📡 تم استقبال إشارة معرفة:", record);
+  return record;
+}
+
+function getKnowledgeSignalLog() {
+  return KNOWLEDGE_SIGNAL_LOG.slice();
+}
+
+function getLatestKnowledgeSignal(knowledgeId) {
+  const list = KNOWLEDGE_SIGNAL_LOG.filter(function (item) {
+    return item.knowledgeId === knowledgeId;
+  });
+
+  return list.length ? list[list.length - 1] : null;
+}
+
+window.KNOWLEDGE_SIGNAL_LOG = KNOWLEDGE_SIGNAL_LOG;
+window.recordKnowledgeSignal = recordKnowledgeSignal;
+window.getKnowledgeSignalLog = getKnowledgeSignalLog;
+window.getLatestKnowledgeSignal = getLatestKnowledgeSignal;
+// ======================================
 // 11) تصدير عام
 // ======================================
 
