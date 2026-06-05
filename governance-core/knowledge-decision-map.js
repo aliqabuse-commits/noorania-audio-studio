@@ -5,7 +5,7 @@
 // لا تنشئ ملفًا جديدًا
 // ======================================
 
-console.log("🧭 knowledge-decision-map.js TEST 777 LOADED");
+alert("🧭 knowledge-decision-map.js LOADED");
 // ======================================
 // 1) الاستدعاء الدستوري
 // ======================================
@@ -1059,75 +1059,6 @@ function recordDecisionTrace(trace) {
     return {
       ok: false,
       message: "لا يمكن تسجيل أثر قرار بلا decisionId."
-    };
-  }
-
-  const record = {
-    id: "trace-" + Date.now(),
-    createdAt: new Date().toISOString(),
-    decisionId: trace.decisionId,
-    decisionName: trace.decisionName || "",
-    target: trace.target || "",
-    invokedKnowledge: normalizeTraceList(trace.invokedKnowledge),
-    influentialKnowledge: normalizeTraceList(trace.influentialKnowledge),
-    result: trace.result || "",
-    confidence: typeof trace.confidence === "number" ? trace.confidence : null,
-    notes: trace.notes || ""
-  };
-
-  DECISION_TRACE_LOG.push(record);
-
-  console.log("🧭 تم استقبال أثر قرار:", record);
-  return record;
-}
-
-function getDecisionTraceLog() {
-  return DECISION_TRACE_LOG.slice();
-}
-
-function getLatestDecisionTrace(decisionId) {
-  const list = DECISION_TRACE_LOG.filter(function (item) {
-    return !decisionId || item.decisionId === decisionId;
-  });
-
-  return list.length ? list[list.length - 1] : null;
-}
-
-function auditDecisionInfluence(decisionId) {
-  const trace = getLatestDecisionTrace(decisionId);
-
-  if (!trace) {
-    return {
-      ok: false,
-      decisionId,
-      message: "لا يوجد أثر مسجل لهذا القرار بعد."
-    };
-  }
-
-  const requiredKnowledge =
-    typeof getKnowledgeForDecision === "function"
-      ? getKnowledgeForDecision(decisionId).map(function (k) { return k.id; })
-      : [];
-
-  const missingKnowledge = requiredKnowledge.filter(function (id) {
-    return !trace.invokedKnowledge.includes(id);
-  });
-
-  const invokedButNotInfluential = trace.invokedKnowledge.filter(function (id) {
-    return !trace.influentialKnowledge.includes(id);
-  });
-
-  return {
-    ok: true,
-    decisionId,
-    decisionName: trace.decisionName,
-    target: trace.target,
-    result: trace.result,
-    confidence: trace.confidence,
-    requiredKnowledge,
-    invokedKnowledge: trace.invokedKnowledge,
-    influentialKnowledge: trace.influentialKnowledge,
-    missingKnowledge,
 
 // ======================================
 // استقبال إشارات المعرفة من ملفات الإدارات
