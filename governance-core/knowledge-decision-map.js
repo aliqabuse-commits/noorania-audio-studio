@@ -1018,124 +1018,53 @@ if (!report.decisions[decision.id]) {
 console.log("🧭 تقرير خريطة المعرفة والقرار:", report);
 return report;
 }
-
 // ======================================
-// دوال استقبال أثر القرار من ملفات التنفيذ
+// 11) استقبال إشارات المعرفة من ملفات الإدارات
 // ======================================
 
-const DECISION_TRACE_LOG = [];
+const KNOWLEDGE_SIGNAL_LOG = [];
 
-function normalizeTraceList(list) {
-if (!Array.isArray(list)) return [];
+function recordKnowledgeSignal(signal) {
+  if (!signal || !signal.knowledgeId) {
+    return {
+      ok: false,
+      message: "لا يمكن تسجيل معرفة بلا knowledgeId."
+    };
+  }
 
-return list.filter(function (item, index) {
-return typeof item === "string" && item && list.indexOf(item) === index;
-});
+  const record = {
+    id: "knowledge-signal-" + Date.now(),
+    createdAt: new Date().toISOString(),
+    knowledgeId: signal.knowledgeId,
+    sourceDepartment: signal.sourceDepartment || "",
+    sourceFile: signal.sourceFile || "",
+    target: signal.target || "",
+    producedKnowledge: signal.producedKnowledge || null,
+    confidence: typeof signal.confidence === "number" ? signal.confidence : null,
+    servesDecision: Array.isArray(signal.servesDecision)
+      ? signal.servesDecision
+      : [],
+    notes: signal.notes || ""
+  };
+
+  KNOWLEDGE_SIGNAL_LOG.push(record);
+  console.log("📡 تم استقبال إشارة معرفة:", record);
+  return record;
 }
 
-function recordDecisionTrace(trace) {
-if (!trace || !trace.decisionId) {
-return {
-ok: false,
-message: "لا يمكن تسجيل أثر قرار بلا decisionId."
-};
+function getKnowledgeSignalLog() {
+  return KNOWLEDGE_SIGNAL_LOG.slice();
 }
 
-const record = {
-id: "trace-" + Date.now(),
-createdAt: new Date().toISOString(),
-decisionId: trace.decisionId,
-decisionName: trace.decisionName || "",
-target: trace.target || "",
-invokedKnowledge: normalizeTraceList(trace.invokedKnowledge),
-influentialKnowledge: normalizeTraceList(trace.influentialKnowledge),
-result: trace.result || "",
-confidence: typeof trace.confidence === "number" ? trace.confidence : null,
-notes: trace.notes || ""
-};
+function getLatestKnowledgeSignal(knowledgeId) {
+  const list = KNOWLEDGE_SIGNAL_LOG.filter(function (item) {
+    return item.knowledgeId === knowledgeId;
+  });
 
-DECISION_TRACE_LOG.push(record);
-
-console.log("🧭 تم استقبال أثر قرار:", record);
-return record;
-}
-
-function getDecisionTraceLog() {
-return DECISION_TRACE_LOG.slice();
-}
-
-function getLatestDecisionTrace(decisionId) {
-const list = DECISION_TRACE_LOG.filter(function (item) {
-return !decisionId || item.decisionId === decisionId;
-});
-
-return list.length ? list[list.length - 1] : null;
-}
-
-function auditDecisionInfluence(decisionId) {
-const trace = getLatestDecisionTrace(decisionId);
-
-if (!trace) {
-return {
-ok: false,
-decisionId,
-message: "لا يوجد أثر مسجل لهذا القرار بعد."
-};
-}
-
-const requiredKnowledge =
-typeof getKnowledgeForDecision === "function"
-? getKnowledgeForDecision(decisionId).map(function (k) { return k.id; })
-: [];
-
-const missingKnowledge = requiredKnowledge.filter(function (id) {
-return !trace.invokedKnowledge.includes(id);
-});
-
-const invokedButNotInfluential = trace.invokedKnowledge.filter(function (id) {
-return !trace.influentialKnowledge.includes(id);
-});
-
-return {
-ok: true,
-decisionId,
-decisionName: trace.decisionName,
-target: trace.target,
-result: trace.result,
-confidence: trace.confidence,
-requiredKnowledge,
-invokedKnowledge: trace.invokedKnowledge,
-influentialKnowledge: trace.influentialKnowledge,
-missingKnowledge,
-invokedButNotInfluential,
-notes: trace.notes,
-verdict:
-trace.influentialKnowledge.length
-? "يوجد أثر معرفي مسجل داخل القرار."
-: "تم تسجيل القرار، لكن لم تظهر معرفة مؤثرة بعد."
-};
-}
-
-function auditAllDecisionInfluence() {
-const decisionIds = [];
-
-DECISION_TRACE_LOG.forEach(function (trace) {
-if (!decisionIds.includes(trace.decisionId)) {
-decisionIds.push(trace.decisionId);
-}
-});
-
-return {
-method: "Decision Influence Audit",
-createdAt: new Date().toISOString(),
-traceCount: DECISION_TRACE_LOG.length,
-reports: decisionIds.map(function (id) {
-return auditDecisionInfluence(id);
-})
-};
+  return list.length ? list[list.length - 1] : null;
 }
 // ======================================
-// 11) تصدير عام
+// 12) تصدير عام
 // ======================================
 
 window.KNOWLEDGE_DECISION_CHARTER = KNOWLEDGE_DECISION_CHARTER;
@@ -1169,4 +1098,8 @@ window.getDecisionTraceLog = getDecisionTraceLog;
 window.getLatestDecisionTrace = getLatestDecisionTrace;
 window.auditDecisionInfluence = auditDecisionInfluence;
 window.auditAllDecisionInfluence = auditAllDecisionInfluence;
+window.KNOWLEDGE_SIGNAL_LOG = KNOWLEDGE_SIGNAL_LOG;
+window.recordKnowledgeSignal = recordKnowledgeSignal;
+window.getKnowledgeSignalLog = getKnowledgeSignalLog;
+window.getLatestKnowledgeSignal = getLatestKnowledgeSignal;
 console.log("🧭 خريطة المعرفة والقرار جاهزة V5 — مع تتبع أثر المعرفة على القرار");
