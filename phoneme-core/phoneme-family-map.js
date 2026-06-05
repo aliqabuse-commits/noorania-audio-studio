@@ -253,6 +253,12 @@ function buildFamilyDecisionContext(phonemeKey) {
 
   context.hasComparisonDuty = context.candidates.length > 0;
 
+  sendPhonemeFamilyKnowledgeSignal(
+    phonemeKey,
+    context,
+    context.candidates.length ? 1 : 0.3
+  );
+
   return context;
 }
 
@@ -291,7 +297,26 @@ function evaluateFamilyDecisionReadiness(phonemeKey, matchReport) {
     }
   };
 }
+function sendPhonemeFamilyKnowledgeSignal(phonemeKey, familyData, confidence) {
+  if (typeof window.recordKnowledgeSignal !== "function") return null;
 
+  return window.recordKnowledgeSignal({
+    knowledgeId: "phoneme-family-map",
+    sourceDepartment: "phoneme-core",
+    sourceFile: "phoneme-core/phoneme-family-map.js",
+    target: phonemeKey || "",
+    producedKnowledge: familyData || null,
+    confidence: typeof confidence === "number" ? confidence : null,
+    servesDecision: [
+      "compare-phoneme-family",
+      "identify-phoneme",
+      "match-phoneme",
+      "approve-match-result",
+      "split-segment"
+    ],
+    notes: "إرسال خريطة العائلة والمنافسين حتى تخدم قرارات المقارنة والمطابقة والفصل."
+  });
+}
 // ======================================
 // 5) التصدير العام
 // ======================================
@@ -304,10 +329,7 @@ window.getConfusionCandidates = getConfusionCandidates;
 window.getDistinctiveTraits = getDistinctiveTraits;
 window.buildFamilyDecisionContext = buildFamilyDecisionContext;
 window.evaluateFamilyDecisionReadiness = evaluateFamilyDecisionReadiness;
-
+window.sendPhonemeFamilyKnowledgeSignal = sendPhonemeFamilyKnowledgeSignal;
 console.log("🧭 خريطة العائلات الإدراكية جاهزة — المعرفة توجه المقارنة");
-window.getPhonemeFamilyMap = getPhonemeFamilyMap;
-window.getCompetingPhonemes = getCompetingPhonemes;
 
-console.log("🧭 phoneme-family-map.js جاهز");
 
