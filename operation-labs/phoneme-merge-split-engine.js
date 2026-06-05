@@ -543,9 +543,121 @@ function extractCognitiveJoinUnits(buffer, cutPoint) {
   };
 }
 
-
 // ======================================
-// 5) الفصل الإدراكي
+// 5) استدعاء المعرفة الإدراكية لخدمة الفصل والدمج
+// ======================================
+
+function loadCognitiveIdentityForSplit(phonemeKey) {
+  const keys = [
+    phonemeKey + "_cognitive_identity",
+    phonemeKey + "_perceptual_identity",
+    phonemeKey + "_memory",
+    "phoneme_memory_" + phonemeKey,
+    "cognitive_memory_" + phonemeKey
+  ];
+
+  for (const key of keys) {
+    const raw = localStorage.getItem(key);
+    if (!raw) continue;
+
+    try {
+      return JSON.parse(raw);
+    } catch (err) {
+      console.warn("ذاكرة/هوية تالفة:", key, err);
+    }
+  }
+
+  return null;
+}
+
+
+function buildSplitKnowledgeContext(carrierKey, payloadKey, text) {
+  const carrierIdentity = loadCognitiveIdentityForSplit(carrierKey);
+  const payloadIdentity = loadCognitiveIdentityForSplit(payloadKey);
+
+  const carrierFamily =
+    typeof buildFamilyDecisionContext === "function"
+      ? buildFamilyDecisionContext(carrierKey)
+      : null;
+
+  const payloadFamily =
+    typeof buildFamilyDecisionContext === "function"
+      ? buildFamilyDecisionContext(payloadKey)
+      : null;
+
+  const carrierMemory =
+    typeof loadPhonemeCumulativeMemory === "function"
+      ? loadPhonemeCumulativeMemory(carrierKey)
+      : null;
+
+  const payloadMemory =
+    typeof loadPhonemeCumulativeMemory === "function"
+      ? loadPhonemeCumulativeMemory(payloadKey)
+      : null;
+
+  return {
+    text,
+    carrierKey,
+    payloadKey,
+    carrierIdentity,
+    payloadIdentity,
+    carrierFamily,
+    payloadFamily,
+    carrierMemory,
+    payloadMemory,
+    invokedKnowledge: [
+      "phoneme-training-pack",
+      carrierIdentity ? "cognitive-genome" : null,
+      payloadIdentity ? "cognitive-genome" : null,
+      carrierFamily ? "phoneme-family-map" : null,
+      payloadFamily ? "phoneme-family-map" : null,
+      carrierMemory ? "phoneme-cumulative-memory" : null,
+      payloadMemory ? "phoneme-cumulative-memory" : null,
+      "payload-boundary"
+    ].filter(Boolean)
+  };
+}
+
+
+function decideInfluentialKnowledgeForSplit(splitContext, result) {
+  const influential = ["payload-boundary"];
+
+  if (splitContext.carrierIdentity || splitContext.payloadIdentity) {
+    influential.push("cognitive-genome");
+  }
+
+  if (splitContext.carrierFamily || splitContext.payloadFamily) {
+    influential.push("phoneme-family-map");
+  }
+
+  if (splitContext.carrierMemory || splitContext.payloadMemory) {
+    influential.push("phoneme-cumulative-memory");
+  }
+
+  if (result && typeof result.confidence === "number") {
+    influential.push("confidence-score");
+  }
+
+  return influential;
+}
+function buildMergeKnowledgeContext(carrierNum, payloadNum, isReadyUnits) {
+  return {
+    carrierNum,
+    payloadNum,
+    isReadyUnits,
+    invokedKnowledge: [
+      "merge-split-lab",
+      "payload-extraction",
+      "payload-boundary",
+      isReadyUnits ? "weighted-join-zone" : null
+    ].filter(Boolean),
+    influentialKnowledge: isReadyUnits
+      ? ["weighted-join-zone", "payload-boundary"]
+      : ["merge-split-lab", "payload-extraction"]
+  };
+}
+// ======================================
+// 6) الفصل الإدراكي
 // ======================================
 
 async function performCoreCognitiveSplit(blob, text) {
@@ -568,6 +680,7 @@ async function performCoreCognitiveSplit(blob, text) {
   if (typeof detectPayloadBoundaryByIdentity !== "function") {
     throw new Error("دالة detectPayloadBoundaryByIdentity غير محمّلة.");
   }
+const splitContext = buildSplitKnowledgeContext(keys[0], keys[1], text);
 
   const buffer = await blobToAudioBuffer(blob);
 
@@ -576,7 +689,15 @@ async function performCoreCognitiveSplit(blob, text) {
     payloadKey: keys[1],
     windowSize: 0.18,
     hopSize: 0.035,
-    minStart: 0.08
+    minStart: 0.08,
+
+    cognitiveContext: splitContext,
+    carrierIdentity: splitContext.carrierIdentity,
+    payloadIdentity: splitContext.payloadIdentity,
+    carrierFamily: splitContext.carrierFamily,
+    payloadFamily: splitContext.payloadFamily,
+    carrierMemory: splitContext.carrierMemory,
+    payloadMemory: splitContext.payloadMemory
   });
 
   const cutPoint = result && result.boundary;
@@ -592,20 +713,13 @@ async function performCoreCognitiveSplit(blob, text) {
       decisionId: "split-segment",
       decisionName: "فصل إدراكي للمقطع",
       target: text,
-      invokedKnowledge: [
-        "phoneme-training-pack",
-        "phoneme-family-map",
-        "payload-boundary"
-      ],
-      influentialKnowledge: [
-        "payload-boundary"
-      ],
+      invokedKnowledge: splitContext.invokedKnowledge,
+influentialKnowledge: decideInfluentialKnowledgeForSplit(splitContext, result),
       result: "split-produced",
       confidence: typeof result.confidence === "number" ? result.confidence : null,
       notes:
-        "تم تحديد نقطة الفصل عبر detectPayloadBoundaryByIdentity. " +
-        "يلزم لاحقًا بيان هل الهوية والجينوم والذاكرة أثرت فعلاً أم كانت حاضرة فقط."
-    });
+  "تم الفصل بعد استدعاء الحقائب والجينوم والعائلة والذاكرة إن كانت متاحة. " +
+  "هذا ليس تقريرًا خارجيًا؛ هذه معرفة تم تمريرها مباشرة إلى قرار الفصل."    });
   }
   const carrierRawBuffer = sliceAudioBuffer(buffer, 0, cutPoint);
   const payloadRawBuffer = sliceAudioBuffer(buffer, cutPoint, buffer.duration);
@@ -667,7 +781,7 @@ async function splitExperimentSegment(segNum) {
 
 
 // ======================================
-// 6) الدمج الإدراكي
+// 7) الدمج الإدراكي
 // ======================================
 
 async function experimentMerge(carrierNum, payloadNum) {
@@ -699,7 +813,11 @@ async function experimentMerge(carrierNum, payloadNum) {
     alert("تأكد من إتمام عملية الفصل للمقطعين أولًا.");
     return;
   }
-
+const mergeContext = buildMergeKnowledgeContext(
+    carrierNum,
+    payloadNum,
+    isReadyUnits
+  );
   try {
     let carrierBuffer = await blobToAudioBuffer(carrierBlob);
     let payloadBuffer = await blobToAudioBuffer(payloadBlob);
@@ -722,15 +840,8 @@ async function experimentMerge(carrierNum, payloadNum) {
         decisionId: "merge-segment",
         decisionName: "دمج إدراكي للمقطع",
         target: "carrier-" + carrierNum + "_payload-" + payloadNum,
-        invokedKnowledge: [
-          "merge-split-lab",
-          "weighted-join-zone",
-          "payload-extraction",
-          "payload-boundary"
-        ],
-        influentialKnowledge: isReadyUnits
-          ? ["weighted-join-zone"]
-          : ["merge-split-lab"],
+        invokedKnowledge: mergeContext.invokedKnowledge,
+influentialKnowledge: mergeContext.influentialKnowledge,
         result: "merge-produced",
         confidence: null,
         notes: isReadyUnits
@@ -764,7 +875,7 @@ async function experimentMerge(carrierNum, payloadNum) {
 
 
 // ======================================
-// 7) تشغيل الأصوات
+// 8) تشغيل الأصوات
 // ======================================
 
 function playExperimentAudio(target) {
@@ -843,7 +954,7 @@ function playExperimentAudio(target) {
 
 
 // ======================================
-// 8) الطبقة التوافقية القديمة V1.7
+// 9) الطبقة التوافقية القديمة V1.7
 // ======================================
 
 async function fetchSegmentSafely(type) {
@@ -1347,5 +1458,8 @@ window.playPayloadSegment = playPayloadSegment;
 if (typeof detectPayloadBoundaryByIdentity === "function") {
   window.detectPayloadBoundaryByIdentity = detectPayloadBoundaryByIdentity;
 }
-
+window.loadCognitiveIdentityForSplit = loadCognitiveIdentityForSplit;
+window.buildSplitKnowledgeContext = buildSplitKnowledgeContext;
+window.decideInfluentialKnowledgeForSplit = decideInfluentialKnowledgeForSplit;
+window.buildMergeKnowledgeContext = buildMergeKnowledgeContext;
 console.log("🧩 محرك الفصل والدمج الإدراكي جاهز V1.9 — متوافق مع غرفة التجارب الإدراكية");
