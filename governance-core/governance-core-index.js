@@ -8,8 +8,7 @@
 // لا يستدعي runGovernanceCoreApp تلقائيًا
 // ================================
 
-console.log("🏛️ governance-core-index.js جاهز — V3 Safe Department Index");
-
+console.log("🧭 knowledge-decision-map.js تحميل جديد TEST 777");
 window.NOORANIYA_GOVERNANCE_CORE = {
   name: "governance-core",
   mode: "safe-department-index",
