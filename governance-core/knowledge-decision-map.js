@@ -1,10 +1,11 @@
 // ======================================
 // governance-core/knowledge-decision-map.js
-// خريطة ربط المعرفة بالقرار — نسخة حوكمية سيادية V4
-// تثبيت معارف إدارة الحوكمة السبعة أولًا
+// خريطة ربط المعرفة بالقرار — V5
+// تضيف: تتبع أثر المعرفة على القرار
+// لا تنشئ ملفًا جديدًا
 // ======================================
 
-console.log("🧭 knowledge-decision-map.js جاهز — V4 Sovereign Knowledge/Decision Map");
+console.log("🧭 knowledge-decision-map.js جاهز — V5 Knowledge/Decision Influence Map");
 
 
 // ======================================
@@ -29,11 +30,11 @@ const KNOWLEDGE_DECISION_CHARTER = {
   rule:
     "كل معرفة يجب أن تجد طريقها إلى قرار، وكل قرار يجب أن يراجع المعرفة المتاحة.",
 
-  integrationRule:
-    "أي ملف يظهر في index فرعي ولا يظهر في خريطة المعرفة والقرار إذا كان ينتج معرفة فهو معرفة عابرة من خلف العداد.",
+  influenceLaw:
+    "لا يكفي أن تكون المعرفة مسجلة لخدمة القرار؛ يجب أن نعرف هل استُدعيت وهل أثّرت فعلاً.",
 
   warning:
-    "أي معرفة لا تخدم قرارًا تبقى معلقة، وأي قرار لا يستدعي المعرفة يبقى غير إدراكي."
+    "أي معرفة مسجلة لا تظهر في أثر القرار تبقى معرفة غير ممتحنة."
 };
 
 
@@ -176,13 +177,8 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "governance-core",
     sourceFiles: ["governance-core/department-registry.js"],
     knowledgeType: "سجل الإدارات",
-    mustServe: [
-      "governance-review",
-      "audit-department"
-    ],
-    status: "active",
-    governanceImpact:
-      "يثبت الإدارات المالكة وحدود السلطة والمسؤولية داخل المشروع."
+    mustServe: ["governance-review", "audit-department"],
+    status: "active"
   },
 
   knowledgeDecisionMap: {
@@ -190,14 +186,8 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "governance-core",
     sourceFiles: ["governance-core/knowledge-decision-map.js"],
     knowledgeType: "خريطة ربط المعرفة بالقرار",
-    mustServe: [
-      "governance-review",
-      "audit-knowledge-decision",
-      "audit-index-alignment"
-    ],
-    status: "active",
-    governanceImpact:
-      "تمنع وجود معرفة لا تخدم قرارًا أو قرار لا يراجع معرفة."
+    mustServe: ["governance-review", "audit-knowledge-decision", "audit-index-alignment"],
+    status: "active"
   },
 
   decisionGates: {
@@ -205,13 +195,8 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "governance-core",
     sourceFiles: ["governance-core/decision-gates.js"],
     knowledgeType: "بوابات القرار الحوكمي",
-    mustServe: [
-      "governance-review",
-      "audit-decision-gates"
-    ],
-    status: "active",
-    governanceImpact:
-      "تمنع مرور الملفات أو القرارات أو التجارب دون سؤال الأثر والمالك والوجهة."
+    mustServe: ["governance-review", "audit-decision-gates"],
+    status: "active"
   },
 
   governanceAuditGuards: {
@@ -219,14 +204,8 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "governance-core",
     sourceFiles: ["governance-core/governance-audit-guards.js"],
     knowledgeType: "حراس التدقيق الحوكمي",
-    mustServe: [
-      "governance-review",
-      "audit-governance-guards",
-      "audit-index-alignment"
-    ],
-    status: "active",
-    governanceImpact:
-      "يكشف التداخلات والمعارف اليتيمة وانحراف الاندكسات عن الخريطة."
+    mustServe: ["governance-review", "audit-governance-guards", "audit-index-alignment"],
+    status: "active"
   },
 
   departmentIndexAlignment: {
@@ -234,13 +213,8 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "governance-core",
     sourceFiles: ["governance-core/governance-audit-guards.js"],
     knowledgeType: "مواءمة الاندكسات الفرعية مع خريطة الحوكمة",
-    mustServe: [
-      "governance-review",
-      "audit-index-alignment"
-    ],
-    status: "active",
-    governanceImpact:
-      "يكشف أي معرفة موجودة في index فرعي ولا تظهر في خريطة المعرفة والقرار."
+    mustServe: ["governance-review", "audit-index-alignment"],
+    status: "active"
   },
 
   familyMemoryGovernanceAudit: {
@@ -254,9 +228,7 @@ const KNOWLEDGE_DECISION_MAP = {
       "review-cumulative-memory",
       "compare-phoneme-family"
     ],
-    status: "active",
-    governanceImpact:
-      "يتأكد أن خريطة العائلة والذاكرة التراكمية لا تمران من خلف العداد."
+    status: "active"
   },
 
   governanceReportCenter: {
@@ -271,9 +243,7 @@ const KNOWLEDGE_DECISION_MAP = {
       "audit-index-alignment",
       "audit-governance-guards"
     ],
-    status: "active",
-    governanceImpact:
-      "يحوّل تقارير الحوكمة الطويلة إلى تقارير مجلس قابلة للقراءة والنسخ واتخاذ القرار."
+    status: "active"
   },
 
   trainingRecorder: {
@@ -281,16 +251,8 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "training-core",
     sourceFiles: ["training-core/training-recorder.js"],
     knowledgeType: "تسجيل تدريبي خام",
-    mustServe: [
-      "prepare-training-sample",
-      "validate-signal",
-      "identify-phoneme"
-    ],
-    status: "active",
-    governanceImpact:
-      "يثبت أن العينة جاءت عبر تسجيل واضح لا عبر مصدر مجهول.",
-    note:
-      "التسجيل لا يصبح معرفة حتى يمر عبر فحص واضح، ولا يجوز أن يتحول إلى حكم على الهوية وحده."
+    mustServe: ["prepare-training-sample", "validate-signal", "identify-phoneme"],
+    status: "active"
   },
 
   audioLab: {
@@ -298,14 +260,8 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "training-core",
     sourceFiles: ["training-core/audio-lab.js"],
     knowledgeType: "غرفة عمليات صوتية ومناطق موجية",
-    mustServe: [
-      "prepare-training-sample",
-      "split-segment",
-      "validate-signal"
-    ],
-    status: "active",
-    governanceImpact:
-      "يعرض التسجيل والموجة دون أن ينتزع سلطة الحكم من الإدراك."
+    mustServe: ["prepare-training-sample", "split-segment", "validate-signal"],
+    status: "active"
   },
 
   signalValidation: {
@@ -320,11 +276,7 @@ const KNOWLEDGE_DECISION_MAP = {
       "match-phoneme",
       "approve-match-result"
     ],
-    status: "active",
-    governanceImpact:
-      "يمنع بناء قرار إدراكي على تسجيل ضعيف أو مشوش.",
-    note:
-      "أي جينوم أو ذاكرة مبنية على تسجيل ضعيف تحمل ضعفًا في أصل القرار."
+    status: "active"
   },
 
   phonemeTrainingPack: {
@@ -338,9 +290,7 @@ const KNOWLEDGE_DECISION_MAP = {
       "build-cognitive-genome",
       "build-timeline-genome"
     ],
-    status: "active",
-    governanceImpact:
-      "يمنع بناء ذاكرة أو جينوم بلا حقيبة وحالات واضحة."
+    status: "active"
   },
 
   phonemeColors: {
@@ -348,14 +298,8 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "phoneme-core",
     sourceFiles: ["phoneme-core/phoneme-colors.js"],
     knowledgeType: "ألوان إدراكية للحروف",
-    mustServe: [
-      "identify-phoneme",
-      "match-phoneme",
-      "improve-memory"
-    ],
-    status: "active",
-    governanceImpact:
-      "يربط اللون بالذاكرة الإدراكية لا بالزينة البصرية فقط."
+    mustServe: ["identify-phoneme", "match-phoneme", "improve-memory"],
+    status: "active"
   },
 
   phonemeColorMemory: {
@@ -363,14 +307,8 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "phoneme-core",
     sourceFiles: ["phoneme-core/phoneme-color-memory.js"],
     knowledgeType: "ذاكرة لون الحرف",
-    mustServe: [
-      "identify-phoneme",
-      "match-phoneme",
-      "review-cumulative-memory"
-    ],
-    status: "active",
-    governanceImpact:
-      "يمنع أن يبقى اللون وصفًا بلا أثر."
+    mustServe: ["identify-phoneme", "match-phoneme", "review-cumulative-memory"],
+    status: "active"
   },
 
   phonemeMemory: {
@@ -385,11 +323,7 @@ const KNOWLEDGE_DECISION_MAP = {
       "approve-match-result",
       "improve-memory"
     ],
-    status: "active",
-    governanceImpact:
-      "تجعل الذاكرة شاهدة على القرار لا تقريرًا منفصلًا.",
-    note:
-      "ذاكرة لون الحرف ليست زينة؛ هي أثر إدراكي يجب أن يخدم الحسم."
+    status: "active"
   },
 
   phonemeCumulativeMemory: {
@@ -404,11 +338,7 @@ const KNOWLEDGE_DECISION_MAP = {
       "identify-phoneme",
       "improve-memory"
     ],
-    status: "active",
-    governanceImpact:
-      "تمنع اعتماد آخر تسجيل كحقيقة مطلقة، وتحفظ أثر المحاولات السابقة وتاريخها.",
-    note:
-      "هذه المعرفة أضيفت مؤخرًا ويجب ألا تمر من خلف العداد."
+    status: "active"
   },
 
   phonemeFamilyMap: {
@@ -423,11 +353,7 @@ const KNOWLEDGE_DECISION_MAP = {
       "approve-match-result",
       "split-segment"
     ],
-    status: "active",
-    governanceImpact:
-      "تمنع إعلان نجاح الحرف بلا منافس قريب ولا هامش فصل حقيقي.",
-    note:
-      "هذه المعرفة أضيفت مؤخرًا ويجب أن تظهر في قرار المطابقة لا في الاندكس فقط."
+    status: "active"
   },
 
   cognitiveGenome: {
@@ -442,9 +368,7 @@ const KNOWLEDGE_DECISION_MAP = {
       "approve-match-result",
       "split-segment"
     ],
-    status: "active",
-    governanceImpact:
-      "يحوّل تحليل الحرف إلى هوية قابلة للمراجعة."
+    status: "active"
   },
 
   timelineGenome: {
@@ -459,9 +383,7 @@ const KNOWLEDGE_DECISION_MAP = {
       "approve-match-result",
       "split-segment"
     ],
-    status: "active",
-    governanceImpact:
-      "يفحص أن الزمن يصف القرار ولا يحكم وحده."
+    status: "active"
   },
 
   phonemeIdentity: {
@@ -469,13 +391,8 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "phoneme-core",
     sourceFiles: ["phoneme-core/phoneme-identity-engine.js"],
     knowledgeType: "هوية الحرف",
-    mustServe: [
-      "identify-phoneme",
-      "match-phoneme"
-    ],
-    status: "active",
-    governanceImpact:
-      "يثبت أن الحرف هوية لا عينة مفردة."
+    mustServe: ["identify-phoneme", "match-phoneme"],
+    status: "active"
   },
 
   phonemeMatch: {
@@ -489,9 +406,7 @@ const KNOWLEDGE_DECISION_MAP = {
       "approve-match-result",
       "improve-memory"
     ],
-    status: "active",
-    governanceImpact:
-      "يعطي النتيجة التشغيلية، لكنه لا يُعتمد إدراكيًا إلا بمنافس وهامش وذاكرة."
+    status: "active"
   },
 
   baMasterIdentity: {
@@ -502,14 +417,8 @@ const KNOWLEDGE_DECISION_MAP = {
       "phoneme-core/ba_master_identity.js"
     ],
     knowledgeType: "هوية مرجعية للحرف",
-    mustServe: [
-      "identify-phoneme",
-      "match-phoneme",
-      "split-segment"
-    ],
-    status: "active",
-    governanceImpact:
-      "يجعل الهوية المرجعية مؤثرة في القرار لا ملفًا صامتًا."
+    mustServe: ["identify-phoneme", "match-phoneme", "split-segment"],
+    status: "active"
   },
 
   baIdentityMatch: {
@@ -517,10 +426,7 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "phoneme-core",
     sourceFiles: ["phoneme-core/ba-identity-match-engine.js"],
     knowledgeType: "مطابقة هوية الباء",
-    mustServe: [
-      "match-phoneme",
-      "approve-match-result"
-    ],
+    mustServe: ["match-phoneme", "approve-match-result"],
     status: "active"
   },
 
@@ -529,11 +435,7 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "phoneme-core",
     sourceFiles: ["phoneme-core/spectral-seal-engine.js"],
     knowledgeType: "ختم طيفي",
-    mustServe: [
-      "match-phoneme",
-      "identify-phoneme",
-      "approve-match-result"
-    ],
+    mustServe: ["match-phoneme", "identify-phoneme", "approve-match-result"],
     status: "active"
   },
 
@@ -542,11 +444,7 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "phoneme-core",
     sourceFiles: ["phoneme-core/core-purifier-engine.js"],
     knowledgeType: "نواة طيفية نقية",
-    mustServe: [
-      "match-phoneme",
-      "identify-phoneme",
-      "split-segment"
-    ],
+    mustServe: ["match-phoneme", "identify-phoneme", "split-segment"],
     status: "active"
   },
 
@@ -555,15 +453,8 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "phoneme-core",
     sourceFiles: ["phoneme-core/burst-signature-engine.js"],
     knowledgeType: "بصمة انفجار",
-    mustServe: [
-      "identify-phoneme",
-      "match-phoneme",
-      "split-segment",
-      "approve-match-result"
-    ],
-    status: "active",
-    note:
-      "ملف بصمة الانفجار موجود حاليًا في phoneme-core حسب واقع الاندكس الفرعي الأخير."
+    mustServe: ["identify-phoneme", "match-phoneme", "split-segment", "approve-match-result"],
+    status: "active"
   },
 
   burstOnset: {
@@ -571,11 +462,7 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "analysis-core",
     sourceFiles: ["analysis-core/burst-onset-engine.js"],
     knowledgeType: "بداية حدث صوتي",
-    mustServe: [
-      "split-segment",
-      "match-phoneme",
-      "build-timeline-genome"
-    ],
+    mustServe: ["split-segment", "match-phoneme", "build-timeline-genome"],
     status: "active"
   },
 
@@ -584,11 +471,7 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "phoneme-core",
     sourceFiles: ["phoneme-core/common-payload-finder.js"],
     knowledgeType: "المحمول المشترك للحرف",
-    mustServe: [
-      "identify-phoneme",
-      "match-phoneme",
-      "split-segment"
-    ],
+    mustServe: ["identify-phoneme", "match-phoneme", "split-segment"],
     status: "active"
   },
 
@@ -597,10 +480,7 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "segment-core",
     sourceFiles: ["segment-core/payload-lock-engine.js"],
     knowledgeType: "تثبيت المحمول",
-    mustServe: [
-      "split-segment",
-      "merge-segment"
-    ],
+    mustServe: ["split-segment", "merge-segment"],
     status: "active"
   },
 
@@ -609,10 +489,7 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "segment-core",
     sourceFiles: ["segment-core/payload-extractor-engine.js"],
     knowledgeType: "استخراج المحمول",
-    mustServe: [
-      "split-segment",
-      "merge-segment"
-    ],
+    mustServe: ["split-segment", "merge-segment"],
     status: "active"
   },
 
@@ -621,11 +498,7 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "segment-core",
     sourceFiles: ["segment-core/payload-purifier-engine.js"],
     knowledgeType: "تنظيف المحمول",
-    mustServe: [
-      "split-segment",
-      "merge-segment",
-      "match-phoneme"
-    ],
+    mustServe: ["split-segment", "merge-segment", "match-phoneme"],
     status: "active"
   },
 
@@ -634,10 +507,7 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "segment-core",
     sourceFiles: ["segment-core/phoneme-boundary-engine.js"],
     knowledgeType: "حدود الحامل والمحمول",
-    mustServe: [
-      "split-segment",
-      "merge-segment"
-    ],
+    mustServe: ["split-segment", "merge-segment"],
     status: "active"
   },
 
@@ -653,9 +523,7 @@ const KNOWLEDGE_DECISION_MAP = {
       "improve-memory",
       "approve-match-result"
     ],
-    status: "forming",
-    note:
-      "أي التباس متكرر يجب أن يتحول إلى معرفة حسم لا إلى تقرير فقط."
+    status: "forming"
   },
 
   cognitiveStatistics: {
@@ -677,14 +545,8 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "operation-labs",
     sourceFiles: ["operation-labs/phoneme-merge-split-engine.js"],
     knowledgeType: "تجربة فصل ودمج",
-    mustServe: [
-      "split-segment",
-      "merge-segment",
-      "promote-experiment"
-    ],
-    status: "experimental",
-    note:
-      "المختبر لا يصبح معرفة رسمية حتى تثبت التجربة أثرها وتعود إلى إدارة رسمية."
+    mustServe: ["split-segment", "merge-segment", "promote-experiment"],
+    status: "experimental"
   },
 
   weightedJoinZone: {
@@ -692,29 +554,57 @@ const KNOWLEDGE_DECISION_MAP = {
     sourceDepartment: "operation-labs",
     sourceFiles: ["operation-labs/weighted-join-zone.js"],
     knowledgeType: "تجربة منطقة اشتباك موزون",
-    mustServe: [
-      "merge-segment",
-      "split-segment",
-      "promote-experiment"
-    ],
-    status: "experimental",
-    note:
-      "منطقة الاشتباك الموزون تبقى مختبرية حتى تقرر الحوكمة ترقيتها."
+    mustServe: ["merge-segment", "split-segment", "promote-experiment"],
+    status: "experimental"
   }
 };
 
 
 // ======================================
-// 4) أدوات الاستعلام
+// 4) سجل أثر القرار
 // ======================================
 
-function getKnowledgeDecisionMap() {
-  return KNOWLEDGE_DECISION_MAP;
+const DECISION_TRACE_LOG = [];
+
+
+/*
+شكل السجل المتوقع من أي محرك قرار:
+
+recordDecisionTrace({
+  decisionId: "split-segment",
+  decisionName: "فصل مقطع بَصْ",
+  target: "ba_sad",
+  invokedKnowledge: ["burst-onset", "payload-boundary"],
+  influentialKnowledge: ["burst-onset"],
+  ignoredKnowledge: ["phoneme-family-map"],
+  result: "split-produced",
+  confidence: 0.62,
+  notes: "الفصل اعتمد على بداية الحدث وحدود المحمول أكثر من الهوية."
+});
+*/
+
+
+function normalizeTraceList(list) {
+  if (!Array.isArray(list)) return [];
+  return list.filter(function (item, index) {
+    return typeof item === "string" && item && list.indexOf(item) === index;
+  });
 }
 
-function getDecisionTypes() {
-  return DECISION_TYPES;
+
+function getDecisionById(decisionId) {
+  return Object.values(DECISION_TYPES).find(function (decision) {
+    return decision.id === decisionId;
+  }) || null;
 }
+
+
+function getKnowledgeItemById(knowledgeId) {
+  return Object.values(KNOWLEDGE_DECISION_MAP).find(function (item) {
+    return item.id === knowledgeId;
+  }) || null;
+}
+
 
 function getKnowledgeForDecision(decisionId) {
   return Object.values(KNOWLEDGE_DECISION_MAP).filter(function (item) {
@@ -722,20 +612,279 @@ function getKnowledgeForDecision(decisionId) {
   });
 }
 
-function getDecisionsForKnowledge(knowledgeId) {
-  const item = Object.values(KNOWLEDGE_DECISION_MAP).find(function (k) {
-    return k.id === knowledgeId;
+
+function getExpectedKnowledgeIdsForDecision(decisionId) {
+  return getKnowledgeForDecision(decisionId).map(function (item) {
+    return item.id;
+  });
+}
+
+
+function recordDecisionTrace(trace) {
+  if (!trace || !trace.decisionId) {
+    return {
+      ok: false,
+      message: "لا يمكن تسجيل أثر قرار بلا decisionId."
+    };
+  }
+
+  const decision = getDecisionById(trace.decisionId);
+
+  const normalized = {
+    id: "trace-" + Date.now(),
+    createdAt: new Date().toISOString(),
+    decisionId: trace.decisionId,
+    decisionName: trace.decisionName || (decision ? decision.name : ""),
+    target: trace.target || "",
+    result: trace.result || "",
+    confidence: typeof trace.confidence === "number" ? trace.confidence : null,
+    expectedKnowledge: getExpectedKnowledgeIdsForDecision(trace.decisionId),
+    invokedKnowledge: normalizeTraceList(trace.invokedKnowledge),
+    influentialKnowledge: normalizeTraceList(trace.influentialKnowledge),
+    ignoredKnowledge: normalizeTraceList(trace.ignoredKnowledge),
+    notes: trace.notes || "",
+    raw: trace
+  };
+
+  normalized.report = buildDecisionInfluenceReport(
+    normalized.decisionId,
+    normalized
+  );
+
+  DECISION_TRACE_LOG.push(normalized);
+
+  console.log("🧭 تم تسجيل أثر قرار:", normalized);
+  return normalized;
+}
+
+
+function getDecisionTraceLog() {
+  return DECISION_TRACE_LOG.slice();
+}
+
+
+function getLatestDecisionTrace(decisionId) {
+  const list = DECISION_TRACE_LOG.filter(function (trace) {
+    return !decisionId || trace.decisionId === decisionId;
   });
 
+  return list.length ? list[list.length - 1] : null;
+}
+
+
+// ======================================
+// 5) تقرير أثر المعرفة على القرار
+// ======================================
+
+function buildDecisionInfluenceReport(decisionId, trace) {
+  const decision = getDecisionById(decisionId);
+  const expectedKnowledge = getKnowledgeForDecision(decisionId);
+
+  const expectedIds = expectedKnowledge.map(function (item) {
+    return item.id;
+  });
+
+  const invokedIds = normalizeTraceList(trace && trace.invokedKnowledge);
+  const influentialIds = normalizeTraceList(trace && trace.influentialKnowledge);
+
+  const missingFromExecution = expectedIds.filter(function (id) {
+    return !invokedIds.includes(id);
+  });
+
+  const invokedButNotInfluential = invokedIds.filter(function (id) {
+    return !influentialIds.includes(id);
+  });
+
+  const influentialButUnregistered = influentialIds.filter(function (id) {
+    return !getKnowledgeItemById(id);
+  });
+
+  const coverageRatio = expectedIds.length
+    ? Number((invokedIds.length / expectedIds.length).toFixed(2))
+    : 0;
+
+  const influenceRatio = expectedIds.length
+    ? Number((influentialIds.length / expectedIds.length).toFixed(2))
+    : 0;
+
+  const warnings = [];
+
+  if (!decision) {
+    warnings.push("القرار غير مسجل في DECISION_TYPES.");
+  }
+
+  if (!expectedIds.length) {
+    warnings.push("لا توجد معرفة مسجلة لخدمة هذا القرار.");
+  }
+
+  if (!invokedIds.length) {
+    warnings.push("لا توجد معرفة مستدعاة في سجل التنفيذ.");
+  }
+
+  if (missingFromExecution.length) {
+    warnings.push(
+      "معارف مسجلة لخدمة القرار لكنها لم تظهر في التنفيذ: " +
+      missingFromExecution.join(", ")
+    );
+  }
+
+  if (invokedButNotInfluential.length) {
+    warnings.push(
+      "معارف استُدعيت لكنها لم تظهر مؤثرة: " +
+      invokedButNotInfluential.join(", ")
+    );
+  }
+
+  if (influentialButUnregistered.length) {
+    warnings.push(
+      "معارف أثرت لكنها غير مسجلة في الخريطة: " +
+      influentialButUnregistered.join(", ")
+    );
+  }
+
+  return {
+    method: "Decision Knowledge Influence Report V1",
+    decisionId,
+    decisionName: decision ? decision.name : "",
+    createdAt: new Date().toISOString(),
+    expectedKnowledgeCount: expectedIds.length,
+    invokedKnowledgeCount: invokedIds.length,
+    influentialKnowledgeCount: influentialIds.length,
+    coverageRatio,
+    influenceRatio,
+    expectedKnowledge: expectedIds,
+    invokedKnowledge: invokedIds,
+    influentialKnowledge: influentialIds,
+    missingFromExecution,
+    invokedButNotInfluential,
+    influentialButUnregistered,
+    ok:
+      warnings.length === 0 &&
+      expectedIds.length > 0 &&
+      invokedIds.length > 0 &&
+      influentialIds.length > 0,
+    warnings,
+    verdict: buildDecisionInfluenceVerdict(
+      decisionId,
+      coverageRatio,
+      influenceRatio,
+      warnings
+    )
+  };
+}
+
+
+function buildDecisionInfluenceVerdict(decisionId, coverageRatio, influenceRatio, warnings) {
+  if (warnings.length === 0 && influenceRatio >= 0.7) {
+    return "القرار يراجع المعرفة المسجلة ويظهر أثرها بدرجة قوية.";
+  }
+
+  if (influenceRatio > 0 && influenceRatio < 0.7) {
+    return "القرار يستدعي بعض المعرفة، لكن أثرها غير كافٍ بعد.";
+  }
+
+  if (coverageRatio > 0 && influenceRatio === 0) {
+    return "القرار يستدعي معرفة مسجلة، لكن لم يثبت أثرها في الحسم.";
+  }
+
+  if (coverageRatio === 0) {
+    return "القرار لا يثبت أنه استخدم المعرفة المسجلة؛ يحتاج ربطًا تنفيذيًا.";
+  }
+
+  return "القرار يحتاج مراجعة حوكمية.";
+}
+
+
+function auditDecisionInfluence(decisionId, trace) {
+  if (trace) {
+    return buildDecisionInfluenceReport(decisionId, trace);
+  }
+
+  const latest = getLatestDecisionTrace(decisionId);
+
+  if (!latest) {
+    return {
+      method: "Decision Knowledge Influence Report V1",
+      decisionId,
+      ok: false,
+      warnings: [
+        "لا يوجد سجل أثر سابق لهذا القرار. يجب أن يستدعي محرك القرار recordDecisionTrace بعد التنفيذ."
+      ],
+      verdict:
+        "الحوكمة تعرف ما المعرفة المطلوبة، لكنها لا تملك أثر تنفيذ فعلي لهذا القرار بعد."
+    };
+  }
+
+  return buildDecisionInfluenceReport(decisionId, latest);
+}
+
+
+function auditAllDecisionInfluence() {
+  const report = {
+    method: "All Decisions Influence Audit V1",
+    createdAt: new Date().toISOString(),
+    decisions: [],
+    summary: {
+      total: 0,
+      withTrace: 0,
+      withoutTrace: 0,
+      strongInfluence: 0,
+      weakInfluence: 0,
+      noInfluence: 0
+    }
+  };
+
+  Object.values(DECISION_TYPES).forEach(function (decision) {
+    if (decision.status === "deferred") return;
+
+    const latest = getLatestDecisionTrace(decision.id);
+    const item = latest
+      ? buildDecisionInfluenceReport(decision.id, latest)
+      : auditDecisionInfluence(decision.id);
+
+    report.decisions.push(item);
+    report.summary.total++;
+
+    if (latest) report.summary.withTrace++;
+    else report.summary.withoutTrace++;
+
+    if (item.influenceRatio >= 0.7) report.summary.strongInfluence++;
+    else if (item.influenceRatio > 0) report.summary.weakInfluence++;
+    else report.summary.noInfluence++;
+  });
+
+  console.log("🧭 تقرير أثر المعرفة على كل القرارات:", report);
+  return report;
+}
+
+
+// ======================================
+// 6) أدوات الاستعلام القديمة
+// ======================================
+
+function getKnowledgeDecisionMap() {
+  return KNOWLEDGE_DECISION_MAP;
+}
+
+
+function getDecisionTypes() {
+  return DECISION_TYPES;
+}
+
+
+function getDecisionsForKnowledge(knowledgeId) {
+  const item = getKnowledgeItemById(knowledgeId);
   if (!item) return [];
   return item.mustServe || [];
 }
+
 
 function getKnowledgeByDepartment(departmentId) {
   return Object.values(KNOWLEDGE_DECISION_MAP).filter(function (item) {
     return item.sourceDepartment === departmentId;
   });
 }
+
 
 function getKnowledgeBySourceFile(filePath) {
   return Object.values(KNOWLEDGE_DECISION_MAP).filter(function (item) {
@@ -745,13 +894,11 @@ function getKnowledgeBySourceFile(filePath) {
 
 
 // ======================================
-// 5) فحص قرار: هل لديه معرفة مساندة؟
+// 7) فحص قرار: هل لديه معرفة مساندة؟
 // ======================================
 
 function auditDecisionKnowledge(decisionId) {
-  const decision = Object.values(DECISION_TYPES).find(function (d) {
-    return d.id === decisionId;
-  });
+  const decision = getDecisionById(decisionId);
 
   if (decision && decision.status === "deferred") {
     return {
@@ -778,19 +925,19 @@ function auditDecisionKnowledge(decisionId) {
         id: k.id,
         type: k.knowledgeType,
         department: k.sourceDepartment,
-        status: k.status,
-        governanceImpact: k.governanceImpact || ""
+        status: k.status
       };
     }),
+    influenceAuditAvailable: true,
     message: knowledge.length
-      ? "القرار لديه معرفة مساندة."
-      : "تحذير حوكمي: هذا القرار لا يراجع أي معرفة مسجلة، ولذلك لا يحق له ادعاء الإدراك."
+      ? "القرار لديه معرفة مساندة، ويجب فحص أثرها عبر auditDecisionInfluence."
+      : "تحذير حوكمي: هذا القرار لا يراجع أي معرفة مسجلة."
   };
 }
 
 
 // ======================================
-// 6) فحص معرفة: هل تخدم قرارًا؟
+// 8) فحص معرفة: هل تخدم قرارًا؟
 // ======================================
 
 function auditKnowledgeUsage(knowledgeId) {
@@ -803,14 +950,14 @@ function auditKnowledgeUsage(knowledgeId) {
     decisionCount: decisions.length,
     decisions,
     message: decisions.length
-      ? "المعرفة مرتبطة بقرارات."
-      : "تحذير حوكمي: هذه المعرفة لا تخدم أي قرار بعد، فهي غير مكتملة معماريًا."
+      ? "المعرفة مرتبطة بقرارات. يبقى السؤال: هل أثرت فعلاً؟"
+      : "تحذير حوكمي: هذه المعرفة لا تخدم أي قرار بعد."
   };
 }
 
 
 // ======================================
-// 7) كشف المعارف اليتيمة
+// 9) كشف المعارف اليتيمة
 // ======================================
 
 function findOrphanKnowledge() {
@@ -821,7 +968,7 @@ function findOrphanKnowledge() {
 
 
 // ======================================
-// 8) فحص سيادي شامل للخريطة
+// 10) فحص سيادي شامل للخريطة
 // ======================================
 
 function auditKnowledgeDecisionMap() {
@@ -836,6 +983,12 @@ function auditKnowledgeDecisionMap() {
     orphanKnowledgeCount: orphan.length,
     departments: {},
     decisions: {},
+    influenceTracking: {
+      available: true,
+      traceCount: DECISION_TRACE_LOG.length,
+      note:
+        "الخريطة لا تكتفي الآن بتسجيل المعرفة، بل تملك دوال فحص أثر المعرفة على القرار."
+    },
     warnings: []
   };
 
@@ -885,21 +1038,13 @@ function auditKnowledgeDecisionMap() {
     }
   });
 
-  if (!getDecisionsForKnowledge("phoneme-family-map").length) {
-    report.warnings.push("خريطة العائلة الإدراكية لا تخدم قرارًا مسجلًا.");
-  }
-
-  if (!getDecisionsForKnowledge("phoneme-cumulative-memory").length) {
-    report.warnings.push("الذاكرة التراكمية لا تخدم قرارًا مسجلًا.");
-  }
-
   console.log("🧭 تقرير خريطة المعرفة والقرار:", report);
   return report;
 }
 
 
 // ======================================
-// 9) تصدير عام
+// 11) تصدير عام
 // ======================================
 
 window.KNOWLEDGE_DECISION_CHARTER = KNOWLEDGE_DECISION_CHARTER;
@@ -907,17 +1052,25 @@ window.KNOWLEDGE_DECISION_LAW = KNOWLEDGE_DECISION_CHARTER.rule;
 
 window.DECISION_TYPES = DECISION_TYPES;
 window.KNOWLEDGE_DECISION_MAP = KNOWLEDGE_DECISION_MAP;
+window.DECISION_TRACE_LOG = DECISION_TRACE_LOG;
 
 window.getDecisionTypes = getDecisionTypes;
 window.getKnowledgeDecisionMap = getKnowledgeDecisionMap;
 window.getKnowledgeForDecision = getKnowledgeForDecision;
+window.getExpectedKnowledgeIdsForDecision = getExpectedKnowledgeIdsForDecision;
 window.getDecisionsForKnowledge = getDecisionsForKnowledge;
 window.getKnowledgeByDepartment = getKnowledgeByDepartment;
 window.getKnowledgeBySourceFile = getKnowledgeBySourceFile;
+window.getDecisionTraceLog = getDecisionTraceLog;
+window.getLatestDecisionTrace = getLatestDecisionTrace;
+
+window.recordDecisionTrace = recordDecisionTrace;
+window.auditDecisionInfluence = auditDecisionInfluence;
+window.auditAllDecisionInfluence = auditAllDecisionInfluence;
 
 window.auditDecisionKnowledge = auditDecisionKnowledge;
 window.auditKnowledgeUsage = auditKnowledgeUsage;
 window.findOrphanKnowledge = findOrphanKnowledge;
 window.auditKnowledgeDecisionMap = auditKnowledgeDecisionMap;
 
-console.log("🧭 خريطة المعرفة والقرار جاهزة V4");
+console.log("🧭 خريطة المعرفة والقرار جاهزة V5 — مع تتبع أثر المعرفة على القرار");
