@@ -5,8 +5,7 @@
 // لا تنشئ ملفًا جديدًا
 // ======================================
 
-console.log("🧭 knowledge-decision-map.js جاهز — V5 Knowledge/Decision Influence Map");
-
+console.log("🧭 knowledge-decision-map.js TEST 777 LOADED");
 
 // ======================================
 // 1) الاستدعاء الدستوري
