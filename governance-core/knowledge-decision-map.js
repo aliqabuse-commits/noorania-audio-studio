@@ -1186,5 +1186,10 @@ window.auditDecisionKnowledge = auditDecisionKnowledge;
 window.auditKnowledgeUsage = auditKnowledgeUsage;
 window.findOrphanKnowledge = findOrphanKnowledge;
 window.auditKnowledgeDecisionMap = auditKnowledgeDecisionMap;
-
+window.DECISION_TRACE_LOG = DECISION_TRACE_LOG;
+window.recordDecisionTrace = recordDecisionTrace;
+window.getDecisionTraceLog = getDecisionTraceLog;
+window.getLatestDecisionTrace = getLatestDecisionTrace;
+window.auditDecisionInfluence = auditDecisionInfluence;
+window.auditAllDecisionInfluence = auditAllDecisionInfluence;
 console.log("🧭 خريطة المعرفة والقرار جاهزة V5 — مع تتبع أثر المعرفة على القرار");
