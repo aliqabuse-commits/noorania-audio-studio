@@ -89,6 +89,7 @@ function renderGovernanceReportCenter(containerId) {
     <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0;">
       <button type="button" onclick="copyGovernanceExecutiveReport()">📋 نسخ التقرير التنفيذي</button>
       <button type="button" onclick="copyGovernanceFullReport()">📚 نسخ التقرير الكامل</button>
+      <button type="button" onclick="showDecisionInfluenceReport()">🧭 تقرير أثر القرارات</button>
       <button type="button" onclick="clearGovernanceReportCenterOutput()">🧹 مسح العرض</button>
     </div>
 
@@ -759,7 +760,24 @@ function escapeGovernanceHtml(value) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+function showDecisionInfluenceReport() {
+  let report = null;
 
+  if (typeof window.auditAllDecisionInfluence === "function") {
+    report = window.auditAllDecisionInfluence();
+  } else {
+    report = {
+      ok: false,
+      message: "دوال أثر القرار غير محملة من knowledge-decision-map.js"
+    };
+  }
+
+  renderGovernanceReportOutput(
+    "🧭 تقرير أثر القرارات",
+    renderObjectAsCouncilHtml(report),
+    report
+  );
+}
 
 // ======================================
 // 11) تصدير عام
@@ -778,6 +796,6 @@ window.showSelectedDepartmentGovernanceReport = showSelectedDepartmentGovernance
 window.copyGovernanceExecutiveReport = copyGovernanceExecutiveReport;
 window.copyGovernanceFullReport = copyGovernanceFullReport;
 window.clearGovernanceReportCenterOutput = clearGovernanceReportCenterOutput;
-
+window.showDecisionInfluenceReport = showDecisionInfluenceReport;
 console.log("📋 مركز تقارير المجلس الحوكمي جاهز V1");
 
