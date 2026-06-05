@@ -584,7 +584,29 @@ async function performCoreCognitiveSplit(blob, text) {
   if (!cutPoint) {
     throw new Error("لم يستطع النظام تحديد نقطة الفصل إدراكيًا.");
   }
-
+// ======================================
+  // أثر القرار الحوكمي: فصل المقطع
+  // ======================================
+  if (typeof window.recordDecisionTrace === "function") {
+    window.recordDecisionTrace({
+      decisionId: "split-segment",
+      decisionName: "فصل إدراكي للمقطع",
+      target: text,
+      invokedKnowledge: [
+        "phoneme-training-pack",
+        "phoneme-family-map",
+        "payload-boundary"
+      ],
+      influentialKnowledge: [
+        "payload-boundary"
+      ],
+      result: "split-produced",
+      confidence: typeof result.confidence === "number" ? result.confidence : null,
+      notes:
+        "تم تحديد نقطة الفصل عبر detectPayloadBoundaryByIdentity. " +
+        "يلزم لاحقًا بيان هل الهوية والجينوم والذاكرة أثرت فعلاً أم كانت حاضرة فقط."
+    });
+  }
   const carrierRawBuffer = sliceAudioBuffer(buffer, 0, cutPoint);
   const payloadRawBuffer = sliceAudioBuffer(buffer, cutPoint, buffer.duration);
 
@@ -692,7 +714,30 @@ async function experimentMerge(carrierNum, payloadNum) {
     }
 
     const resultBlob = audioBufferToWavBlob(mergedBuffer);
-
+// ======================================
+    // أثر القرار الحوكمي: دمج المقطع
+    // ======================================
+    if (typeof window.recordDecisionTrace === "function") {
+      window.recordDecisionTrace({
+        decisionId: "merge-segment",
+        decisionName: "دمج إدراكي للمقطع",
+        target: "carrier-" + carrierNum + "_payload-" + payloadNum,
+        invokedKnowledge: [
+          "merge-split-lab",
+          "weighted-join-zone",
+          "payload-extraction",
+          "payload-boundary"
+        ],
+        influentialKnowledge: isReadyUnits
+          ? ["weighted-join-zone"]
+          : ["merge-split-lab"],
+        result: "merge-produced",
+        confidence: null,
+        notes: isReadyUnits
+          ? "تم الدمج باستخدام الوحدات الموزونة."
+          : "تم الدمج بالطريقة الخام القديمة، وهذا يحتاج مراجعة إدراكية."
+      });
+    }
     if (carrierNum === 1 && payloadNum === 2) {
       result1_2_Blob = resultBlob;
     } else {
