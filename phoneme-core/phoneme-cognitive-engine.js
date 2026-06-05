@@ -1100,7 +1100,27 @@ function roundCognitive(num) {
   return Number(Number(num || 0).toFixed(4));
 }
 
+function sendCognitiveGenomeKnowledgeSignal(targetKey, genome, confidence) {
+  if (typeof window.recordKnowledgeSignal !== "function") return null;
 
+  return window.recordKnowledgeSignal({
+    knowledgeId: "cognitive-genome",
+    sourceDepartment: "phoneme-core",
+    sourceFile: "phoneme-core/phoneme-cognitive-engine.js",
+    target: targetKey || "",
+    producedKnowledge: genome || null,
+    confidence: typeof confidence === "number" ? confidence : null,
+    servesDecision: [
+      "build-cognitive-genome",
+      "identify-phoneme",
+      "match-phoneme",
+      "split-segment"
+    ],
+    notes: "إرسال الجينوم الإدراكي المركزي ليكون متاحًا لقرارات التعرف والمطابقة والفصل."
+  });
+}
+
+window.sendCognitiveGenomeKnowledgeSignal = sendCognitiveGenomeKnowledgeSignal;
 // ======================================
 // 13) التصدير العام
 // ======================================
