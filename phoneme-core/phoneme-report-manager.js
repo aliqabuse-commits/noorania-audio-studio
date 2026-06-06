@@ -168,6 +168,11 @@ function saveCurrentSessionReport(type, title, text) {
     time: new Date().toISOString()
   };
 }
+function htmlToPlainText(html) {
+  const box = document.createElement("div");
+  box.innerHTML = html || "";
+  return box.innerText.trim();
+}
 // ======================================
 // 6. نسخ جميع تقارير الحقيبة (تجميعي)
 // ======================================
@@ -199,7 +204,7 @@ function copyAllPhonemeReports(phonemeKey) {
     fullText +=
       "----------------------\n" +
       "[" + item.title + "]\n\n" +
-      item.text.trim() +
+      htmlToPlainText(item.text) +
       "\n\n";
   });
 
