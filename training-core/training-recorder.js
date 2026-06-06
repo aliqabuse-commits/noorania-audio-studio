@@ -234,6 +234,8 @@ function stopTrainingStream() {
     perceptualTrainingStream = null;
   }
 }
+console.log("🎙 مسجل التدريب الإدراكي جاهز ");
+
 // ======================================
 // التصدير العام
 // ======================================
@@ -244,4 +246,3 @@ window.startTrainingStepRecording = startTrainingStepRecording;
 window.stopTrainingStepRecording = stopTrainingStepRecording;
 window.saveTrainingAudio = saveTrainingAudio;
 window.stopTrainingStream = stopTrainingStream;
-console.log("🎙 مسجل التدريب الإدراكي جاهز ");
