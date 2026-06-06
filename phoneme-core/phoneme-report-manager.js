@@ -145,16 +145,17 @@ function renderToUnifiedPanel(htmlContent, canvasElements = []) {
 // 5. نسخ التقرير المعروض حالياً
 // ======================================
 function copyCurrentReport() {
-  const contentBox = document.getElementById("unified-report-content");
-  if(!contentBox || !contentBox.innerText.trim()) {
-    alert("⚠️ لا يوجد محتوى لنسخه.");
+  const panel = document.getElementById("unified-report-panel");
+
+  if (!panel || !panel.innerText.trim()) {
+    alert("⚠️ لا يوجد تقرير ظاهر حاليًا.");
     return;
   }
 
-  navigator.clipboard.writeText(contentBox.innerText).then(() => {
-    alert("📋 تم نسخ التقرير الحالي بنجاح.");
-  }).catch(err => {
-    alert("❌ فشل النسخ: " + err);
+  navigator.clipboard.writeText(panel.innerText.trim()).then(function () {
+    alert("✅ تم نسخ التقرير الحالي فقط.");
+  }).catch(function (err) {
+    alert("❌ فشل نسخ التقرير: " + err);
   });
 }
 
