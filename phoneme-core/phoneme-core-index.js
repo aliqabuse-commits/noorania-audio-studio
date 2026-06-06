@@ -32,10 +32,12 @@ window.NOORANIYA_PHONEME_CORE = {
     "phoneme-core/burst-signature-engine.js",
     "phoneme-core/phoneme-signal-validator.js",
     "phoneme-core/phoneme-cognitive-engine.js",
-    "phoneme-core/phoneme-color-memory.js",
+    
     "phoneme-core/phoneme-colors.js",
-    "phoneme-core/phoneme-report-manager.js",
     "phoneme-core/phoneme-training-pack.js",
+    "phoneme-core/phoneme-color-memory.js",
+    "phoneme-core/phoneme-report-manager.js",
+    
     "phoneme-core/phoneme-identity-engine.js",
     "phoneme-core/phoneme-match-engine.js",
     "phoneme-core/phoneme-memory-trainer.js",
