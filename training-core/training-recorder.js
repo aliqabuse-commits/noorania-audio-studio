@@ -216,7 +216,14 @@ async function saveTrainingAudio(fileName, blob) {
   const reader = new FileReader();
   return new Promise(function (resolve, reject) {
     reader.onloadend = function () {
-      try { localStorage.setItem("audio_" + fileName, reader.result); resolve(); } 
+      try {
+  localStorage.setItem("audio_" + fileName, reader.result);
+
+  localStorage.setItem("last_training_audio_file", fileName);
+  localStorage.setItem("last_training_audio_time", new Date().toISOString());
+
+  resolve();
+}
       catch (err) { reject(err); }
     };
     reader.onerror = reject; reader.readAsDataURL(blob);
