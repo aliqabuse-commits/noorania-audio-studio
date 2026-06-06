@@ -191,7 +191,11 @@ async function testSignalQualityForPhoneme(key) {
 
   // التعديل: حفظ التقرير وإرساله للوحة الموحدة بدلاً من Alert
   localStorage.setItem(key + "_signal_quality_report", report);
-  
+  saveCurrentSessionReport(
+  "signal",
+  "🛡️ تقرير جودة التسجيل",
+  report
+);
   if(typeof renderToUnifiedPanel === 'function') {
     renderToUnifiedPanel(`<pre style="color:#e5e7eb; font-family:monospace; white-space:pre-wrap; font-size:14px;">${report}</pre>`);
   } else {
