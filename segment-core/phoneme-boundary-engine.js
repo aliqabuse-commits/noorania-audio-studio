@@ -69,10 +69,17 @@ function detectPayloadBoundaryByIdentity(audioBuffer, options) {
 
   const carrierKey = options.carrierKey || "ba";
   const payloadKey = options.payloadKey || "sad";
+const carrierIdentity =
+  options.carrierIdentity || loadBoundaryIdentity(carrierKey);
 
-  const carrierIdentity = loadBoundaryIdentity(carrierKey);
-  const payloadIdentity = loadBoundaryIdentity(payloadKey);
+const payloadIdentity =
+  options.payloadIdentity || loadBoundaryIdentity(payloadKey);
 
+const carrierFamily = options.carrierFamily || null;
+const payloadFamily = options.payloadFamily || null;
+const carrierMemory = options.carrierMemory || null;
+const payloadMemory = options.payloadMemory || null;
+const cognitiveContext = options.cognitiveContext || null;
   if (!carrierIdentity) {
     throw new Error("لا يوجد جينوم للحامل: " + carrierKey);
   }
@@ -116,17 +123,36 @@ function detectPayloadBoundaryByIdentity(audioBuffer, options) {
         payloadIdentity.genome
       );
 
-    scores.push({
-      t: Number(t.toFixed(4)),
-      carrierDistance,
-      payloadDistance,
-      winner:
-        payloadDistance < carrierDistance
-          ? payloadKey
-          : carrierKey,
-      margin:
-        Math.abs(carrierDistance - payloadDistance)
-    });
+    const memoryBoost =
+  carrierMemory || payloadMemory ? 0.03 : 0;
+
+const familyBoost =
+  carrierFamily || payloadFamily ? 0.03 : 0;
+
+const adjustedPayloadDistance =
+  payloadDistance - memoryBoost - familyBoost;
+
+scores.push({
+  t: Number(t.toFixed(4)),
+  carrierDistance,
+  payloadDistance,
+  adjustedPayloadDistance,
+  winner:
+    adjustedPayloadDistance < carrierDistance
+      ? payloadKey
+      : carrierKey,
+  margin:
+    Math.abs(carrierDistance - adjustedPayloadDistance),
+  usedKnowledge: {
+    cognitiveContext: !!cognitiveContext,
+    carrierIdentity: !!carrierIdentity,
+    payloadIdentity: !!payloadIdentity,
+    carrierFamily: !!carrierFamily,
+    payloadFamily: !!payloadFamily,
+    carrierMemory: !!carrierMemory,
+    payloadMemory: !!payloadMemory
+  }
+});
   }
 
   let boundary = null;
@@ -157,12 +183,23 @@ function detectPayloadBoundaryByIdentity(audioBuffer, options) {
   }
 
   return {
-    carrierKey,
-    payloadKey,
-    boundary,
-    scores
-  };
-}
+  carrierKey,
+  payloadKey,
+  boundary,
+  scores,
+  usedKnowledge: {
+    cognitiveContext: !!cognitiveContext,
+    carrierIdentity: !!carrierIdentity,
+    payloadIdentity: !!payloadIdentity,
+    carrierFamily: !!carrierFamily,
+    payloadFamily: !!payloadFamily,
+    carrierMemory: !!carrierMemory,
+    payloadMemory: !!payloadMemory
+  },
+  confidence: scores.length
+    ? Math.max.apply(null, scores.map(function (s) { return s.margin || 0; }))
+    : null
+};
 
 window.detectPayloadBoundaryByIdentity =
   detectPayloadBoundaryByIdentity;
