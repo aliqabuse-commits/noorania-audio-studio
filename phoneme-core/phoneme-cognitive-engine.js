@@ -918,7 +918,7 @@ function renderCognitiveReport(identity) {
   `;
 
   if (typeof renderToUnifiedPanel === "function") {
-    saveCurrentSessionReport("genome", "🧬 تقرير الجينوم", reportText);
+    saveCurrentSessionReport("genome", "🧬 تقرير الجينوم", html);
     renderToUnifiedPanel(html, []);
   } else {
     console.warn("⚠️ مدير التقارير غير متاح لعرض الجينوم.");
