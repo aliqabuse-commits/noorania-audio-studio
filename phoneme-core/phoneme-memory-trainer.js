@@ -932,6 +932,11 @@ function renderPhonemeMemoryReport(identity) {
   `;
 
   if (typeof renderToUnifiedPanel === "function") {
+    saveCurrentSessionReport(
+  "memory",
+  "🧠 تقرير الذاكرة الإدراكية",
+  html
+);
     renderToUnifiedPanel(html);
   } else {
     console.warn("⚠️ مدير التقارير الموحد غير متاح لعَرض الذاكرة الإدراكية.");
