@@ -66,9 +66,12 @@ function summarizeBoundaryWindow(buffer) {
 
 function detectPayloadBoundaryByIdentity(audioBuffer, options) {
   options = options || {};
+const carrierKey = options.carrierKey;
+const payloadKey = options.payloadKey;
 
-  const carrierKey = options.carrierKey || "ba";
-  const payloadKey = options.payloadKey || "sad";
+if (!carrierKey || !payloadKey) {
+  throw new Error("يجب تمرير carrierKey و payloadKey إلى كاشف الحدود.");
+}
 const carrierIdentity =
   options.carrierIdentity || loadBoundaryIdentity(carrierKey);
 
