@@ -200,7 +200,7 @@ scores.push({
     ? Math.max.apply(null, scores.map(function (s) { return s.margin || 0; }))
     : null
 };
-
+}
 window.detectPayloadBoundaryByIdentity =
   detectPayloadBoundaryByIdentity;
 
