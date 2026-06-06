@@ -41,11 +41,9 @@ window.NOORANIYA_PHONEME_CORE = {
     "phoneme-core/phoneme-memory-trainer.js",
     "phoneme-core/phoneme-timeline-engine.js",
     "phoneme-core/spectral-seal-engine.js",
-    // خرائط الإدراك والعائلات
 "phoneme-core/phoneme-family-map.js",
-
-// الذاكرة التراكمية الإدراكية
 "phoneme-core/phoneme-cumulative-memory.js",
+    "training-core/training-recorder.js",
     "phoneme-core/phoneme-core-app.js"
   ],
 
