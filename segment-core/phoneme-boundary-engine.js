@@ -174,7 +174,7 @@ scores.push({
 
   if (boundary === null && scores.length) {
     const best = scores.reduce(function (bestItem, item) {
-      return item.payloadDistance < bestItem.payloadDistance
+      return item.adjustedPayloadDistance < bestItem.adjustedPayloadDistance
         ? item
         : bestItem;
     }, scores[0]);
