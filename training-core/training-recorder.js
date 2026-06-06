@@ -246,3 +246,14 @@ window.startTrainingStepRecording = startTrainingStepRecording;
 window.stopTrainingStepRecording = stopTrainingStepRecording;
 window.saveTrainingAudio = saveTrainingAudio;
 window.stopTrainingStream = stopTrainingStream;
+
+console.log(
+  "✅ TEST: startPerceptualTraining exported",
+  typeof window.startPerceptualTraining
+);
+
+alert(
+  "TEST: training-recorder.js loaded\n" +
+  "startPerceptualTraining = " +
+  typeof window.startPerceptualTraining
+);
