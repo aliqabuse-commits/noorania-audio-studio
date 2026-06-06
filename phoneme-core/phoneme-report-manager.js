@@ -21,6 +21,7 @@ function openReportMenu(reportType, phonemeKey) {
   // تعيين العناوين حسب نوع التقرير
   let title = "إدارة التقرير";
   if(reportType === 'signal') title = "🛡️ تقرير جودة التسجيل";
+
   if(reportType === 'memory') title = "🧠 تقرير الذاكرة الإدراكية";
   if(reportType === 'cognitive') title = "🧬 تقرير الجينوم المركزي";
   if(reportType === 'timeline') title = "⏳ تقرير الجينوم الزمني";
@@ -158,24 +159,57 @@ function copyCurrentReport() {
     alert("❌ فشل نسخ التقرير: " + err);
   });
 }
+window.currentSessionReports = window.currentSessionReports || {};
 
+function saveCurrentSessionReport(type, title, text) {
+  window.currentSessionReports[type] = {
+    title: title,
+    text: text,
+    time: new Date().toISOString()
+  };
+}
 // ======================================
 // 6. نسخ جميع تقارير الحقيبة (تجميعي)
 // ======================================
 function copyAllPhonemeReports(phonemeKey) {
-  const contentBox = document.getElementById("unified-report-content");
+  const reports = window.currentSessionReports || {};
 
-  if (!contentBox || !contentBox.innerText.trim()) {
-    alert("⚠️ لا توجد تقارير ظاهرة حاليًا لنسخها.");
+  const order = [
+    "signalQuality",
+    "color",
+    "memory",
+    "genome",
+    "timeline",
+    "test",
+    "testLog"
+  ];
+
+  let fullText =
+    "=== 📚 جميع تقارير التسجيل الحالي لحقيبة (" +
+    phonemeKey +
+    ") ===\n\n";
+
+  let found = false;
+
+  order.forEach(function (key) {
+    const item = reports[key];
+    if (!item || !item.text) return;
+
+    found = true;
+    fullText +=
+      "----------------------\n" +
+      "[" + item.title + "]\n\n" +
+      item.text.trim() +
+      "\n\n";
+  });
+
+  if (!found) {
+    alert("⚠️ لا توجد تقارير مولدة في التسجيل الحالي بعد.");
     return;
   }
 
-  const fullText =
-    "=== 📚 التقارير الحالية لحقيبة (" + phonemeKey + ") ===\n\n" +
-    contentBox.innerText.trim();
-
   navigator.clipboard.writeText(fullText).then(function () {
-    alert("✅ تم نسخ التقارير الحالية فقط.");
+    alert("✅ تم نسخ جميع تقارير التسجيل الحالي فقط.");
   }).catch(function (err) {
     alert("❌ فشل النسخ: " + err);
   });
