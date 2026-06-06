@@ -162,33 +162,39 @@ function copyCurrentReport() {
 // 6. نسخ جميع تقارير الحقيبة (تجميعي)
 // ======================================
 function copyAllPhonemeReports(phonemeKey) {
-  let fullText = `=== 📚 تقارير حقيبة (${phonemeKey}) ===\n\n`;
+  let fullText = `=== 📚 التقارير الظاهرة حاليًا لحقيبة (${phonemeKey}) ===\n\n`;
 
-  // جودة التسجيل
-  const sig = localStorage.getItem(phonemeKey + "_signal_quality_report");
-  if(sig) fullText += `[🛡️ جودة التسجيل]\n${sig}\n\n----------------------\n\n`;
+  const panel = document.getElementById("unified-report-panel");
 
-  // الذاكرة الإدراكية
-  // التعديل: استخدام المفتاح الصحيح _perceptual_identity
-  const mem = localStorage.getItem(phonemeKey + "_perceptual_identity");
-  if(mem) fullText += `[🧠 الذاكرة الإدراكية]\n${JSON.stringify(JSON.parse(mem), null, 2)}\n\n----------------------\n\n`;
-
-  // الجينوم المركزي
-  const cog = localStorage.getItem(phonemeKey + "_cognitive_identity");
-  if(cog) fullText += `[🧬 الجينوم المركزي]\n${JSON.stringify(JSON.parse(cog), null, 2)}\n\n----------------------\n\n`;
-
-  // المسار الزمني
-  const tl = localStorage.getItem(phonemeKey + "_timeline_genome");
-  if(tl) fullText += `[⏳ الجينوم الزمني]\n${JSON.stringify(JSON.parse(tl), null, 2)}\n\n`;
-
-  if(fullText.trim() === `=== 📚 تقارير حقيبة (${phonemeKey}) ===`) {
-    alert("⚠️ لا توجد أي تقارير محفوظة لهذه الحقيبة بعد.");
+  if (!panel || !panel.innerText.trim()) {
+    alert("⚠️ لا يوجد تقرير ظاهر حاليًا لنسخه.");
     return;
   }
 
-  navigator.clipboard.writeText(fullText).then(() => {
-    alert("✅ تم تجميع ونسخ جميع تقارير الحقيبة بنجاح.");
-  }).catch(err => {
+  fullText += panel.innerText.trim();
+
+  // إرفاق الذاكرة التراكمية الكاملة إن كانت موجودة
+  const cumulative =
+    localStorage.getItem(phonemeKey + "_cumulative_memory") ||
+    localStorage.getItem("cognitive_memory_" + phonemeKey);
+
+  if (cumulative) {
+    try {
+      fullText +=
+        "\n\n----------------------\n\n" +
+        "[🧠 الذاكرة التراكمية الكاملة]\n" +
+        JSON.stringify(JSON.parse(cumulative), null, 2);
+    } catch (err) {
+      fullText +=
+        "\n\n----------------------\n\n" +
+        "[🧠 الذاكرة التراكمية الكاملة]\n" +
+        cumulative;
+    }
+  }
+
+  navigator.clipboard.writeText(fullText).then(function () {
+    alert("✅ تم نسخ التقارير الظاهرة مع الذاكرة التراكمية.");
+  }).catch(function (err) {
     alert("❌ فشل النسخ: " + err);
   });
 }
