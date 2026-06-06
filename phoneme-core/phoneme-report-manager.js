@@ -163,38 +163,20 @@ function copyCurrentReport() {
 // 6. نسخ جميع تقارير الحقيبة (تجميعي)
 // ======================================
 function copyAllPhonemeReports(phonemeKey) {
-  let fullText = `=== 📚 التقارير الظاهرة حاليًا لحقيبة (${phonemeKey}) ===\n\n`;
+function copyAllPhonemeReports(phonemeKey) {
+  const contentBox = document.getElementById("unified-report-content");
 
-  const panel = document.getElementById("unified-report-panel");
-
-  if (!panel || !panel.innerText.trim()) {
-    alert("⚠️ لا يوجد تقرير ظاهر حاليًا لنسخه.");
+  if (!contentBox || !contentBox.innerText.trim()) {
+    alert("⚠️ لا توجد تقارير ظاهرة حاليًا لنسخها.");
     return;
   }
 
-  fullText += panel.innerText.trim();
-
-  // إرفاق الذاكرة التراكمية الكاملة إن كانت موجودة
-  const cumulative =
-    localStorage.getItem(phonemeKey + "_cumulative_memory") ||
-    localStorage.getItem("cognitive_memory_" + phonemeKey);
-
-  if (cumulative) {
-    try {
-      fullText +=
-        "\n\n----------------------\n\n" +
-        "[🧠 الذاكرة التراكمية الكاملة]\n" +
-        JSON.stringify(JSON.parse(cumulative), null, 2);
-    } catch (err) {
-      fullText +=
-        "\n\n----------------------\n\n" +
-        "[🧠 الذاكرة التراكمية الكاملة]\n" +
-        cumulative;
-    }
-  }
+  const fullText =
+    "=== 📚 التقارير الحالية لحقيبة (" + phonemeKey + ") ===\n\n" +
+    contentBox.innerText.trim();
 
   navigator.clipboard.writeText(fullText).then(function () {
-    alert("✅ تم نسخ التقارير الظاهرة مع الذاكرة التراكمية.");
+    alert("✅ تم نسخ التقارير الحالية فقط.");
   }).catch(function (err) {
     alert("❌ فشل النسخ: " + err);
   });
