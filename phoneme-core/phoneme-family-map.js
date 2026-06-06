@@ -1,15 +1,11 @@
 // ================================
 // phoneme-core/phoneme-family-map.js
-// خريطة العائلات الإدراكية للحروف — V1
-// تربط معرفة الصفات والعائلات بقرار المطابقة والفصل
-// لا تشغل اختبارًا تلقائيًا، بل تمد المحركات بسياق المنافسة والحسم
+// خريطة العائلات الإدراكية للحروف — V2
+// ملتزمة بمفاتيح phoneme-training-pack.js
 // ================================
 
-console.log("🧭 phoneme-family-map.js جاهز V1 — Knowledge Serves Decision");
+console.log("🧭 phoneme-family-map.js جاهز V2 — Keys Aligned With Training Pack");
 
-// ======================================
-// 1) دستور خريطة العائلات الإدراكية
-// ======================================
 const PHONEME_FAMILY_MAP_CHARTER = {
   title: "دستور خريطة العائلات الإدراكية",
   law:
@@ -19,33 +15,28 @@ const PHONEME_FAMILY_MAP_CHARTER = {
     "المتشابهون يُقارنون أولًا قبل الغرباء.",
     "الصفة المشتركة لا تحسم، والصفة الفارقة تخدم القرار.",
     "كل مرشح التباس يجب أن يذكر سبب دخوله المنافسة.",
-    "القرار الصحيح بلا منافس قريب ليس اعتمادًا إدراكيًا كاملًا."
+    "مفاتيح هذا الملف يجب أن تطابق phoneme-training-pack.js."
   ]
 };
 
-// ======================================
-// 2) خريطة أولية قابلة للتوسع
-// المفاتيح يجب أن توافق مفاتيح الحقائب مثل: dal, ta, qa...
-// ======================================
 const PHONEME_FAMILY_MAP = {
-  dal: {
-    key: "dal",
-    letter: "د",
-    label: "دال",
-    family: "tip-burst-plain",
-    macroFamilies: ["طرف اللسان", "شديد", "مجهور", "مرقق", "انفجاري"],
+  ba: {
+    key: "ba",
+    letter: "ب",
+    label: "باء",
+    family: "lip-burst-voiced",
+    macroFamilies: ["شفوي", "شديد", "مجهور", "انفجاري"],
     traits: {
-      place: "طرف اللسان",
+      place: "شفوي",
       burst: true,
       voiced: true,
       tafkheem: false,
       sibilant: false,
-      qalqala: true
+      nasal: false
     },
     closest: [
-      { key: "ta", reason: "نفس المخرج والانفجار مع فرق الجهر/الهمس", decisiveTraits: ["voiced", "hams"] },
-      { key: "dad", reason: "اشتباه كتابي/سمعي جزئي مع فرق الاستعلاء والإطباق", decisiveTraits: ["tafkheem", "itbaq"] },
-      { key: "thal", reason: "تقارب رسم وتعاقب لساني مع فرق الرخاوة/الانفجار", decisiveTraits: ["burst", "frication"] }
+      { key: "meem", reason: "اشتراك الشفتين مع فرق الغنة والانفجار", decisiveTraits: ["nasal", "burst"] },
+      { key: "fa", reason: "اشتراك الشفتين مع فرق الجهر والرخاوة", decisiveTraits: ["voiced", "frication", "burst"] }
     ]
   },
 
@@ -54,7 +45,7 @@ const PHONEME_FAMILY_MAP = {
     letter: "ت",
     label: "تاء",
     family: "tip-burst-plain",
-    macroFamilies: ["طرف اللسان", "شديد", "مهموس", "مرقق", "انفجاري"],
+    macroFamilies: ["طرف اللسان", "شديد", "مهموس", "مرقق"],
     traits: {
       place: "طرف اللسان",
       burst: true,
@@ -64,63 +55,169 @@ const PHONEME_FAMILY_MAP = {
       sibilant: false
     },
     closest: [
-      { key: "dal", reason: "نفس المخرج والانفجار مع فرق الجهر", decisiveTraits: ["voiced", "hams"] },
-      { key: "ta_emphatic", reason: "فرق التفخيم/الترقيق", decisiveTraits: ["tafkheem", "itbaq"] }
+      { key: "dal", reason: "نفس المخرج والانفجار مع فرق الجهر/الهمس", decisiveTraits: ["voiced", "hams"] },
+      { key: "taa", reason: "اشتراك الانفجار مع فرق التفخيم", decisiveTraits: ["tafkheem"] }
     ]
   },
 
-  qa: {
-    key: "qa",
-    letter: "ق",
-    label: "قاف",
-    family: "deep-burst-tafkheem",
-    macroFamilies: ["أقصى اللسان", "مستعل", "شديد", "مجهور", "قلقلة"],
+  tha: {
+    key: "tha",
+    letter: "ث",
+    label: "ثاء",
+    family: "dental-fricative-plain",
+    macroFamilies: ["لثوي", "رخو", "مرقق"],
     traits: {
-      place: "أقصى اللسان",
-      burst: true,
-      voiced: true,
-      tafkheem: true,
-      qalqala: true
-    },
-    closest: [
-      { key: "ka", reason: "قرب مخرج وانفجار مع فرق الاستعلاء والعمق", decisiveTraits: ["tafkheem", "deepPlace"] },
-      { key: "ghain", reason: "اشتراك في العمق مع فرق الرخاوة/الانفجار", decisiveTraits: ["burst", "frication"] },
-      { key: "kha", reason: "اشتراك في العمق مع فرق الهمس والرخاوة", decisiveTraits: ["burst", "hams"] }
-    ]
-  },
-
-  ka: {
-    key: "ka",
-    letter: "ك",
-    label: "كاف",
-    family: "deep-burst-plain",
-    macroFamilies: ["أقصى اللسان", "شديد", "مهموس", "مرقق"],
-    traits: {
-      place: "أقصى اللسان",
-      burst: true,
+      place: "لثوي",
+      burst: false,
       voiced: false,
       tafkheem: false,
-      hams: true
-    },
-    closest: [
-      { key: "qa", reason: "قرب مخرج وانفجار مع فرق التفخيم والعمق", decisiveTraits: ["tafkheem", "deepPlace"] }
-    ]
-  },
-
-  sad: {
-    key: "sad",
-    letter: "ص",
-    label: "صاد",
-    family: "sibilant-tafkheem",
-    macroFamilies: ["صفير", "مستعل", "مطبق"],
-    traits: {
-      sibilant: true,
-      tafkheem: true,
-      itbaq: true,
+      sibilant: false,
       frication: true
     },
     closest: [
-      { key: "seen", reason: "اشتراك الصفير مع فرق التفخيم والإطباق", decisiveTraits: ["tafkheem", "itbaq"] }
+      { key: "seen", reason: "اشتباه عند المتعلمين مع فرق المخرج", decisiveTraits: ["place"] },
+      { key: "thal", reason: "نفس المخرج تقريبًا مع فرق الجهر", decisiveTraits: ["voiced"] }
+    ]
+  },
+
+  jeem: {
+    key: "jeem",
+    letter: "ج",
+    label: "جيم",
+    family: "middle-tongue-burst",
+    macroFamilies: ["وسط اللسان", "شديد", "مجهور"],
+    traits: {
+      place: "وسط اللسان",
+      burst: true,
+      voiced: true,
+      tafkheem: false,
+      sibilant: false
+    },
+    closest: [
+      { key: "sheen", reason: "قرب وسط اللسان مع فرق الشدة/الرخاوة", decisiveTraits: ["burst", "frication"] }
+    ]
+  },
+
+  ha: {
+    key: "ha",
+    letter: "ح",
+    label: "حاء",
+    family: "throat-fricative-deep",
+    macroFamilies: ["حلقي", "رخو", "مهموس"],
+    traits: {
+      place: "حلقي",
+      burst: false,
+      voiced: false,
+      tafkheem: false,
+      sibilant: false,
+      frication: true,
+      breathy: false
+    },
+    closest: [
+      { key: "ha2", reason: "تشابه حلقي مع فرق العمق والاحتكاك", decisiveTraits: ["frication", "breathy", "deepThroat"] },
+      { key: "kha", reason: "اشتراك الحلق مع فرق التفخيم والخشونة", decisiveTraits: ["tafkheem", "fricationShape"] },
+      { key: "ain", reason: "اشتراك الحلق مع فرق الجهر", decisiveTraits: ["voiced"] }
+    ]
+  },
+
+  kha: {
+    key: "kha",
+    letter: "خ",
+    label: "خاء",
+    family: "throat-fricative-tafkheem",
+    macroFamilies: ["حلقي", "رخو", "مفخم"],
+    traits: {
+      place: "حلقي",
+      burst: false,
+      voiced: false,
+      tafkheem: true,
+      sibilant: false,
+      frication: true
+    },
+    closest: [
+      { key: "ha", reason: "اشتراك الحلق مع فرق التفخيم والخشونة", decisiveTraits: ["tafkheem", "fricationShape"] },
+      { key: "ghain", reason: "اشتراك التفخيم والرخاوة مع فرق الجهر", decisiveTraits: ["voiced"] }
+    ]
+  },
+
+  dal: {
+    key: "dal",
+    letter: "د",
+    label: "دال",
+    family: "tip-burst-plain",
+    macroFamilies: ["طرف اللسان", "شديد", "مجهور", "مرقق"],
+    traits: {
+      place: "طرف اللسان",
+      burst: true,
+      voiced: true,
+      tafkheem: false,
+      sibilant: false
+    },
+    closest: [
+      { key: "ta", reason: "نفس المخرج والانفجار مع فرق الجهر/الهمس", decisiveTraits: ["voiced", "hams"] },
+      { key: "dad", reason: "اشتباه سمعي جزئي مع فرق الاستطالة والتفخيم", decisiveTraits: ["tafkheem", "place"] },
+      { key: "thal", reason: "تقارب لساني مع فرق الرخاوة/الانفجار", decisiveTraits: ["burst", "frication"] }
+    ]
+  },
+
+  thal: {
+    key: "thal",
+    letter: "ذ",
+    label: "ذال",
+    family: "dental-fricative-voiced",
+    macroFamilies: ["لثوي", "رخو", "مجهور"],
+    traits: {
+      place: "لثوي",
+      burst: false,
+      voiced: true,
+      tafkheem: false,
+      sibilant: false,
+      frication: true
+    },
+    closest: [
+      { key: "tha", reason: "نفس المخرج مع فرق الجهر", decisiveTraits: ["voiced"] },
+      { key: "zaa", reason: "اشتراك لثوي مع فرق التفخيم", decisiveTraits: ["tafkheem"] },
+      { key: "zay", reason: "اشتباه سمعي مع فرق الصفير", decisiveTraits: ["sibilant"] }
+    ]
+  },
+
+  ra: {
+    key: "ra",
+    letter: "ر",
+    label: "راء",
+    family: "tip-repeated",
+    macroFamilies: ["طرف اللسان", "تكراري"],
+    traits: {
+      place: "طرف اللسان",
+      burst: false,
+      voiced: true,
+      tafkheem: false,
+      sibilant: false,
+      repeated: true
+    },
+    closest: [
+      { key: "lam", reason: "قرب طرف اللسان مع فرق الانحراف والتكرار", decisiveTraits: ["repeated", "lateral"] },
+      { key: "noon", reason: "قرب طرف اللسان مع فرق الغنة", decisiveTraits: ["nasal"] }
+    ]
+  },
+
+  zay: {
+    key: "zay",
+    letter: "ز",
+    label: "زاي",
+    family: "sibilant-plain-voiced",
+    macroFamilies: ["صفير", "مرقق", "مجهور"],
+    traits: {
+      place: "أسلي صفيري",
+      burst: false,
+      voiced: true,
+      tafkheem: false,
+      sibilant: true,
+      frication: true
+    },
+    closest: [
+      { key: "seen", reason: "اشتراك الصفير مع فرق الجهر", decisiveTraits: ["voiced"] },
+      { key: "thal", reason: "اشتباه مع فرق الصفير والمخرج", decisiveTraits: ["sibilant", "place"] }
     ]
   },
 
@@ -129,56 +226,361 @@ const PHONEME_FAMILY_MAP = {
     letter: "س",
     label: "سين",
     family: "sibilant-plain",
-    macroFamilies: ["صفير", "مرقق"],
+    macroFamilies: ["صفير", "مرقق", "مهموس"],
     traits: {
-      sibilant: true,
+      place: "أسلي صفيري",
+      burst: false,
+      voiced: false,
       tafkheem: false,
-      itbaq: false,
+      sibilant: true,
       frication: true
     },
     closest: [
-      { key: "sad", reason: "اشتراك الصفير مع فرق التفخيم والإطباق", decisiveTraits: ["tafkheem", "itbaq"] }
+      { key: "sad", reason: "اشتراك الصفير مع فرق التفخيم", decisiveTraits: ["tafkheem"] },
+      { key: "zay", reason: "اشتراك الصفير مع فرق الجهر", decisiveTraits: ["voiced"] },
+      { key: "tha", reason: "اشتباه عند المتعلمين مع فرق المخرج", decisiveTraits: ["place"] }
     ]
   },
 
-  ha_deep: {
-    key: "ha_deep",
-    letter: "ح",
-    label: "حاء",
-    family: "throat-fricative-plain",
-    macroFamilies: ["حلق", "رخاوة", "مهموس"],
+  sheen: {
+    key: "sheen",
+    letter: "ش",
+    label: "شين",
+    family: "middle-tongue-spread-fricative",
+    macroFamilies: ["وسط اللسان", "تفشي", "رخو"],
     traits: {
-      place: "الحلق",
+      place: "وسط اللسان",
+      burst: false,
+      voiced: false,
+      tafkheem: false,
+      sibilant: true,
       frication: true,
-      hams: true,
-      breathy: false
+      spreading: true
     },
     closest: [
-      { key: "ha_light", reason: "تشابه سمعي عند المتعلمين مع فرق العمق والاحتكاك", decisiveTraits: ["deepThroat", "fricationShape"] }
+      { key: "jeem", reason: "قرب وسط اللسان مع فرق التفشي والشدة", decisiveTraits: ["burst", "spreading"] },
+      { key: "seen", reason: "اشتراك الصفير/الرخاوة مع فرق المخرج والتفشي", decisiveTraits: ["place", "spreading"] }
     ]
   },
 
-  ha_light: {
-    key: "ha_light",
-    letter: "ه",
+  sad: {
+    key: "sad",
+    letter: "ص",
+    label: "صاد",
+    family: "sibilant-tafkheem",
+    macroFamilies: ["صفير", "مفخم", "مستعل"],
+    traits: {
+      place: "أسلي صفيري مفخم",
+      burst: false,
+      voiced: false,
+      tafkheem: true,
+      sibilant: true,
+      frication: true
+    },
+    closest: [
+      { key: "seen", reason: "اشتراك الصفير مع فرق التفخيم", decisiveTraits: ["tafkheem"] },
+      { key: "zay", reason: "اشتباه صفيري مع فرق الجهر والتفخيم", decisiveTraits: ["voiced", "tafkheem"] }
+    ]
+  },
+
+  dad: {
+    key: "dad",
+    letter: "ض",
+    label: "ضاد",
+    family: "side-tongue-tafkheem",
+    macroFamilies: ["حافة اللسان", "مفخم", "استطالة"],
+    traits: {
+      place: "حافة اللسان",
+      burst: false,
+      voiced: true,
+      tafkheem: true,
+      sibilant: false,
+      elongation: true
+    },
+    closest: [
+      { key: "dal", reason: "اشتباه جزئي مع فرق الحافة والتفخيم", decisiveTraits: ["place", "tafkheem"] },
+      { key: "zaa", reason: "اشتراك التفخيم مع فرق المخرج والاستطالة", decisiveTraits: ["place", "elongation"] }
+    ]
+  },
+
+  taa: {
+    key: "taa",
+    letter: "ط",
+    label: "طاء",
+    family: "tip-burst-tafkheem",
+    macroFamilies: ["طرف اللسان", "شديد", "مفخم"],
+    traits: {
+      place: "طرف اللسان مع استعلاء",
+      burst: true,
+      voiced: false,
+      tafkheem: true,
+      sibilant: false
+    },
+    closest: [
+      { key: "ta", reason: "اشتراك الانفجار مع فرق التفخيم", decisiveTraits: ["tafkheem"] },
+      { key: "dal", reason: "تقارب لساني مع فرق التفخيم والجهر", decisiveTraits: ["tafkheem", "voiced"] }
+    ]
+  },
+
+  zaa: {
+    key: "zaa",
+    letter: "ظ",
+    label: "ظاء",
+    family: "dental-fricative-tafkheem",
+    macroFamilies: ["لثوي", "مفخم", "رخو"],
+    traits: {
+      place: "لثوي مفخم",
+      burst: false,
+      voiced: true,
+      tafkheem: true,
+      sibilant: false,
+      frication: true
+    },
+    closest: [
+      { key: "thal", reason: "نفس المخرج تقريبًا مع فرق التفخيم", decisiveTraits: ["tafkheem"] },
+      { key: "dad", reason: "اشتراك التفخيم مع فرق الحافة/اللثة", decisiveTraits: ["place", "elongation"] }
+    ]
+  },
+
+  ain: {
+    key: "ain",
+    letter: "ع",
+    label: "عين",
+    family: "throat-voiced",
+    macroFamilies: ["حلقي", "مجهور", "متوسط"],
+    traits: {
+      place: "حلقي",
+      burst: false,
+      voiced: true,
+      tafkheem: false,
+      sibilant: false
+    },
+    closest: [
+      { key: "ha", reason: "اشتراك الحلق مع فرق الجهر", decisiveTraits: ["voiced"] },
+      { key: "alif", reason: "اشتباه عند المتعلمين مع فرق طبيعة المخرج", decisiveTraits: ["place", "burst"] }
+    ]
+  },
+
+  ghain: {
+    key: "ghain",
+    letter: "غ",
+    label: "غين",
+    family: "throat-fricative-voiced-tafkheem",
+    macroFamilies: ["حلقي", "رخو", "مفخم", "مجهور"],
+    traits: {
+      place: "حلقي",
+      burst: false,
+      voiced: true,
+      tafkheem: true,
+      sibilant: false,
+      frication: true
+    },
+    closest: [
+      { key: "kha", reason: "اشتراك التفخيم والرخاوة مع فرق الجهر", decisiveTraits: ["voiced"] },
+      { key: "qaf", reason: "اشتراك العمق مع فرق الرخاوة/الانفجار", decisiveTraits: ["burst", "frication"] }
+    ]
+  },
+
+  fa: {
+    key: "fa",
+    letter: "ف",
+    label: "فاء",
+    family: "lip-fricative-plain",
+    macroFamilies: ["شفوي", "رخو", "مهموس"],
+    traits: {
+      place: "شفوي",
+      burst: false,
+      voiced: false,
+      tafkheem: false,
+      sibilant: false,
+      frication: true
+    },
+    closest: [
+      { key: "ba", reason: "اشتراك الشفتين مع فرق الانفجار والجهر", decisiveTraits: ["burst", "voiced"] },
+      { key: "meem", reason: "اشتراك الشفتين مع فرق الغنة والرخاوة", decisiveTraits: ["nasal", "frication"] }
+    ]
+  },
+
+  qaf: {
+    key: "qaf",
+    letter: "ق",
+    label: "قاف",
+    family: "deep-burst-tafkheem",
+    macroFamilies: ["لهوي عميق", "شديد", "مفخم"],
+    traits: {
+      place: "لهوي عميق",
+      burst: true,
+      voiced: true,
+      tafkheem: true,
+      sibilant: false
+    },
+    closest: [
+      { key: "kaf", reason: "قرب مخرج وانفجار مع فرق التفخيم والعمق", decisiveTraits: ["tafkheem", "place"] },
+      { key: "ghain", reason: "اشتراك العمق مع فرق الرخاوة/الانفجار", decisiveTraits: ["burst", "frication"] },
+      { key: "kha", reason: "اشتراك العمق والتفخيم مع فرق الانفجار/الرخاوة", decisiveTraits: ["burst", "frication"] }
+    ]
+  },
+
+  kaf: {
+    key: "kaf",
+    letter: "ك",
+    label: "كاف",
+    family: "deep-burst-plain",
+    macroFamilies: ["لهوي", "شديد", "مرقق"],
+    traits: {
+      place: "لهوي",
+      burst: true,
+      voiced: false,
+      tafkheem: false,
+      sibilant: false
+    },
+    closest: [
+      { key: "qaf", reason: "قرب مخرج وانفجار مع فرق التفخيم والعمق", decisiveTraits: ["tafkheem", "place"] }
+    ]
+  },
+
+  lam: {
+    key: "lam",
+    letter: "ل",
+    label: "لام",
+    family: "tip-lateral",
+    macroFamilies: ["طرف اللسان", "انحرافي"],
+    traits: {
+      place: "طرف اللسان",
+      burst: false,
+      voiced: true,
+      tafkheem: false,
+      sibilant: false,
+      lateral: true
+    },
+    closest: [
+      { key: "ra", reason: "قرب طرف اللسان مع فرق التكرار والانحراف", decisiveTraits: ["repeated", "lateral"] },
+      { key: "noon", reason: "قرب طرف اللسان مع فرق الغنة", decisiveTraits: ["nasal"] }
+    ]
+  },
+
+  meem: {
+    key: "meem",
+    letter: "م",
+    label: "ميم",
+    family: "lip-nasal",
+    macroFamilies: ["شفوي", "أغن"],
+    traits: {
+      place: "شفوي",
+      burst: false,
+      voiced: true,
+      tafkheem: false,
+      sibilant: false,
+      nasal: true
+    },
+    closest: [
+      { key: "ba", reason: "اشتراك الشفتين مع فرق الغنة والانفجار", decisiveTraits: ["nasal", "burst"] },
+      { key: "noon", reason: "اشتراك الغنة مع فرق المخرج", decisiveTraits: ["place"] },
+      { key: "fa", reason: "اشتراك الشفتين مع فرق الرخاوة والغنة", decisiveTraits: ["frication", "nasal"] }
+    ]
+  },
+
+  noon: {
+    key: "noon",
+    letter: "ن",
+    label: "نون",
+    family: "tip-nasal",
+    macroFamilies: ["طرف اللسان", "أغن"],
+    traits: {
+      place: "طرف اللسان",
+      burst: false,
+      voiced: true,
+      tafkheem: false,
+      sibilant: false,
+      nasal: true
+    },
+    closest: [
+      { key: "meem", reason: "اشتراك الغنة مع فرق المخرج", decisiveTraits: ["place"] },
+      { key: "lam", reason: "قرب طرف اللسان مع فرق الغنة والانحراف", decisiveTraits: ["nasal", "lateral"] }
+    ]
+  },
+
+  ha2: {
+    key: "ha2",
+    letter: "هـ",
     label: "هاء",
     family: "throat-breathy-light",
-    macroFamilies: ["حلق", "هواء", "مهموس"],
+    macroFamilies: ["أقصى الحلق", "هوائي", "مهموس"],
     traits: {
-      place: "الحلق",
+      place: "أقصى الحلق",
+      burst: false,
+      voiced: false,
+      tafkheem: false,
+      sibilant: false,
       frication: false,
-      hams: true,
       breathy: true
     },
     closest: [
-      { key: "ha_deep", reason: "تشابه سمعي مع فرق الاحتكاك والعمق", decisiveTraits: ["deepThroat", "breathy"] }
+      { key: "ha", reason: "تشابه حلقي مع فرق العمق والاحتكاك", decisiveTraits: ["frication", "breathy"] },
+      { key: "alif", reason: "اشتباه مع الهمزة عند ضعف النطق", decisiveTraits: ["burst", "breathy"] }
+    ]
+  },
+
+  waw: {
+    key: "waw",
+    letter: "و",
+    label: "واو",
+    family: "lip-glide",
+    macroFamilies: ["شفوي", "لين/مد"],
+    traits: {
+      place: "شفوي",
+      burst: false,
+      voiced: true,
+      tafkheem: false,
+      sibilant: false,
+      glide: true
+    },
+    closest: [
+      { key: "fa", reason: "اشتراك الشفة مع فرق الرخاوة/اللين", decisiveTraits: ["frication", "glide"] },
+      { key: "meem", reason: "اشتراك الشفة مع فرق الغنة/اللين", decisiveTraits: ["nasal", "glide"] }
+    ]
+  },
+
+  ya: {
+    key: "ya",
+    letter: "ي",
+    label: "ياء",
+    family: "middle-tongue-glide",
+    macroFamilies: ["وسط اللسان", "لين/مد"],
+    traits: {
+      place: "وسط اللسان",
+      burst: false,
+      voiced: true,
+      tafkheem: false,
+      sibilant: false,
+      glide: true
+    },
+    closest: [
+      { key: "sheen", reason: "قرب وسط اللسان مع فرق التفشي/اللين", decisiveTraits: ["spreading", "glide"] },
+      { key: "jeem", reason: "قرب وسط اللسان مع فرق الشدة/اللين", decisiveTraits: ["burst", "glide"] }
+    ]
+  },
+
+  alif: {
+    key: "alif",
+    letter: "أ",
+    label: "همزة",
+    family: "throat-burst",
+    macroFamilies: ["حلقي", "شديد"],
+    traits: {
+      place: "حلقي",
+      burst: true,
+      voiced: false,
+      tafkheem: false,
+      sibilant: false
+    },
+    closest: [
+      { key: "ain", reason: "اشتباه عند المتعلمين مع فرق الجهر وطبيعة المخرج", decisiveTraits: ["voiced", "burst"] },
+      { key: "ha2", reason: "اشتباه عند ضعف النطق مع فرق الهمس/الانفجار", decisiveTraits: ["breathy", "burst"] }
     ]
   }
 };
 
-// ======================================
-// 3) أدوات قراءة الخريطة
-// ======================================
 function getPhonemeFamilyEntry(phonemeKey) {
   return PHONEME_FAMILY_MAP[phonemeKey] || null;
 }
@@ -212,20 +614,23 @@ function getDistinctiveTraits(targetKey, candidateKey) {
   const candidate = getPhonemeTraits(candidateKey);
   const traits = [];
 
-  const keys = Array.from(new Set(Object.keys(target).concat(Object.keys(candidate))));
+  const keys = Array.from(
+    new Set(Object.keys(target).concat(Object.keys(candidate)))
+  );
 
   keys.forEach(function (key) {
     if (target[key] !== candidate[key]) {
-      traits.push({ trait: key, target: target[key], candidate: candidate[key] });
+      traits.push({
+        trait: key,
+        target: target[key],
+        candidate: candidate[key]
+      });
     }
   });
 
   return traits;
 }
 
-// ======================================
-// 4) تحويل العائلة إلى أثر في القرار
-// ======================================
 function buildFamilyDecisionContext(phonemeKey) {
   const entry = getPhonemeFamilyEntry(phonemeKey);
   const candidates = getConfusionCandidates(phonemeKey);
@@ -245,7 +650,7 @@ function buildFamilyDecisionContext(phonemeKey) {
       };
     }),
     governance: {
-      decisionUse: "تحديد المنافسين قبل اعتماد نتيجة المطابقة.",
+      decisionUse: "تحديد المنافسين قبل اعتماد نتيجة المطابقة والفصل.",
       riskIfMissing: "قد يعلن النظام نجاحًا بلا هامش فصل حقيقي.",
       rule: "لا تعتمد نتيجة حرف بلا منافس قريب إذا كانت العائلة معروفة."
     }
@@ -290,13 +695,16 @@ function evaluateFamilyDecisionReadiness(phonemeKey, matchReport) {
     reason: reason,
     familyContext: context,
     decision: {
-      operationalResult: matchReport && matchReport.correct ? "correct" : "unknown",
-      cognitiveApproval: status === "comparison-ready" ? "reviewable" : "not-approved-yet",
+      operationalResult:
+        matchReport && matchReport.correct ? "correct" : "unknown",
+      cognitiveApproval:
+        status === "comparison-ready" ? "reviewable" : "not-approved-yet",
       governanceNote:
         "النجاح التشغيلي لا يتحول إلى اعتماد إدراكي إلا بعد مراجعة العائلة والهامش والذاكرة."
     }
   };
 }
+
 function sendPhonemeFamilyKnowledgeSignal(phonemeKey, familyData, confidence) {
   if (typeof window.recordKnowledgeSignal !== "function") return null;
 
@@ -314,12 +722,11 @@ function sendPhonemeFamilyKnowledgeSignal(phonemeKey, familyData, confidence) {
       "approve-match-result",
       "split-segment"
     ],
-    notes: "إرسال خريطة العائلة والمنافسين حتى تخدم قرارات المقارنة والمطابقة والفصل."
+    notes:
+      "إرسال خريطة العائلة والمنافسين حتى تخدم قرارات المقارنة والمطابقة والفصل."
   });
 }
-// ======================================
-// 5) التصدير العام
-// ======================================
+
 window.PHONEME_FAMILY_MAP_CHARTER = PHONEME_FAMILY_MAP_CHARTER;
 window.PHONEME_FAMILY_MAP = PHONEME_FAMILY_MAP;
 window.getPhonemeFamilyEntry = getPhonemeFamilyEntry;
@@ -330,6 +737,5 @@ window.getDistinctiveTraits = getDistinctiveTraits;
 window.buildFamilyDecisionContext = buildFamilyDecisionContext;
 window.evaluateFamilyDecisionReadiness = evaluateFamilyDecisionReadiness;
 window.sendPhonemeFamilyKnowledgeSignal = sendPhonemeFamilyKnowledgeSignal;
-console.log("🧭 خريطة العائلات الإدراكية جاهزة — المعرفة توجه المقارنة");
 
-
+console.log("🧭 خريطة العائلات الإدراكية جاهزة V2 — مفاتيحها مطابقة لحقائب التدريب");
