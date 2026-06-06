@@ -163,7 +163,6 @@ function copyCurrentReport() {
 // 6. نسخ جميع تقارير الحقيبة (تجميعي)
 // ======================================
 function copyAllPhonemeReports(phonemeKey) {
-function copyAllPhonemeReports(phonemeKey) {
   const contentBox = document.getElementById("unified-report-content");
 
   if (!contentBox || !contentBox.innerText.trim()) {
