@@ -701,7 +701,9 @@ function renderTimelineGenomeReport(key, timelineGenome) {
   `;
 
   if (typeof renderToUnifiedPanel === "function") {
+    saveCurrentSessionReport("timeline", "⏳ تقرير المسار الزمني", html);
     renderToUnifiedPanel(html);
+  
   } else {
     console.warn("⚠️ مدير التقارير غير متاح لعرض الجينوم الزمني.");
   }
