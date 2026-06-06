@@ -1,9 +1,10 @@
 // ================================
 // phoneme-boundary-engine.js
-// كاشف حدود الحامل والمحمول بالهوية الإدراكية — V1
+// كاشف حدود الحامل والمحمول بالهوية الإدراكية — V2
+// يستدعي الجينوم + العائلة + الذاكرة داخل قرار الفصل
 // ================================
 
-console.log("🧭 phoneme-boundary-engine.js جاهز V1");
+console.log("🧭 phoneme-boundary-engine.js جاهز V2");
 
 function loadBoundaryIdentity(key) {
   try {
@@ -53,36 +54,76 @@ function summarizeBoundaryWindow(buffer) {
   }
 
   const samples = monoFromBoundaryBuffer(buffer);
-
-  const timeline = buildCognitiveTimeline(
-    samples,
-    buffer.sampleRate
-  );
-
+  const timeline = buildCognitiveTimeline(samples, buffer.sampleRate);
   const phases = detectCognitivePhases(timeline);
 
   return summarizeCognitiveTimeline(timeline, phases);
 }
 
+function getFamilyContextForBoundary(key, fallback) {
+  if (fallback) return fallback;
+
+  if (typeof buildFamilyDecisionContext === "function") {
+    return buildFamilyDecisionContext(key);
+  }
+
+  return null;
+}
+
+function getMemoryContextForBoundary(key, fallback) {
+  if (fallback) return fallback;
+
+  if (typeof loadPhonemeCumulativeMemory === "function") {
+    return loadPhonemeCumulativeMemory(key);
+  }
+
+  return null;
+}
+
+function scoreFamilySupportForPayload(payloadFamily) {
+  if (!payloadFamily || !Array.isArray(payloadFamily.candidates)) return 0;
+
+  // دعم بسيط أولي: وجود منافسين وسمات حاسمة يعني أن العائلة دخلت القرار
+  return Math.min(0.05, payloadFamily.candidates.length * 0.01);
+}
+
+function scoreMemorySupportForPayload(payloadMemory) {
+  if (!payloadMemory || !payloadMemory.samplesCount) return 0;
+
+  // دعم بسيط أولي: كلما وجدت ذاكرة تراكمية أصبح القرار أكثر ثقة
+  return Math.min(0.05, payloadMemory.samplesCount * 0.005);
+}
+
 function detectPayloadBoundaryByIdentity(audioBuffer, options) {
   options = options || {};
-const carrierKey = options.carrierKey;
-const payloadKey = options.payloadKey;
 
-if (!carrierKey || !payloadKey) {
-  throw new Error("يجب تمرير carrierKey و payloadKey إلى كاشف الحدود.");
-}
-const carrierIdentity =
-  options.carrierIdentity || loadBoundaryIdentity(carrierKey);
+  const carrierKey = options.carrierKey;
+  const payloadKey = options.payloadKey;
 
-const payloadIdentity =
-  options.payloadIdentity || loadBoundaryIdentity(payloadKey);
+  if (!carrierKey || !payloadKey) {
+    throw new Error("يجب تمرير carrierKey و payloadKey إلى كاشف الحدود.");
+  }
 
-const carrierFamily = options.carrierFamily || null;
-const payloadFamily = options.payloadFamily || null;
-const carrierMemory = options.carrierMemory || null;
-const payloadMemory = options.payloadMemory || null;
-const cognitiveContext = options.cognitiveContext || null;
+  const carrierIdentity =
+    options.carrierIdentity || loadBoundaryIdentity(carrierKey);
+
+  const payloadIdentity =
+    options.payloadIdentity || loadBoundaryIdentity(payloadKey);
+
+  const carrierFamily =
+    getFamilyContextForBoundary(carrierKey, options.carrierFamily);
+
+  const payloadFamily =
+    getFamilyContextForBoundary(payloadKey, options.payloadFamily);
+
+  const carrierMemory =
+    getMemoryContextForBoundary(carrierKey, options.carrierMemory);
+
+  const payloadMemory =
+    getMemoryContextForBoundary(payloadKey, options.payloadMemory);
+
+  const cognitiveContext = options.cognitiveContext || null;
+
   if (!carrierIdentity) {
     throw new Error("لا يوجد جينوم للحامل: " + carrierKey);
   }
@@ -96,10 +137,8 @@ const cognitiveContext = options.cognitiveContext || null;
   }
 
   const duration = audioBuffer.duration;
-
   const windowSize = options.windowSize || 0.18;
   const hopSize = options.hopSize || 0.035;
-
   const minStart = options.minStart || 0.08;
   const maxStart = Math.max(minStart, duration - windowSize);
 
@@ -114,48 +153,44 @@ const cognitiveContext = options.cognitiveContext || null;
 
     const summary = summarizeBoundaryWindow(win);
 
-    const carrierDistance =
-      compareSummaryWithCognitiveGenome(
-        summary,
-        carrierIdentity.genome
-      );
+    const carrierDistance = compareSummaryWithCognitiveGenome(
+      summary,
+      carrierIdentity.genome
+    );
 
-    const payloadDistance =
-      compareSummaryWithCognitiveGenome(
-        summary,
-        payloadIdentity.genome
-      );
+    const payloadDistance = compareSummaryWithCognitiveGenome(
+      summary,
+      payloadIdentity.genome
+    );
 
-    const memoryBoost =
-  carrierMemory || payloadMemory ? 0.03 : 0;
+    const familySupport = scoreFamilySupportForPayload(payloadFamily);
+    const memorySupport = scoreMemorySupportForPayload(payloadMemory);
 
-const familyBoost =
-  carrierFamily || payloadFamily ? 0.03 : 0;
+    const adjustedPayloadDistance =
+      payloadDistance - familySupport - memorySupport;
 
-const adjustedPayloadDistance =
-  payloadDistance - memoryBoost - familyBoost;
-
-scores.push({
-  t: Number(t.toFixed(4)),
-  carrierDistance,
-  payloadDistance,
-  adjustedPayloadDistance,
-  winner:
-    adjustedPayloadDistance < carrierDistance
-      ? payloadKey
-      : carrierKey,
-  margin:
-    Math.abs(carrierDistance - adjustedPayloadDistance),
-  usedKnowledge: {
-    cognitiveContext: !!cognitiveContext,
-    carrierIdentity: !!carrierIdentity,
-    payloadIdentity: !!payloadIdentity,
-    carrierFamily: !!carrierFamily,
-    payloadFamily: !!payloadFamily,
-    carrierMemory: !!carrierMemory,
-    payloadMemory: !!payloadMemory
-  }
-});
+    scores.push({
+      t: Number(t.toFixed(4)),
+      carrierDistance,
+      payloadDistance,
+      adjustedPayloadDistance,
+      familySupport,
+      memorySupport,
+      winner:
+        adjustedPayloadDistance < carrierDistance
+          ? payloadKey
+          : carrierKey,
+      margin: Math.abs(carrierDistance - adjustedPayloadDistance),
+      usedKnowledge: {
+        cognitiveContext: !!cognitiveContext,
+        carrierIdentity: !!carrierIdentity,
+        payloadIdentity: !!payloadIdentity,
+        carrierFamily: !!carrierFamily,
+        payloadFamily: !!payloadFamily,
+        carrierMemory: !!carrierMemory,
+        payloadMemory: !!payloadMemory
+      }
+    });
   }
 
   let boundary = null;
@@ -186,25 +221,25 @@ scores.push({
   }
 
   return {
-  carrierKey,
-  payloadKey,
-  boundary,
-  scores,
-  usedKnowledge: {
-    cognitiveContext: !!cognitiveContext,
-    carrierIdentity: !!carrierIdentity,
-    payloadIdentity: !!payloadIdentity,
-    carrierFamily: !!carrierFamily,
-    payloadFamily: !!payloadFamily,
-    carrierMemory: !!carrierMemory,
-    payloadMemory: !!payloadMemory
-  },
-  confidence: scores.length
-    ? Math.max.apply(null, scores.map(function (s) { return s.margin || 0; }))
-    : null
-};
+    carrierKey,
+    payloadKey,
+    boundary,
+    scores,
+    usedKnowledge: {
+      cognitiveContext: !!cognitiveContext,
+      carrierIdentity: !!carrierIdentity,
+      payloadIdentity: !!payloadIdentity,
+      carrierFamily: !!carrierFamily,
+      payloadFamily: !!payloadFamily,
+      carrierMemory: !!carrierMemory,
+      payloadMemory: !!payloadMemory
+    },
+    confidence: scores.length
+      ? Math.max.apply(null, scores.map(function (s) { return s.margin || 0; }))
+      : null
+  };
 }
-window.detectPayloadBoundaryByIdentity =
-  detectPayloadBoundaryByIdentity;
 
-console.log("🧭 كاشف الحدود بالهوية الإدراكية جاهز");
+window.detectPayloadBoundaryByIdentity = detectPayloadBoundaryByIdentity;
+
+console.log("🧭 كاشف الحدود بالهوية الإدراكية جاهز V2");
