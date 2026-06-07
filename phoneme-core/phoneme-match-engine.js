@@ -81,6 +81,11 @@ async function startPhonemeMatchTest(targetKey) {
         identity.genome,
         familyContext
       )
+      +
+      scoreSpectralSealDistance(
+        summary,
+        identity.genome
+      )
   };
 });
 
@@ -95,6 +100,12 @@ async function startPhonemeMatchTest(targetKey) {
       ? second.distance - winner.distance
       : 0;
 
+    const decision = classifySeparationDecision(
+      winner,
+      second,
+      margin
+    );
+
     if (typeof window.recordDecisionTrace === "function") {
   window.recordDecisionTrace({
     decisionId: "identify-phoneme",
@@ -102,11 +113,13 @@ async function startPhonemeMatchTest(targetKey) {
     target: winner.key,
     invokedKnowledge: [
       "cognitive-genome",
-      "phoneme-family-map"
+      "phoneme-family-map",
+      "spectral-seal"
     ],
     influentialKnowledge: [
       "cognitive-genome",
-      "phoneme-family-map"
+      "phoneme-family-map",
+      "spectral-seal"
     ],
     result: decision.label,
     confidence: margin,
@@ -462,6 +475,47 @@ function compareSummaryWithFamilyAwareGenome(
 
   return total;
 }
+
+function scoreSpectralSealDistance(summary, genome) {
+  const seal = genome?.spectralSeal;
+
+  if (!summary || !seal) {
+    return 0;
+  }
+
+  let total = 0;
+
+  total += weightedNormalizedDistance(
+    summary.meanCentroid,
+    seal.averageCentroid,
+    0,
+    1.2
+  );
+
+  total += weightedNormalizedDistance(
+    summary.meanSpread,
+    seal.averageSpread,
+    0,
+    1.0
+  );
+
+  total += weightedNormalizedDistance(
+    summary.burstCentroid,
+    seal.averageBurstCentroid,
+    0,
+    1.2
+  );
+
+  total += weightedNormalizedDistance(
+    summary.burstSpread,
+    seal.averageBurstSpread,
+    0,
+    1.0
+  );
+
+  return total * (seal.confidence || 1);
+}
+
 function weightedNormalizedDistance(value, mean, variance, weight) {
   value = Number(value || 0);
   mean = Number(mean || 0);
