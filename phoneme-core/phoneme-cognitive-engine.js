@@ -198,6 +198,10 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
 
     const genome = buildCognitiveGenome(cognitiveUnits);
     const genomeByState = buildCognitiveGenomeByState(cognitiveUnits);
+    const spectralSeal =
+      buildSpectralSealFromCognitiveUnits(cognitiveUnits);
+
+    genome.spectralSeal = spectralSeal;
     let familyDecision = null;
 
 if (typeof buildFamilyDecisionForPhoneme === "function") {
@@ -791,6 +795,43 @@ function buildCognitiveGenomeByState(units) {
 }
 
 
+function buildSpectralSealFromCognitiveUnits(units) {
+  const centroids = [];
+  const spreads = [];
+  const burstCentroids = [];
+  const burstSpreads = [];
+
+  units.forEach(function (u) {
+    if (!u.summary) return;
+
+    centroids.push(u.summary.meanCentroid || 0);
+    spreads.push(u.summary.meanSpread || 0);
+    burstCentroids.push(u.summary.burstCentroid || 0);
+    burstSpreads.push(u.summary.burstSpread || 0);
+  });
+
+  return {
+    method: "Noorani Spectral Seal From Six-State Genome V1",
+    samplesCount: units.length,
+
+    averageCentroid: roundCognitive(avgCognitive(centroids)),
+    averageSpread: roundCognitive(avgCognitive(spreads)),
+    averageBurstCentroid: roundCognitive(avgCognitive(burstCentroids)),
+    averageBurstSpread: roundCognitive(avgCognitive(burstSpreads)),
+
+    centroidStability: roundCognitive(1 / (1 + varCognitive(centroids))),
+    spreadStability: roundCognitive(1 / (1 + varCognitive(spreads))),
+
+    confidence: roundCognitive(
+      Math.min(
+        1,
+        units.length / 6
+      )
+    )
+  };
+}
+
+
 // ======================================
 // 10) خدمة القرار والحوكمة
 // ======================================
@@ -1192,6 +1233,8 @@ window.getAnyStoredPhonemeMemory = getAnyStoredPhonemeMemory;
 window.saveCognitiveIdentityAndCumulativeMemory =
   saveCognitiveIdentityAndCumulativeMemory;
 window.buildCognitiveGenomeByState = buildCognitiveGenomeByState;
+window.buildSpectralSealFromCognitiveUnits =
+  buildSpectralSealFromCognitiveUnits;
 window.buildCognitiveGovernanceDecision = buildCognitiveGovernanceDecision;
 window.decodeCognitiveBlob = decodeCognitiveBlob;
 window.buildCognitiveTimeline = buildCognitiveTimeline;
