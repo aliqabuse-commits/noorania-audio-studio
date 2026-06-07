@@ -95,11 +95,25 @@ async function startPhonemeMatchTest(targetKey) {
       ? second.distance - winner.distance
       : 0;
 
-    const decision = classifySeparationDecision(
-      winner,
-      second,
-      margin
-    );
+    if (typeof window.recordDecisionTrace === "function") {
+  window.recordDecisionTrace({
+    decisionId: "identify-phoneme",
+    decisionName: "تمييز حرف",
+    target: winner.key,
+    invokedKnowledge: [
+      "cognitive-genome",
+      "phoneme-family-map"
+    ],
+    influentialKnowledge: [
+      "cognitive-genome",
+      "phoneme-family-map"
+    ],
+    result: decision.label,
+    confidence: margin,
+    notes:
+      "تم إشراك العائلة الإدراكية في أوزان المقارنة."
+  });
+}
 
     const actualKey = askActualSpokenKey();
 
