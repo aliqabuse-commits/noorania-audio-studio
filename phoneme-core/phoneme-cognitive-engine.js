@@ -199,10 +199,48 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
     const genome = buildCognitiveGenome(cognitiveUnits);
     const genomeByState = buildCognitiveGenomeByState(cognitiveUnits);
     const familyDecision =
-      typeof buildFamilyDecisionForPhoneme === "function"
-        ? buildFamilyDecisionForPhoneme(phonemeKey, pack)
-        : buildFallbackFamilyDecision(phonemeKey, pack);
+  typeof buildFamilyDecisionForPhoneme === "function"
+    ? buildFamilyDecisionForPhoneme(phonemeKey, pack)
+    : (
+      function normalizeFamilyDecisionForCognitiveEngine(context) {
+  if (!context) {
+    return {
+      source: "phoneme-family-map",
+      phonemeKey: "",
+      family: "unknown-family",
+      competitors: [],
+      decisiveTraits: [],
+      note: "خريطة العائلة لم ترجع سياقًا صالحًا."
+    };
+  }
 
+  return {
+    source: "phoneme-family-map",
+    phonemeKey: context.phonemeKey,
+    family: context.family,
+    macroFamilies: context.macroFamilies || [],
+    traits: context.traits || {},
+    competitors: (context.candidates || []).map(function (c) {
+      return {
+        key: c.key,
+        reason: c.reason,
+        decisiveTraits: c.decisiveTraits || [],
+        observedDifferences: c.observedDifferences || []
+      };
+    }),
+    decisiveTraits: (context.candidates || []).flatMap(function (c) {
+      return c.decisiveTraits || [];
+    }),
+    governance: context.governance || null,
+    note: "تم تحميل خريطة العائلة من phoneme-family-map.js."
+  };
+}
+        typeof buildFamilyDecisionContext === "function"
+          ? normalizeFamilyDecisionForCognitiveEngine(
+              buildFamilyDecisionContext(phonemeKey)
+            )
+          : buildFallbackFamilyDecision(phonemeKey, pack)
+      );
     const governance = buildCognitiveGovernanceDecision({
       phonemeKey,
       pack,
@@ -894,6 +932,9 @@ function renderCognitiveReport(identity) {
       <div>اللون: <b style="color:${identity.color.hex};">${identity.color.name}</b></div>
       <div>حكم الحوكمة: <b style="color:#facc15;">${identity.governance.decision}</b></div>
       <div>سبب الحكم: ${identity.governance.reason}</div>
+      <div>مصدر العائلة: <b>${identity.familyDecision?.source || "غير معروف"}</b></div>
+      <div>العائلة: <b>${identity.familyDecision?.family || "غير محددة"}</b></div>
+      <div>عدد المنافسين: <b>${(identity.familyDecision?.competitors || []).length}</b></div>
     </div>
 
     <hr style="border-color:#1f2937; margin:12px 0;">
