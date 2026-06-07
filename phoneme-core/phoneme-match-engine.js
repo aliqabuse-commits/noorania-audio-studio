@@ -65,17 +65,24 @@ async function startPhonemeMatchTest(targetKey) {
     );
 
     const results = availableIdentities.map(function (identity) {
-      return {
-        key: identity.phonemeKey,
-        phoneme: identity.phoneme,
-        label: identity.label,
-        color: identity.color,
-        distance: compareSummaryWithCognitiveGenome(
-          summary,
-          identity.genome
-        )
-      };
-    });
+
+  const familyContext =
+    loadFamilyContextForMatch(identity.phonemeKey);
+
+  return {
+    key: identity.phonemeKey,
+    phoneme: identity.phoneme,
+    label: identity.label,
+    color: identity.color,
+
+    distance:
+      compareSummaryWithFamilyAwareGenome(
+        summary,
+        identity.genome,
+        familyContext
+      )
+  };
+});
 
     results.sort(function (a, b) {
       return a.distance - b.distance;
