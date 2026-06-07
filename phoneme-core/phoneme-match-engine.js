@@ -124,8 +124,7 @@ async function startPhonemeMatchTest(targetKey) {
     result: decision.label,
     confidence: margin,
     notes:
-      "تم إشراك العائلة الإدراكية في أوزان المقارنة."
-  });
+  "تم إشراك الجينوم المركزي والعائلة الإدراكية والختم الطيفي في قرار تحديد الهوية."  });
 }
 
     const actualKey = askActualSpokenKey();
