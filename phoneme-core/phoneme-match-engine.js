@@ -306,7 +306,135 @@ function compareSummaryWithCognitiveGenome(summary, genome) {
 
   return total;
 }
+function compareSummaryWithFamilyAwareGenome(
+  summary,
+  genome,
+  familyContext
+) {
+  if (!summary || !genome) {
+    return Infinity;
+  }
 
+  let weights = {
+    energy: 1.0,
+    centroid: 1.5,
+    spread: 1.2,
+    zcr: 0.8,
+    burstEnergy: 1.3,
+    burstCentroid: 1.4,
+    burstSpread: 1.1,
+    energyMovement: 1.1,
+    spectralMovement: 1.5
+  };
+
+  const familyName =
+    familyContext?.family ||
+    familyContext?.familyKey ||
+    "";
+
+  // ======================================
+  // عائلة الانفجار الشفوي
+  // باء / ميم / واو ...
+  // ======================================
+
+  if (familyName.includes("lip")) {
+    weights.burstEnergy = 2.5;
+    weights.energyMovement = 2.0;
+    weights.centroid = 1.0;
+  }
+
+  // ======================================
+  // عائلة الاستعلاء
+  // قاف / صاد / طاء / ظاء ...
+  // ======================================
+
+  if (
+    familyName.includes("isti") ||
+    familyName.includes("elevated") ||
+    familyName.includes("deep")
+  ) {
+    weights.centroid = 3.0;
+    weights.burstCentroid = 3.0;
+    weights.spectralMovement = 2.5;
+  }
+
+  // ======================================
+  // الغنة
+  // ======================================
+
+  if (familyName.includes("ghunna")) {
+    weights.energy = 2.0;
+    weights.spread = 2.0;
+    weights.zcr = 0.5;
+  }
+
+  let total = 0;
+
+  total += weightedNormalizedDistance(
+    summary.meanEnergy,
+    genome.energy.mean,
+    genome.energy.variance,
+    weights.energy
+  );
+
+  total += weightedNormalizedDistance(
+    summary.meanCentroid,
+    genome.centroid.mean,
+    genome.centroid.variance,
+    weights.centroid
+  );
+
+  total += weightedNormalizedDistance(
+    summary.meanSpread,
+    genome.spread.mean,
+    genome.spread.variance,
+    weights.spread
+  );
+
+  total += weightedNormalizedDistance(
+    summary.meanZcr,
+    genome.zcr.mean,
+    genome.zcr.variance,
+    weights.zcr
+  );
+
+  total += weightedNormalizedDistance(
+    summary.burstEnergy,
+    genome.burstEnergy.mean,
+    genome.burstEnergy.variance,
+    weights.burstEnergy
+  );
+
+  total += weightedNormalizedDistance(
+    summary.burstCentroid,
+    genome.burstCentroid.mean,
+    genome.burstCentroid.variance,
+    weights.burstCentroid
+  );
+
+  total += weightedNormalizedDistance(
+    summary.burstSpread,
+    genome.burstSpread.mean,
+    genome.burstSpread.variance,
+    weights.burstSpread
+  );
+
+  total += weightedNormalizedDistance(
+    summary.energyMovement,
+    genome.energyMovement.mean,
+    genome.energyMovement.variance,
+    weights.energyMovement
+  );
+
+  total += weightedNormalizedDistance(
+    summary.spectralMovement,
+    genome.spectralMovement.mean,
+    genome.spectralMovement.variance,
+    weights.spectralMovement
+  );
+
+  return total;
+}
 function weightedNormalizedDistance(value, mean, variance, weight) {
   value = Number(value || 0);
   mean = Number(mean || 0);
