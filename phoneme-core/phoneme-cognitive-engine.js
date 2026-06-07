@@ -968,7 +968,26 @@ function buildCognitiveGovernanceDecision(ctx) {
 // ======================================
 function renderCognitiveReport(identity) {
   const g = identity.genome;
+const seal = g.spectralSeal || null;
 
+const spectralSealHtml = seal ? `
+  <hr style="border-color:#1f2937; margin:12px 0;">
+
+  <div style="font-weight:bold;color:#a78bfa;margin-bottom:8px;">
+    🌈 الختم الطيفي داخل الجينوم
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:14px;">
+    <div>مركز الختم: <b style="color:white;">${seal.averageCentroid} Hz</b></div>
+    <div>انتشار الختم: <b style="color:white;">${seal.averageSpread}</b></div>
+    <div>مركز انفجار الختم: <b style="color:white;">${seal.averageBurstCentroid} Hz</b></div>
+    <div>انتشار انفجار الختم: <b style="color:white;">${seal.averageBurstSpread}</b></div>
+    <div>ثبات المركز: <b style="color:white;">${seal.centroidStability}</b></div>
+    <div>ثبات الانتشار: <b style="color:white;">${seal.spreadStability}</b></div>
+    <div>ثقة الختم: <b style="color:white;">${seal.confidence}</b></div>
+    <div>عدد عينات الختم: <b style="color:white;">${seal.samplesCount}</b></div>
+  </div>
+` : "";
   const html = `
     <h3 style="color:${identity.color.hex};margin-top:0;">
       🧠 الجينوم الإدراكي المركزي لحرف ${identity.label}
@@ -984,7 +1003,7 @@ function renderCognitiveReport(identity) {
       <div>العائلة: <b>${identity.familyDecision?.family || "غير محددة"}</b></div>
       <div>عدد المنافسين: <b>${(identity.familyDecision?.competitors || []).length}</b></div>
     </div>
-
+${spectralSealHtml}
     <hr style="border-color:#1f2937; margin:12px 0;">
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:14px;">
