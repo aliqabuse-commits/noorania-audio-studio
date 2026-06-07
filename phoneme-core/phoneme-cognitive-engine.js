@@ -198,44 +198,7 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
 
     const genome = buildCognitiveGenome(cognitiveUnits);
     const genomeByState = buildCognitiveGenomeByState(cognitiveUnits);
-    const familyDecision =
-  typeof buildFamilyDecisionForPhoneme === "function"
-    ? buildFamilyDecisionForPhoneme(phonemeKey, pack)
-    : (
-      function normalizeFamilyDecisionForCognitiveEngine(context) {
-  if (!context) {
-    return {
-      source: "phoneme-family-map",
-      phonemeKey: "",
-      family: "unknown-family",
-      competitors: [],
-      decisiveTraits: [],
-      note: "خريطة العائلة لم ترجع سياقًا صالحًا."
-    };
-  }
-
-  return {
-    source: "phoneme-family-map",
-    phonemeKey: context.phonemeKey,
-    family: context.family,
-    macroFamilies: context.macroFamilies || [],
-    traits: context.traits || {},
-    competitors: (context.candidates || []).map(function (c) {
-      return {
-        key: c.key,
-        reason: c.reason,
-        decisiveTraits: c.decisiveTraits || [],
-        observedDifferences: c.observedDifferences || []
-      };
-    }),
-    decisiveTraits: (context.candidates || []).flatMap(function (c) {
-      return c.decisiveTraits || [];
-    }),
-    governance: context.governance || null,
-    note: "تم تحميل خريطة العائلة من phoneme-family-map.js."
-  };
-}
-        let familyDecision = null;
+    let familyDecision = null;
 
 if (typeof buildFamilyDecisionForPhoneme === "function") {
   familyDecision = buildFamilyDecisionForPhoneme(phonemeKey, pack);
