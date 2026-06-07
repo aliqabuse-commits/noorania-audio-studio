@@ -184,7 +184,13 @@ function loadCognitiveIdentity(key) {
     return null;
   }
 }
+function loadFamilyContextForMatch(key) {
+  if (typeof buildFamilyDecisionContext === "function") {
+    return buildFamilyDecisionContext(key);
+  }
 
+  return null;
+}
 async function recordMatchSample() {
   return new Promise(async function (resolve) {
     try {
