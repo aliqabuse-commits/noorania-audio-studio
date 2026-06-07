@@ -235,12 +235,17 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
     note: "تم تحميل خريطة العائلة من phoneme-family-map.js."
   };
 }
-        typeof buildFamilyDecisionContext === "function"
-          ? normalizeFamilyDecisionForCognitiveEngine(
-              buildFamilyDecisionContext(phonemeKey)
-            )
-          : buildFallbackFamilyDecision(phonemeKey, pack)
-      );
+        let familyDecision = null;
+
+if (typeof buildFamilyDecisionForPhoneme === "function") {
+  familyDecision = buildFamilyDecisionForPhoneme(phonemeKey, pack);
+} else if (typeof buildFamilyDecisionContext === "function") {
+  familyDecision = normalizeFamilyDecisionForCognitiveEngine(
+    buildFamilyDecisionContext(phonemeKey)
+  );
+} else {
+  familyDecision = buildFallbackFamilyDecision(phonemeKey, pack);
+}
     const governance = buildCognitiveGovernanceDecision({
       phonemeKey,
       pack,
@@ -857,7 +862,46 @@ function buildFallbackFamilyDecision(phonemeKey, pack) {
   };
 }
 
+function normalizeFamilyDecisionForCognitiveEngine(context) {
+  const competitors = [];
+  const decisiveTraits = [];
 
+  if (!context) {
+    return {
+      source: "phoneme-family-map",
+      phonemeKey: "",
+      family: "unknown-family",
+      competitors: [],
+      decisiveTraits: [],
+      note: "خريطة العائلة لم ترجع سياقًا صالحًا."
+    };
+  }
+
+  (context.candidates || []).forEach(function (c) {
+    competitors.push({
+      key: c.key,
+      reason: c.reason,
+      decisiveTraits: c.decisiveTraits || [],
+      observedDifferences: c.observedDifferences || []
+    });
+
+    (c.decisiveTraits || []).forEach(function (t) {
+      decisiveTraits.push(t);
+    });
+  });
+
+  return {
+    source: "phoneme-family-map",
+    phonemeKey: context.phonemeKey,
+    family: context.family,
+    macroFamilies: context.macroFamilies || [],
+    traits: context.traits || {},
+    competitors,
+    decisiveTraits,
+    governance: context.governance || null,
+    note: "تم تحميل خريطة العائلة من phoneme-family-map.js."
+  };
+}
 function buildCognitiveGovernanceDecision(ctx) {
   const unitsCount = ctx.cognitiveUnits.length;
   const weakUnits = ctx.cognitiveUnits.filter(function (u) {
