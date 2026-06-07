@@ -21,24 +21,24 @@ const PHONEME_FAMILY_MAP_CHARTER = {
 
 const PHONEME_FAMILY_MAP = {
   ba: {
-    key: "ba",
-    letter: "ب",
-    label: "باء",
-    family: "lip-burst-voiced",
-    macroFamilies: ["شفوي", "شديد", "مجهور", "انفجاري"],
-    traits: {
-      place: "شفوي",
-      burst: true,
-      voiced: true,
-      tafkheem: false,
-      sibilant: false,
-      nasal: false
-    },
-    closest: [
-      { key: "meem", reason: "اشتراك الشفتين مع فرق الغنة والانفجار", decisiveTraits: ["nasal", "burst"] },
-      { key: "fa", reason: "اشتراك الشفتين مع فرق الجهر والرخاوة", decisiveTraits: ["voiced", "frication", "burst"] }
-    ]
+  key: "ba",
+  letter: "ب",
+  label: "باء",
+  family: "lip-burst-plain",
+  macroFamilies: ["شفوي", "شديد", "مجهور", "مرقق", "انفجاري"],
+  traits: {
+    place: "شفوي",
+    burst: true,
+    voiced: true,
+    tafkheem: false,
+    sibilant: false,
+    qalqala: true
   },
+  closest: [
+    { key: "fa", reason: "اشتراك شفوي مع فرق الانفجار والرخاوة", decisiveTraits: ["burst", "frication"] },
+    { key: "meem", reason: "اشتراك شفوي مع فرق الغنة والانفجار", decisiveTraits: ["nasal", "burst"] }
+  ]
+},
 
   ta: {
     key: "ta",
