@@ -1,6 +1,11 @@
 // ================================
 // phoneme-match-engine.js
 // محرك الفصل بالجِينوم المركزي
+// يقارن عينة الاختبار عبر:
+// 1) الجينوم المركزي
+// 2) العائلة الإدراكية
+// 3) الختم الطيفي داخل الجينوم
+// 4) الذاكرة الإدراكية المستقلة حسب حالة الحركة
 // ملتزم بمرجع المسميات السيادي
 // ================================
 
@@ -64,10 +69,18 @@ async function startPhonemeMatchTest(targetKey) {
       phases
     );
 
+    const targetState =
+      resolveTargetStateForMatch(targetKey);
+
     const results = availableIdentities.map(function (identity) {
 
   const familyContext =
     loadFamilyContextForMatch(identity.phonemeKey);
+
+  const perceptualMemory =
+    loadPerceptualMemoryForMatch(
+      identity.phonemeKey
+    );
 
   return {
     key: identity.phonemeKey,
@@ -85,6 +98,12 @@ async function startPhonemeMatchTest(targetKey) {
       scoreSpectralSealDistance(
         summary,
         identity.genome
+      )
+      +
+      scorePerceptualMemoryDistanceByState(
+        summary,
+        perceptualMemory,
+        targetState
       )
   };
 });
@@ -114,17 +133,19 @@ async function startPhonemeMatchTest(targetKey) {
     invokedKnowledge: [
       "cognitive-genome",
       "phoneme-family-map",
-      "spectral-seal"
+      "spectral-seal",
+      "perceptual-memory"
     ],
     influentialKnowledge: [
       "cognitive-genome",
       "phoneme-family-map",
-      "spectral-seal"
+      "spectral-seal",
+      "perceptual-memory"
     ],
     result: decision.label,
     confidence: margin,
     notes:
-  "تم إشراك الجينوم المركزي والعائلة الإدراكية والختم الطيفي في قرار تحديد الهوية."  });
+  "تم إشراك الجينوم المركزي والعائلة الإدراكية والختم الطيفي والذاكرة الإدراكية حسب حالة الحركة في قرار تحديد الهوية."  });
 }
 
     const actualKey = askActualSpokenKey();
@@ -513,6 +534,158 @@ function scoreSpectralSealDistance(summary, genome) {
   );
 
   return total * (seal.confidence || 1);
+}
+
+function loadPerceptualMemoryForMatch(key) {
+  const candidates = [
+    key + "_perceptual_identity",
+    key + "_memory",
+    "phoneme_memory_" + key
+  ];
+
+  for (const storageKey of candidates) {
+    try {
+      const raw = localStorage.getItem(storageKey);
+
+      if (!raw) continue;
+
+      const parsed = JSON.parse(raw);
+
+      if (
+        parsed &&
+        parsed.perceptualSignature
+      ) {
+        return parsed;
+      }
+    } catch (err) {
+      console.warn(
+        "⚠️ فشل تحميل الذاكرة الإدراكية:",
+        storageKey,
+        err
+      );
+    }
+  }
+
+  return null;
+}
+
+function resolveTargetStateForMatch(targetKey) {
+  const map = {
+    fatha: "fatha",
+    kasra: "kasra",
+    damma: "damma",
+    sukoon_fatha: "sukoon_fatha",
+    sukoon_kasra: "sukoon_kasra",
+    sukoon_damma: "sukoon_damma"
+  };
+
+  for (const state in map) {
+    if (String(targetKey || "").includes(state)) {
+      return map[state];
+    }
+  }
+
+  return null;
+}
+
+
+function scorePerceptualMemoryDistance(
+  summary,
+  perceptualMemory
+) {
+  if (
+    !summary ||
+    !perceptualMemory ||
+    !perceptualMemory.perceptualSignature
+  ) {
+    return 0;
+  }
+
+  const sig =
+    perceptualMemory.perceptualSignature;
+
+  let total = 0;
+
+  total += weightedNormalizedDistance(
+    summary.meanCentroid,
+    sig.centroid?.mean,
+    sig.centroid?.variance,
+    1.6
+  );
+
+  total += weightedNormalizedDistance(
+    summary.meanSpread,
+    sig.spread?.mean,
+    sig.spread?.variance,
+    1.3
+  );
+
+  total += weightedNormalizedDistance(
+    summary.meanEnergy,
+    sig.energy?.mean,
+    sig.energy?.variance,
+    1.0
+  );
+
+  total += weightedNormalizedDistance(
+    summary.meanZcr,
+    sig.zcr?.mean,
+    sig.zcr?.variance,
+    1.0
+  );
+
+  total += weightedNormalizedDistance(
+    summary.duration,
+    sig.duration?.mean,
+    sig.duration?.variance,
+    1.2
+  );
+
+  total += weightedNormalizedDistance(
+    summary.burstEnergy,
+    sig.burstiness?.mean,
+    sig.burstiness?.variance,
+    1.5
+  );
+
+  return total;
+}
+
+function scorePerceptualMemoryDistanceByState(
+  summary,
+  perceptualMemory,
+  targetState
+) {
+  if (
+    !summary ||
+    !perceptualMemory ||
+    !perceptualMemory.perceptualSignatureByState ||
+    !targetState
+  ) {
+    return scorePerceptualMemoryDistance(summary, perceptualMemory);
+  }
+
+  const stateMap = perceptualMemory.perceptualSignatureByState;
+
+  const stateKey = Object.keys(stateMap).find(function (key) {
+    return key.includes(targetState);
+  });
+
+  if (!stateKey || !stateMap[stateKey]) {
+    return scorePerceptualMemoryDistance(summary, perceptualMemory);
+  }
+
+  const sig = stateMap[stateKey];
+
+  let total = 0;
+
+  total += weightedNormalizedDistance(summary.meanCentroid, sig.centroid?.mean, sig.centroid?.variance, 1.8);
+  total += weightedNormalizedDistance(summary.meanSpread, sig.spread?.mean, sig.spread?.variance, 1.4);
+  total += weightedNormalizedDistance(summary.meanEnergy, sig.energy?.mean, sig.energy?.variance, 1.2);
+  total += weightedNormalizedDistance(summary.meanZcr, sig.zcr?.mean, sig.zcr?.variance, 1.1);
+  total += weightedNormalizedDistance(summary.duration, sig.duration?.mean, sig.duration?.variance, 1.2);
+
+  return total;
 }
 
 function weightedNormalizedDistance(value, mean, variance, weight) {
