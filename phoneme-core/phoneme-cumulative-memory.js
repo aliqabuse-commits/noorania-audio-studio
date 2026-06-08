@@ -54,9 +54,6 @@ const TIMELINE_PHASES = ["onset", "burst", "transition", "sustain", "release"];
 function getCumulativeMemoryKeys(phonemeKey) {
   return [
     phonemeKey + "_cumulative_memory",
-    phonemeKey + "_perceptual_identity",
-    phonemeKey + "_memory",
-    "phoneme_memory_" + phonemeKey,
     "cognitive_memory_" + phonemeKey
   ];
 }
