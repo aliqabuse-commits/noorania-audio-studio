@@ -101,6 +101,9 @@ async function startPhonemeMatchTest(targetKey) {
     color: identity.color,
     matchedStateKey: memoryStateScore.stateKey,
     matchedStateText: memoryStateScore.stateText,
+    matchedStateRole: memoryStateScore.stateRole,
+    stateConfidence: memoryStateScore.confidence,
+    stateMargin: memoryStateScore.stateMargin,
 
     distance:
       compareSummaryWithFamilyAwareGenome(
@@ -190,6 +193,14 @@ async function startPhonemeMatchTest(targetKey) {
     report +=
       "أقرب حالة داخل الحرف: " +
       (winner.matchedStateText || winner.matchedStateKey || "غير محددة") +
+      "\n\n";
+
+    report +=
+      "ثقة تحديد الحركة: " +
+      (winner.stateConfidence || 0) +
+      "\n" +
+      "هامش الحركة: " +
+      (winner.stateMargin || 0) +
       "\n\n";
 
     results.forEach(function (r, index) {
@@ -746,12 +757,14 @@ function scorePerceptualMemoryBestState(summary, perceptualMemory) {
     return {
       distance: scorePerceptualMemoryDistance(summary, perceptualMemory),
       stateKey: null,
-      stateText: null
+      stateText: null,
+      stateRole: null,
+      confidence: 0
     };
   }
 
   const stateMap = perceptualMemory.perceptualSignatureByState;
-  let best = null;
+  const scores = [];
 
   Object.keys(stateMap).forEach(function (stateKey) {
     const sig = stateMap[stateKey];
@@ -764,19 +777,45 @@ function scorePerceptualMemoryBestState(summary, perceptualMemory) {
     total += weightedNormalizedDistance(summary.meanZcr, sig.zcr?.mean, sig.zcr?.variance, 1.1);
     total += weightedNormalizedDistance(summary.duration, sig.duration?.mean, sig.duration?.variance, 1.2);
 
-    if (!best || total < best.distance) {
-      best = {
-        distance: total,
-        stateKey: stateKey,
-        stateText: sig.text || stateKey
-      };
-    }
+    scores.push({
+      distance: total,
+      stateKey: stateKey,
+      stateText: sig.text || stateKey,
+      stateRole: sig.role || null
+    });
   });
 
-  return best || {
-    distance: scorePerceptualMemoryDistance(summary, perceptualMemory),
-    stateKey: null,
-    stateText: null
+  scores.sort(function (a, b) {
+    return a.distance - b.distance;
+  });
+
+  const best = scores[0] || null;
+  const second = scores[1] || null;
+
+  if (!best) {
+    return {
+      distance: scorePerceptualMemoryDistance(summary, perceptualMemory),
+      stateKey: null,
+      stateText: null,
+      stateRole: null,
+      confidence: 0
+    };
+  }
+
+  const stateMargin = second
+    ? second.distance - best.distance
+    : 0;
+
+  return {
+    distance: best.distance,
+    stateKey: best.stateKey,
+    stateText: best.stateText,
+    stateRole: best.stateRole,
+    stateMargin: Number(stateMargin.toFixed(4)),
+    confidence: second
+      ? Number((stateMargin / Math.max(best.distance, 0.0001)).toFixed(4))
+      : 1,
+    allStateScores: scores
   };
 }
 
