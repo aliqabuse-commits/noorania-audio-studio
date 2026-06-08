@@ -595,12 +595,13 @@ function scoreSpectralSealDistance(summary, genome) {
 
   return total * (seal.confidence || 1);
 }
-
 function loadPerceptualMemoryForMatch(key) {
   const candidates = [
     key + "_perceptual_identity",
     key + "_memory",
-    "phoneme_memory_" + key
+    "phoneme_memory_" + key,
+    key + "_cumulative_memory",
+    "cognitive_memory_" + key
   ];
 
   for (const storageKey of candidates) {
@@ -613,10 +614,33 @@ function loadPerceptualMemoryForMatch(key) {
 
       if (
         parsed &&
-        parsed.perceptualSignature
+        parsed.perceptualSignature &&
+        parsed.perceptualSignatureByState
       ) {
         return parsed;
       }
+
+      if (
+        parsed &&
+        parsed.latestPerceptualIdentity &&
+        parsed.latestPerceptualIdentity.perceptualSignature &&
+        parsed.latestPerceptualIdentity.perceptualSignatureByState
+      ) {
+        return parsed.latestPerceptualIdentity;
+      }
+
+      if (
+        parsed &&
+        parsed.cumulativePerceptualSignature &&
+        parsed.cumulativePerceptualSignatureByState
+      ) {
+        return {
+          perceptualSignature: parsed.cumulativePerceptualSignature,
+          perceptualSignatureByState:
+            parsed.cumulativePerceptualSignatureByState
+        };
+      }
+
     } catch (err) {
       console.warn(
         "⚠️ فشل تحميل الذاكرة الإدراكية:",
