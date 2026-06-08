@@ -325,18 +325,19 @@ function addPerceptualIdentityFallback(phonemeKey, identity) {
   if (!Array.isArray(cumulative.attemptHistory)) cumulative.attemptHistory = [];
 
   const sample = {
-    id: phonemeKey + "_memory_" + Date.now(),
-    createdAt: new Date().toISOString(),
-    source: "phoneme-memory-trainer",
-    phonemeKey: phonemeKey,
-    identity: identity,
-    perceptualSignature: identity.perceptualSignature,
-    perceptualSignatureByState: identity.perceptualSignatureByState,
-    governance: identity.governance
-  };
+  id: phonemeKey + "_memory_" + Date.now(),
+  createdAt: new Date().toISOString(),
+  source: "phoneme-memory-trainer",
+  phonemeKey: phonemeKey,
+  perceptualSignature: identity.perceptualSignature,
+  perceptualSignatureByState: identity.perceptualSignatureByState,
+  governance: identity.governance
+};
 
   cumulative.samples.push(sample);
-
+if (cumulative.samples.length > 20) {
+  cumulative.samples = cumulative.samples.slice(-20);
+}
   cumulative.attemptHistory.push({
     id: sample.id,
     createdAt: sample.createdAt,
@@ -346,9 +347,26 @@ function addPerceptualIdentityFallback(phonemeKey, identity) {
     decision: identity.governance?.decision || "unknown",
     decisionReason: identity.governance?.reason || ""
   });
-
+if (cumulative.attemptHistory.length > 50) {
+  cumulative.attemptHistory =
+    cumulative.attemptHistory.slice(-50);
+}
   cumulative.samplesCount = cumulative.samples.length;
-  cumulative.latestPerceptualIdentity = identity;
+  cumulative.latestPerceptualIdentity = {
+  method: identity.method,
+  version: identity.version,
+  phonemeKey: identity.phonemeKey,
+  phoneme: identity.phoneme,
+  label: identity.label,
+  color: identity.color,
+  pack: identity.pack,
+  perceptualSignature: identity.perceptualSignature,
+  perceptualSignatureByState: identity.perceptualSignatureByState,
+  samplesCount: identity.samplesCount,
+  confidence: identity.confidence,
+  governance: identity.governance,
+  createdAt: identity.createdAt
+};
   cumulative.latestMemoryGovernance = identity.governance || null;
   cumulative.updatedAt = new Date().toISOString();
   cumulative.cumulativePerceptualSignature =
