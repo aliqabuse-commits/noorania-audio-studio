@@ -285,10 +285,38 @@ sendCognitiveGenomeKnowledgeSignal(
 // 4) حفظ الجينوم + الذاكرة التراكمية
 // ======================================
 function saveCognitiveIdentityAndCumulativeMemory(phonemeKey, identity) {
-  localStorage.setItem(
-    phonemeKey + "_cognitive_identity",
-    JSON.stringify(identity, null, 2)
-  );
+  const lightIdentity = {
+  method: identity.method,
+  version: identity.version,
+  phonemeKey: identity.phonemeKey,
+  key: identity.key,
+  phoneme: identity.phoneme,
+  label: identity.label,
+  color: identity.color,
+  pack: identity.pack,
+  units: (identity.units || []).map(function (u) {
+    return {
+      id: u.id,
+      text: u.text,
+      file: u.file,
+      role: u.role,
+      description: u.description,
+      phases: u.phases,
+      summary: u.summary,
+      decisionTrace: u.decisionTrace
+    };
+  }),
+  genome: identity.genome,
+  genomeByState: identity.genomeByState,
+  familyDecision: identity.familyDecision,
+  governance: identity.governance,
+  createdAt: identity.createdAt
+};
+
+localStorage.setItem(
+  phonemeKey + "_cognitive_identity",
+  JSON.stringify(lightIdentity)
+);
 
   let cumulativeMemory = null;
 
@@ -314,8 +342,7 @@ function saveCognitiveIdentityAndCumulativeMemory(phonemeKey, identity) {
 
 
 function saveMemoryUnderKnownKeys(phonemeKey, memory) {
-  const value = JSON.stringify(memory, null, 2);
-
+  const value = JSON.stringify(memory);
   [
     phonemeKey + "_cumulative_memory",
     "cognitive_memory_" + phonemeKey
