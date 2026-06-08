@@ -69,8 +69,15 @@ async function startPhonemeMatchTest(targetKey) {
       phases
     );
 
-    const targetState =
-      resolveTargetStateForMatch(targetKey);
+    const actual = askActualSpokenKey();
+
+    if (!actual) {
+      alert("لم يتم حفظ النتيجة لأن الحرف المنطوق لم يُحدد.");
+      return;
+    }
+
+    const actualKey = actual.key;
+    const targetState = actual.state;
 
     const results = availableIdentities.map(function (identity) {
 
@@ -147,13 +154,6 @@ async function startPhonemeMatchTest(targetKey) {
     notes:
   "تم إشراك الجينوم المركزي والعائلة الإدراكية والختم الطيفي والذاكرة الإدراكية حسب حالة الحركة في قرار تحديد الهوية."  });
 }
-
-    const actualKey = askActualSpokenKey();
-
-    if (!actualKey) {
-      alert("لم يتم حفظ النتيجة لأن الحرف المنطوق لم يُحدد.");
-      return;
-    }
 
     saveCognitiveMatchResult(
       targetKey,
@@ -245,6 +245,34 @@ function loadFamilyContextForMatch(key) {
 
   return null;
 }
+
+function resolveArabicSpokenInput(input) {
+  const text = String(input || "").trim();
+
+  const letterMap = {
+    "ب": "ba",
+    "ص": "sad",
+    "ط": "ta",
+    "ق": "qaf",
+    "ك": "kaf"
+  };
+
+  const letter = text.replace(/[\u064B-\u065F]/g, "");
+  const key = letterMap[letter] || null;
+
+  let state = null;
+
+  if (text.includes("َ")) state = "fatha";
+  if (text.includes("ِ")) state = "kasra";
+  if (text.includes("ُ")) state = "damma";
+
+  return {
+    key,
+    state,
+    text
+  };
+}
+
 async function recordMatchSample() {
   return new Promise(async function (resolve) {
     try {
@@ -736,41 +764,29 @@ function classifySeparationDecision(winner, second, margin) {
 }
 
 function askActualSpokenKey() {
-  const keys = getAvailablePhonemeKeysForMatch();
-
-  let message =
+  const answer = prompt(
     "ما الحرف الذي نطقته فعليًا؟\n\n" +
-    "اكتب أحد المفاتيح التالية:\n\n";
-
-  keys.forEach(function (key) {
-    const def =
-      typeof PHONEME_LETTER_DEFINITIONS !== "undefined"
-        ? PHONEME_LETTER_DEFINITIONS[key]
-        : null;
-
-    message +=
-      key +
-      " = " +
-      (def ? def.name || def.letter : key) +
-      "\n";
-  });
-
-  const answer = prompt(message);
+    "اكتب الحرف بحركته مثل:\n\n" +
+    "بَ\n" +
+    "صِ\n" +
+    "طُ"
+  );
 
   if (!answer) return null;
 
-  const key = answer.trim().toLowerCase();
+  const parsed = resolveArabicSpokenInput(answer);
 
-  if (keys.includes(key)) {
-    return key;
+  if (!parsed.key) {
+    alert("لم أتعرف على الحرف. اكتب مثل: بَ أو صِ أو طُ");
+    return null;
   }
 
-  alert(
-    "قيمة غير صحيحة.\n\n" +
-    "اكتب أحد المفاتيح الظاهرة فقط."
-  );
+  if (!parsed.state) {
+    alert("اكتب الحرف مع الحركة: فتحة أو كسرة أو ضمة.");
+    return null;
+  }
 
-  return null;
+  return parsed;
 }
 
 function saveCognitiveMatchResult(
