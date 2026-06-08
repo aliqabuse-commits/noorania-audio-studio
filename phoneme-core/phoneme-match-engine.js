@@ -249,16 +249,30 @@ function loadFamilyContextForMatch(key) {
 function resolveArabicSpokenInput(input) {
   const text = String(input || "").trim();
 
-  const letterMap = {
-    "ب": "ba",
-    "ص": "sad",
-    "ط": "ta",
-    "ق": "qaf",
-    "ك": "kaf"
-  };
+  const cleanLetter =
+    text.replace(/[\u064B-\u065F\u0640]/g, "").trim();
 
-  const letter = text.replace(/[\u064B-\u065F]/g, "");
-  const key = letterMap[letter] || null;
+  let key = null;
+
+  if (
+    typeof PHONEME_LETTER_DEFINITIONS !== "undefined" &&
+    PHONEME_LETTER_DEFINITIONS
+  ) {
+    Object.keys(PHONEME_LETTER_DEFINITIONS).forEach(function (itemKey) {
+      const def = PHONEME_LETTER_DEFINITIONS[itemKey];
+
+      if (!def) return;
+
+      const letter =
+        String(def.letter || "")
+          .replace(/[\u064B-\u065F\u0640]/g, "")
+          .trim();
+
+      if (letter === cleanLetter) {
+        key = itemKey;
+      }
+    });
+  }
 
   let state = null;
 
@@ -272,7 +286,6 @@ function resolveArabicSpokenInput(input) {
     text
   };
 }
-
 async function recordMatchSample() {
   return new Promise(async function (resolve) {
     try {
