@@ -318,9 +318,6 @@ function saveMemoryUnderKnownKeys(phonemeKey, memory) {
 
   [
     phonemeKey + "_cumulative_memory",
-    phonemeKey + "_perceptual_identity",
-    phonemeKey + "_memory",
-    "phoneme_memory_" + phonemeKey,
     "cognitive_memory_" + phonemeKey
   ].forEach(function (key) {
     localStorage.setItem(key, value);
