@@ -259,8 +259,3 @@ console.log(
   typeof window.startPerceptualTraining
 );
 
-alert(
-  "TEST: training-recorder.js loaded\n" +
-  "startPerceptualTraining = " +
-  typeof window.startPerceptualTraining
-);
