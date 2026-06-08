@@ -77,7 +77,6 @@ async function startPhonemeMatchTest(targetKey) {
     }
 
     const actualKey = actual.key;
-    const targetState = actual.state;
 
     const results = availableIdentities.map(function (identity) {
 
@@ -89,11 +88,19 @@ async function startPhonemeMatchTest(targetKey) {
       identity.phonemeKey
     );
 
+  const memoryStateScore =
+    scorePerceptualMemoryBestState(
+      summary,
+      perceptualMemory
+    );
+
   return {
     key: identity.phonemeKey,
     phoneme: identity.phoneme,
     label: identity.label,
     color: identity.color,
+    matchedStateKey: memoryStateScore.stateKey,
+    matchedStateText: memoryStateScore.stateText,
 
     distance:
       compareSummaryWithFamilyAwareGenome(
@@ -107,11 +114,7 @@ async function startPhonemeMatchTest(targetKey) {
         identity.genome
       )
       +
-      scorePerceptualMemoryDistanceByState(
-        summary,
-        perceptualMemory,
-        targetState
-      )
+      memoryStateScore.distance
   };
 });
 
@@ -183,6 +186,11 @@ async function startPhonemeMatchTest(targetKey) {
       " (" +
       winner.phoneme +
       ")\n\n";
+
+    report +=
+      "أقرب حالة داخل الحرف: " +
+      (winner.matchedStateText || winner.matchedStateKey || "غير محددة") +
+      "\n\n";
 
     results.forEach(function (r, index) {
       report +=
@@ -727,6 +735,49 @@ function scorePerceptualMemoryDistanceByState(
   total += weightedNormalizedDistance(summary.duration, sig.duration?.mean, sig.duration?.variance, 1.2);
 
   return total;
+}
+
+function scorePerceptualMemoryBestState(summary, perceptualMemory) {
+  if (
+    !summary ||
+    !perceptualMemory ||
+    !perceptualMemory.perceptualSignatureByState
+  ) {
+    return {
+      distance: scorePerceptualMemoryDistance(summary, perceptualMemory),
+      stateKey: null,
+      stateText: null
+    };
+  }
+
+  const stateMap = perceptualMemory.perceptualSignatureByState;
+  let best = null;
+
+  Object.keys(stateMap).forEach(function (stateKey) {
+    const sig = stateMap[stateKey];
+
+    let total = 0;
+
+    total += weightedNormalizedDistance(summary.meanCentroid, sig.centroid?.mean, sig.centroid?.variance, 1.8);
+    total += weightedNormalizedDistance(summary.meanSpread, sig.spread?.mean, sig.spread?.variance, 1.4);
+    total += weightedNormalizedDistance(summary.meanEnergy, sig.energy?.mean, sig.energy?.variance, 1.2);
+    total += weightedNormalizedDistance(summary.meanZcr, sig.zcr?.mean, sig.zcr?.variance, 1.1);
+    total += weightedNormalizedDistance(summary.duration, sig.duration?.mean, sig.duration?.variance, 1.2);
+
+    if (!best || total < best.distance) {
+      best = {
+        distance: total,
+        stateKey: stateKey,
+        stateText: sig.text || stateKey
+      };
+    }
+  });
+
+  return best || {
+    distance: scorePerceptualMemoryDistance(summary, perceptualMemory),
+    stateKey: null,
+    stateText: null
+  };
 }
 
 function weightedNormalizedDistance(value, mean, variance, weight) {
