@@ -760,7 +760,12 @@ function scorePerceptualMemoryDistanceByState(
   }
 
   const sig = stateMap[stateKey];
-
+if (
+  String(sig.text || "").includes("ْ") ||
+  String(stateKey || "").includes("sukoon")
+) {
+  return;
+}
   let total = 0;
 
   total += weightedNormalizedDistance(summary.meanCentroid, sig.centroid?.mean, sig.centroid?.variance, 1.8);
