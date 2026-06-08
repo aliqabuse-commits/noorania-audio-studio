@@ -397,7 +397,9 @@ function updatePhonemeCumulativeMemory(phonemeKey, identity) {
   if (!Array.isArray(memory.attemptHistory)) memory.attemptHistory = [];
 
   memory.samples.push(sample);
-
+if (memory.samples.length > 20) {
+  memory.samples = memory.samples.slice(-20);
+}
   memory.attemptHistory.push({
     id: sample.id,
     createdAt: sample.createdAt,
@@ -408,11 +410,28 @@ function updatePhonemeCumulativeMemory(phonemeKey, identity) {
     decisionReason: identity.governance?.reason || "",
     genomeKeys: Object.keys(sample.genome || {})
   });
-
+if (memory.attemptHistory.length > 50) {
+  memory.attemptHistory =
+    memory.attemptHistory.slice(-50);
+}
   memory.samplesCount = memory.samples.length;
   memory.latestIdentity = identity;
   memory.latestGovernance = identity.governance || null;
-  memory.color = identity.color;
+  memory.latestIdentity = {
+  method: identity.method,
+  version: identity.version,
+  phonemeKey: identity.phonemeKey,
+  key: identity.key,
+  phoneme: identity.phoneme,
+  label: identity.label,
+  color: identity.color,
+  pack: identity.pack,
+  genome: identity.genome,
+  genomeByState: identity.genomeByState,
+  familyDecision: identity.familyDecision,
+  governance: identity.governance,
+  createdAt: identity.createdAt
+};
   memory.pack = identity.pack;
   memory.updatedAt = new Date().toISOString();
   memory.cumulativeGenome = buildCumulativeGenomeFromSamples(memory.samples);
