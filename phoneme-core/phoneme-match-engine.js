@@ -160,13 +160,13 @@ async function startPhonemeMatchTest(targetKey) {
 }
 
     saveCognitiveMatchResult(
-      targetKey,
-      actualKey,
-      winner,
-      results,
-      decision,
-      margin
-    );
+  targetKey,
+  actual,
+  winner,
+  results,
+  decision,
+  margin
+);
 
     let report =
       "🎯 نتيجة اختبار الفصل بالجِينوم المركزي\n\n";
@@ -1001,25 +1001,27 @@ function askActualSpokenKey() {
 
 function saveCognitiveMatchResult(
   buttonKey,
-  actualKey,
+  actual,
   winner,
   results,
   decision,
   margin
-) {
+)
+{
   const logKey = "cognitive_match_results_log";
 
   const oldLog = JSON.parse(
     localStorage.getItem(logKey) || "[]"
   );
 
-  oldLog.push({
-    buttonKey: buttonKey,
-    actualKey: actualKey,
-    detectedKey: winner.key,
-    detectedLabel: winner.label,
-    detectedPhoneme: winner.phoneme,
-    isCorrect: actualKey === winner.key,
+  actualKey: actual.key,
+actualText: actual.text,
+actualState: actual.state,
+detectedStateKey: winner.matchedStateKey,
+detectedStateText: winner.matchedStateText,
+isCorrect:
+  actual.key === winner.key &&
+  String(winner.matchedStateKey || "").includes(actual.state),
     margin: Number(margin.toFixed(4)),
     decision: decision.label,
     results: results.map(function (r) {
