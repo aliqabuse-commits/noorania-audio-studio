@@ -88,22 +88,20 @@ async function startPhonemeMatchTest(targetKey) {
       identity.phonemeKey
     );
 
-  const memoryStateScore =
-    scorePerceptualMemoryBestState(
-      summary,
-      perceptualMemory
-    );
+  const stateDecision =
+    scoreIdentityBestState(summary, identity, perceptualMemory);
 
   return {
     key: identity.phonemeKey,
     phoneme: identity.phoneme,
     label: identity.label,
     color: identity.color,
-    matchedStateKey: memoryStateScore.stateKey,
-    matchedStateText: memoryStateScore.stateText,
-    matchedStateRole: memoryStateScore.stateRole,
-    stateConfidence: memoryStateScore.confidence,
-    stateMargin: memoryStateScore.stateMargin,
+    matchedStateKey: stateDecision.stateKey,
+    matchedStateText: stateDecision.stateText,
+    matchedStateRole: stateDecision.stateRole,
+    stateConfidence: stateDecision.confidence,
+    stateMargin: stateDecision.stateMargin,
+    stateScores: stateDecision.allStateScores,
 
     distance:
       compareSummaryWithFamilyAwareGenome(
@@ -117,7 +115,7 @@ async function startPhonemeMatchTest(targetKey) {
         identity.genome
       )
       +
-      memoryStateScore.distance
+      stateDecision.distance
   };
 });
 
@@ -180,7 +178,7 @@ async function startPhonemeMatchTest(targetKey) {
 
     report +=
       "المنطوق فعليًا: " +
-      actualKey +
+      actual.text +
       "\n";
 
     report +=
@@ -843,6 +841,86 @@ function scorePerceptualMemoryBestState(summary, perceptualMemory) {
     stateMargin: Number(stateMargin.toFixed(4)),
     confidence: second
       ? Number((stateMargin / Math.max(best.distance, 0.0001)).toFixed(4))
+      : 1,
+    allStateScores: scores
+  };
+}
+
+function scoreIdentityBestState(summary, identity, perceptualMemory) {
+  const genomeByState = identity?.genomeByState || {};
+  const memoryByState = perceptualMemory?.perceptualSignatureByState || {};
+  const scores = [];
+
+  Object.keys(genomeByState).forEach(function (stateKey) {
+    const genomeState = genomeByState[stateKey];
+    const memoryState = memoryByState[stateKey];
+
+    const text = genomeState?.text || memoryState?.text || stateKey;
+
+    // قرار الحركة فقط: نستبعد السكون المركب مثل تَتْ / تُتْ
+    if (
+      String(text || "").includes("ْ") ||
+      String(stateKey || "").includes("sukoon")
+    ) {
+      return;
+    }
+
+    let genomeDistance = 0;
+    let memoryDistance = 0;
+
+    genomeDistance += weightedNormalizedDistance(summary.meanCentroid, genomeState.centroid?.mean, genomeState.centroid?.variance, 1.8);
+    genomeDistance += weightedNormalizedDistance(summary.meanSpread, genomeState.spread?.mean, genomeState.spread?.variance, 1.4);
+    genomeDistance += weightedNormalizedDistance(summary.meanEnergy, genomeState.energy?.mean, genomeState.energy?.variance, 1.2);
+    genomeDistance += weightedNormalizedDistance(summary.meanZcr, genomeState.zcr?.mean, genomeState.zcr?.variance, 1.1);
+    genomeDistance += weightedNormalizedDistance(summary.duration, genomeState.duration?.mean, genomeState.duration?.variance, 1.2);
+
+    if (memoryState) {
+      memoryDistance += weightedNormalizedDistance(summary.meanCentroid, memoryState.centroid?.mean, memoryState.centroid?.variance, 1.8);
+      memoryDistance += weightedNormalizedDistance(summary.meanSpread, memoryState.spread?.mean, memoryState.spread?.variance, 1.4);
+      memoryDistance += weightedNormalizedDistance(summary.meanEnergy, memoryState.energy?.mean, memoryState.energy?.variance, 1.2);
+      memoryDistance += weightedNormalizedDistance(summary.meanZcr, memoryState.zcr?.mean, memoryState.zcr?.variance, 1.1);
+      memoryDistance += weightedNormalizedDistance(summary.duration, memoryState.duration?.mean, memoryState.duration?.variance, 1.2);
+    }
+
+    scores.push({
+      stateKey,
+      stateText: text,
+      stateRole: genomeState?.role || memoryState?.role || null,
+      genomeDistance,
+      memoryDistance,
+      distance: genomeDistance + memoryDistance
+    });
+  });
+
+  scores.sort(function (a, b) {
+    return a.distance - b.distance;
+  });
+
+  const best = scores[0] || null;
+  const second = scores[1] || null;
+
+  if (!best) {
+    return {
+      distance: scorePerceptualMemoryDistance(summary, perceptualMemory),
+      stateKey: null,
+      stateText: null,
+      stateRole: null,
+      confidence: 0,
+      stateMargin: 0,
+      allStateScores: []
+    };
+  }
+
+  const margin = second ? second.distance - best.distance : 0;
+
+  return {
+    distance: best.distance,
+    stateKey: best.stateKey,
+    stateText: best.stateText,
+    stateRole: best.stateRole,
+    stateMargin: Number(margin.toFixed(4)),
+    confidence: second
+      ? Number((margin / Math.max(best.distance, 0.0001)).toFixed(4))
       : 1,
     allStateScores: scores
   };
