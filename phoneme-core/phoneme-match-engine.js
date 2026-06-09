@@ -160,13 +160,13 @@ async function startPhonemeMatchTest(targetKey) {
 }
 
     saveCognitiveMatchResult(
-  targetKey,
-  actual,
-  winner,
-  results,
-  decision,
-  margin
-);
+      targetKey,
+      actualKey,
+      winner,
+      results,
+      decision,
+      margin
+    );
 
     let report =
       "🎯 نتيجة اختبار الفصل بالجِينوم المركزي\n\n";
@@ -596,10 +596,10 @@ function scoreSpectralSealDistance(summary, genome) {
 function loadPerceptualMemoryForMatch(key) {
   const candidates = [
     key + "_perceptual_identity",
-    key + "_memory",
-    "phoneme_memory_" + key,
-    key + "_cumulative_memory",
-    "cognitive_memory_" + key
+    key + "*memory",
+    "phoneme_memory*" + key,
+    key + "*cumulative_memory",
+    "cognitive_memory*" + key
   ];
 
   for (const storageKey of candidates) {
@@ -1001,13 +1001,12 @@ function askActualSpokenKey() {
 
 function saveCognitiveMatchResult(
   buttonKey,
-  actual,
+  actualKey,
   winner,
   results,
   decision,
   margin
-)
-{
+) {
   const logKey = "cognitive_match_results_log";
 
   const oldLog = JSON.parse(
@@ -1016,14 +1015,11 @@ function saveCognitiveMatchResult(
 
   oldLog.push({
     buttonKey: buttonKey,
-    actualKey: actual.key,
-actualText: actual.text,
-actualState: actual.state,
-detectedStateKey: winner.matchedStateKey,
-detectedStateText: winner.matchedStateText,
-isCorrect:
-  actual.key === winner.key &&
-  String(winner.matchedStateKey || "").includes(actual.state),
+    actualKey: actualKey,
+    detectedKey: winner.key,
+    detectedLabel: winner.label,
+    detectedPhoneme: winner.phoneme,
+    isCorrect: actualKey === winner.key,
     margin: Number(margin.toFixed(4)),
     decision: decision.label,
     results: results.map(function (r) {
