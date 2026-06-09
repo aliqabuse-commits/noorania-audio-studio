@@ -595,12 +595,12 @@ function scoreSpectralSealDistance(summary, genome) {
 }
 function loadPerceptualMemoryForMatch(key) {
   const candidates = [
-    key + "_perceptual_identity",
-    key + "*memory",
-    "phoneme_memory*" + key,
-    key + "*cumulative_memory",
-    "cognitive_memory*" + key
-  ];
+  key + "_perceptual_identity",
+  key + "_memory",
+  "phoneme_memory_" + key,
+  key + "_cumulative_memory",
+  "cognitive_memory_" + key
+];
 
   for (const storageKey of candidates) {
     try {
