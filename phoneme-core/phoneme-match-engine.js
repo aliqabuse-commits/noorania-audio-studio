@@ -6,15 +6,27 @@ function getAvailablePhonemeKeysForMatch() { if ( typeof PHONEME_LETTER_DEFINITI
  
 return ["ba", "qaf"]; }
  
-async function startPhonemeMatchTest(targetKey) { try { const identities = getAvailablePhonemeKeysForMatch(); const availableIdentities = []; `for (const key of identities) {     const identity = loadCognitiveIdentity(key);      if (identity) {       availableIdentities.push(identity);     }   }    if (!availableIdentities.length) {     alert(       "لا توجد جينومات مركزية محفوظة.\n\n" +       "ابنِ أولًا الجينومات المركزية للحروف."     );     return;   }    alert(     "سيبدأ اختبار الفصل بالجِينوم المركزي.\n\n" +     "سجّل الآن صوت الحرف."   );    const blob = await recordMatchSample();    if (!blob) {     alert("فشل تسجيل عينة الاختبار");     return;   }    const decoded = await decodeCognitiveBlob(blob);    const timeline = buildCognitiveTimeline(     decoded.samples,     decoded.sampleRate   );    const phases = detectCognitivePhases(timeline);    const summary = summarizeCognitiveTimeline(     timeline,     phases   );    const actual = askActualSpokenKey();    if (!actual) {     alert("لم يتم حفظ النتيجة لأن الحرف المنطوق لم يُحدد.");     return;   }    const actualKey = actual.key;    const results = availableIdentities.map(function (identity) {   ` const familyContext = loadFamilyContextForMatch(identity.phonemeKey);
+async function startPhonemeMatchTest(targetKey) { try { const identities = getAvailablePhonemeKeysForMatch(); const availableIdentities = [];
+ `for (const key of identities) {     const identity = loadCognitiveIdentity(key);      if (identity) {       availableIdentities.push(identity);     }   }    if (!availableIdentities.length) {     alert(       "لا توجد جينومات مركزية محفوظة.\n\n" +       "ابنِ أولًا الجينومات المركزية للحروف."     );     return;   }    alert(     "سيبدأ اختبار الفصل بالجِينوم المركزي.\n\n" +     "سجّل الآن صوت الحرف."   );    const blob = await recordMatchSample();    if (!blob) {     alert("فشل تسجيل عينة الاختبار");     return;   }    const decoded = await decodeCognitiveBlob(blob);    const timeline = buildCognitiveTimeline(     decoded.samples,     decoded.sampleRate   );    const phases = detectCognitivePhases(timeline);    const summary = summarizeCognitiveTimeline(     timeline,     phases   );    const actual = askActualSpokenKey();    if (!actual) {     alert("لم يتم حفظ النتيجة لأن الحرف المنطوق لم يُحدد.");     return;   }    const actualKey = actual.key;    const results = availableIdentities.map(function (identity) {   ` 
+const familyContext = loadFamilyContextForMatch(identity.phonemeKey);
  
 const perceptualMemory = loadPerceptualMemoryForMatch( identity.phonemeKey );
  
 const memoryStateScore = scorePerceptualMemoryBestState( summary, perceptualMemory );
  
-return { key: identity.phonemeKey, phoneme: identity.phoneme, label: identity.label, color: identity.color, matchedStateKey: memoryStateScore.stateKey, matchedStateText: memoryStateScore.stateText, matchedStateRole: memoryStateScore.stateRole, stateConfidence: memoryStateScore.confidence, stateMargin: memoryStateScore.stateMargin, `distance:     compareSummaryWithFamilyAwareGenome(       summary,       identity.genome,       familyContext     )     +     scoreSpectralSealDistance(       summary,       identity.genome     )     +     memoryStateScore.distance   ` }; }); `results.sort(function (a, b) {     return a.distance - b.distance;   });    const winner = results[0];   const second = results[1] || null;    const margin = second     ? second.distance - winner.distance     : 0;    const decision = classifySeparationDecision(     winner,     second,     margin   );    if (typeof window.recordDecisionTrace === "function") {   ` window.recordDecisionTrace({ decisionId: "identify-phoneme", decisionName: "تمييز حرف", target: winner.key, invokedKnowledge: [ "cognitive-genome", "phoneme-family-map", "spectral-seal", "perceptual-memory" ], influentialKnowledge: [ "cognitive-genome", "phoneme-family-map", "spectral-seal", "perceptual-memory" ], result: decision.label, confidence: margin, notes: "تم إشراك الجينوم المركزي والعائلة الإدراكية والختم الطيفي والذاكرة الإدراكية حسب حالة الحركة في قرار تحديد الهوية."  }); } `saveCognitiveMatchResult(     targetKey,     actualKey,     winner,     results,     decision,     margin   );    let report =     "🎯 نتيجة اختبار الفصل بالجِينوم المركزي\n\n";    report +=     "زر الاختبار: " +     targetKey +     "\n";    report +=     "المنطوق فعليًا: " +     actualKey +     "\n";    report +=     "العينة أقرب إلى: " +     winner.label +     " (" +     winner.phoneme +     ")\n\n";    report +=     "أقرب حالة داخل الحرف: " +     (winner.matchedStateText || winner.matchedStateKey || "غير محددة") +     "\n\n";    report +=     "ثقة تحديد الحركة: " +     (winner.stateConfidence || 0) +     "\n" +     "هامش الحركة: " +     (winner.stateMargin || 0) +     "\n\n";    results.forEach(function (r, index) {     report +=       (index + 1) +       ") " +       r.label +       " (" +       r.phoneme +       ")" +       " → distance = " +       r.distance.toFixed(4) +       "\n";   });    report +=     "\nهامش الفصل: " +     margin.toFixed(4) +     "\n";    report +=     "قرار الفصل: " +     decision.label +     "\n\n";    report += decision.note;    alert(report);    console.log("🎯 COGNITIVE MATCH SAMPLE SUMMARY:", summary);   console.log("🎯 COGNITIVE MATCH RESULTS:", results);   ` } catch (err) { console.error("❌ فشل اختبار الفصل بالجِينوم المركزي", err); `alert(     "فشل اختبار الفصل بالجِينوم المركزي:\n" +     err.message   );   ` } }
+return { key: identity.phonemeKey, phoneme: identity.phoneme, label: identity.label, color: identity.color, matchedStateKey: memoryStateScore.stateKey, matchedStateText: memoryStateScore.stateText, matchedStateRole: memoryStateScore.stateRole, stateConfidence: memoryStateScore.confidence, stateMargin: memoryStateScore.stateMargin,
+ `distance:     compareSummaryWithFamilyAwareGenome(       summary,       identity.genome,       familyContext     )     +     scoreSpectralSealDistance(       summary,       identity.genome     )     +     memoryStateScore.distance   ` 
+}; });
+ `results.sort(function (a, b) {     return a.distance - b.distance;   });    const winner = results[0];   const second = results[1] || null;    const margin = second     ? second.distance - winner.distance     : 0;    const decision = classifySeparationDecision(     winner,     second,     margin   );    if (typeof window.recordDecisionTrace === "function") {   ` 
+window.recordDecisionTrace({ decisionId: "identify-phoneme", decisionName: "تمييز حرف", target: winner.key, invokedKnowledge: [ "cognitive-genome", "phoneme-family-map", "spectral-seal", "perceptual-memory" ], influentialKnowledge: [ "cognitive-genome", "phoneme-family-map", "spectral-seal", "perceptual-memory" ], result: decision.label, confidence: margin, notes: "تم إشراك الجينوم المركزي والعائلة الإدراكية والختم الطيفي والذاكرة الإدراكية حسب حالة الحركة في قرار تحديد الهوية."  }); }
+ `saveCognitiveMatchResult(     targetKey,     actualKey,     winner,     results,     decision,     margin   );    let report =     "🎯 نتيجة اختبار الفصل بالجِينوم المركزي\n\n";    report +=     "زر الاختبار: " +     targetKey +     "\n";    report +=     "المنطوق فعليًا: " +     actualKey +     "\n";    report +=     "العينة أقرب إلى: " +     winner.label +     " (" +     winner.phoneme +     ")\n\n";    report +=     "أقرب حالة داخل الحرف: " +     (winner.matchedStateText || winner.matchedStateKey || "غير محددة") +     "\n\n";    report +=     "ثقة تحديد الحركة: " +     (winner.stateConfidence || 0) +     "\n" +     "هامش الحركة: " +     (winner.stateMargin || 0) +     "\n\n";    results.forEach(function (r, index) {     report +=       (index + 1) +       ") " +       r.label +       " (" +       r.phoneme +       ")" +       " → distance = " +       r.distance.toFixed(4) +       "\n";   });    report +=     "\nهامش الفصل: " +     margin.toFixed(4) +     "\n";    report +=     "قرار الفصل: " +     decision.label +     "\n\n";    report += decision.note;    alert(report);    console.log("🎯 COGNITIVE MATCH SAMPLE SUMMARY:", summary);   console.log("🎯 COGNITIVE MATCH RESULTS:", results);   ` 
+} catch (err) { console.error("❌ فشل اختبار الفصل بالجِينوم المركزي", err);
+ `alert(     "فشل اختبار الفصل بالجِينوم المركزي:\n" +     err.message   );   ` 
+} }
  
-function loadCognitiveIdentity(key) { try { const raw = localStorage.getItem(key + "_cognitive_identity"); `if (!raw) return null;    return JSON.parse(raw);   ` } catch (err) { console.error("❌ فشل تحميل الجينوم:", key, err); return null; } } function loadFamilyContextForMatch(key) { if (typeof buildFamilyDecisionContext === "function") { return buildFamilyDecisionContext(key); }
+function loadCognitiveIdentity(key) { try { const raw = localStorage.getItem(key + "_cognitive_identity");
+ `if (!raw) return null;    return JSON.parse(raw);   ` 
+} catch (err) { console.error("❌ فشل تحميل الجينوم:", key, err); return null; } } function loadFamilyContextForMatch(key) { if (typeof buildFamilyDecisionContext === "function") { return buildFamilyDecisionContext(key); }
  
 return null; }
  
@@ -24,13 +36,17 @@ const cleanLetter = text.replace(/[\u064B-\u065F\u0640]/g, "").trim();
  
 let key = null;
  
-if ( typeof PHONEME_LETTER_DEFINITIONS !== "undefined" && PHONEME_LETTER_DEFINITIONS ) { Object.keys(PHONEME_LETTER_DEFINITIONS).forEach(function (itemKey) { const def = PHONEME_LETTER_DEFINITIONS[itemKey]; ` if (!def) return;      const letter =       String(def.letter || "")         .replace(/[\u064B-\u065F\u0640]/g, "")         .trim();      if (letter === cleanLetter) {       key = itemKey;     }   });  ` }
+if ( typeof PHONEME_LETTER_DEFINITIONS !== "undefined" && PHONEME_LETTER_DEFINITIONS ) { Object.keys(PHONEME_LETTER_DEFINITIONS).forEach(function (itemKey) { const def = PHONEME_LETTER_DEFINITIONS[itemKey];
+ `  if (!def) return;      const letter =       String(def.letter || "")         .replace(/[\u064B-\u065F\u0640]/g, "")         .trim();      if (letter === cleanLetter) {       key = itemKey;     }   });   ` 
+}
  
 let state = null;
  
 if (text.includes("َ")) state = "fatha"; if (text.includes("ِ")) state = "kasra"; if (text.includes("ُ")) state = "damma";
  
-return { key, state, text }; } async function recordMatchSample() { return new Promise(async function (resolve) { try { const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); ` const chunks = [];     const recorder = new MediaRecorder(stream);      recorder.ondataavailable = function (event) {       if (event.data && event.data.size > 0) {         chunks.push(event.data);       }     };      recorder.onstop = function () {       stream.getTracks().forEach(function (track) {         track.stop();       });        const blob = new Blob(chunks, {         type: recorder.mimeType || "audio/webm"       });        resolve(blob);     };      recorder.start();      alert(       "🎙 بدأ التسجيل الآن.\n\n" +       "سيتم الإيقاف تلقائيًا بعد ثانيتين."     );      setTimeout(function () {       if (recorder.state !== "inactive") {         recorder.stop();       }     }, 2000);    } catch (err) {     console.error("❌ فشل التسجيل", err);     resolve(null);   }  ` }); }
+return { key, state, text }; } async function recordMatchSample() { return new Promise(async function (resolve) { try { const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+ `  const chunks = [];     const recorder = new MediaRecorder(stream);      recorder.ondataavailable = function (event) {       if (event.data && event.data.size > 0) {         chunks.push(event.data);       }     };      recorder.onstop = function () {       stream.getTracks().forEach(function (track) {         track.stop();       });        const blob = new Blob(chunks, {         type: recorder.mimeType || "audio/webm"       });        resolve(blob);     };      recorder.start();      alert(       "🎙 بدأ التسجيل الآن.\n\n" +       "سيتم الإيقاف تلقائيًا بعد ثانيتين."     );      setTimeout(function () {       if (recorder.state !== "inactive") {         recorder.stop();       }     }, 2000);    } catch (err) {     console.error("❌ فشل التسجيل", err);     resolve(null);   }   ` 
+}); }
  
 function compareSummaryWithCognitiveGenome(summary, genome) { if (!summary || !genome) { return Infinity; }
  
@@ -110,7 +126,9 @@ total += weightedNormalizedDistance( summary.burstSpread, seal.averageBurstSprea
  
 return total * (seal.confidence || 1); } function loadPerceptualMemoryForMatch(key) { const candidates = [ key + "_perceptual_identity", key + "*memory", "phoneme_memory*" + key, key + "*cumulative_memory", "cognitive_memory*" + key ];
  
-for (const storageKey of candidates) { try { const raw = localStorage.getItem(storageKey); ` if (!raw) continue;      const parsed = JSON.parse(raw);      if (       parsed &&       parsed.perceptualSignature &&       parsed.perceptualSignatureByState     ) {       return parsed;     }      if (       parsed &&       parsed.latestPerceptualIdentity &&       parsed.latestPerceptualIdentity.perceptualSignature &&       parsed.latestPerceptualIdentity.perceptualSignatureByState     ) {       return parsed.latestPerceptualIdentity;     }      if (       parsed &&       parsed.cumulativePerceptualSignature &&       parsed.cumulativePerceptualSignatureByState     ) {       return {         perceptualSignature: parsed.cumulativePerceptualSignature,         perceptualSignatureByState:           parsed.cumulativePerceptualSignatureByState       };     }    } catch (err) {     console.warn(       "⚠️ فشل تحميل الذاكرة الإدراكية:",       storageKey,       err     );   }  ` }
+for (const storageKey of candidates) { try { const raw = localStorage.getItem(storageKey);
+ `  if (!raw) continue;      const parsed = JSON.parse(raw);      if (       parsed &&       parsed.perceptualSignature &&       parsed.perceptualSignatureByState     ) {       return parsed;     }      if (       parsed &&       parsed.latestPerceptualIdentity &&       parsed.latestPerceptualIdentity.perceptualSignature &&       parsed.latestPerceptualIdentity.perceptualSignatureByState     ) {       return parsed.latestPerceptualIdentity;     }      if (       parsed &&       parsed.cumulativePerceptualSignature &&       parsed.cumulativePerceptualSignatureByState     ) {       return {         perceptualSignature: parsed.cumulativePerceptualSignature,         perceptualSignatureByState:           parsed.cumulativePerceptualSignatureByState       };     }    } catch (err) {     console.warn(       "⚠️ فشل تحميل الذاكرة الإدراكية:",       storageKey,       err     );   }   ` 
+}
  
 return null; }
  
@@ -158,7 +176,9 @@ function scorePerceptualMemoryBestState(summary, perceptualMemory) { if ( !summa
  
 const stateMap = perceptualMemory.perceptualSignatureByState; const scores = [];
  
-Object.keys(stateMap).forEach(function (stateKey) { const sig = stateMap[stateKey]; `let total = 0;    total += weightedNormalizedDistance(summary.meanCentroid, sig.centroid?.mean, sig.centroid?.variance, 1.8);   total += weightedNormalizedDistance(summary.meanSpread, sig.spread?.mean, sig.spread?.variance, 1.4);   total += weightedNormalizedDistance(summary.meanEnergy, sig.energy?.mean, sig.energy?.variance, 1.2);   total += weightedNormalizedDistance(summary.meanZcr, sig.zcr?.mean, sig.zcr?.variance, 1.1);   total += weightedNormalizedDistance(summary.duration, sig.duration?.mean, sig.duration?.variance, 1.2);    scores.push({     distance: total,     stateKey: stateKey,     stateText: sig.text || stateKey,     stateRole: sig.role || null   });   ` });
+Object.keys(stateMap).forEach(function (stateKey) { const sig = stateMap[stateKey];
+ `let total = 0;    total += weightedNormalizedDistance(summary.meanCentroid, sig.centroid?.mean, sig.centroid?.variance, 1.8);   total += weightedNormalizedDistance(summary.meanSpread, sig.spread?.mean, sig.spread?.variance, 1.4);   total += weightedNormalizedDistance(summary.meanEnergy, sig.energy?.mean, sig.energy?.variance, 1.2);   total += weightedNormalizedDistance(summary.meanZcr, sig.zcr?.mean, sig.zcr?.variance, 1.1);   total += weightedNormalizedDistance(summary.duration, sig.duration?.mean, sig.duration?.variance, 1.2);    scores.push({     distance: total,     stateKey: stateKey,     stateText: sig.text || stateKey,     stateRole: sig.role || null   });   ` 
+});
  
 scores.sort(function (a, b) { return a.distance - b.distance; });
  
@@ -226,31 +246,18 @@ const box = document.getElementById("match-results-log-box");
  
 if (!box) return;
  
-let html = ` <h3 style="margin-top:0;">   📊 سجل اختبارات الفصل   ${filterKey ? " — " + filterKey : ""}   </h3> `;
+let html = `  <h3 style="margin-top:0;">   📊 سجل اختبارات الفصل   ${filterKey ? " — " + filterKey : ""}   </h3>  `;
  
 if (!results.length) { box.innerHTML = html + `<div>لا توجد نتائج محفوظة لهذه الحقيبة بعد.</div>`; return; }
  
-results.forEach(function (r, index) { const ok = r.actualKey && r.detectedKey && r.actualKey === r.detectedKey; `html += `     <div style="       background:#111827;       padding:10px;       border-radius:10px;       margin:8px 0;       border-left:5px solid ${ok ? "#22c55e" : "#ef4444"};     ">       
-#${index + 1}
-       
-زر الاختبار: **${r.buttonKey || "غير محدد"}**
-       
-المنطوق فعليًا: **${r.actualKey || "غير محدد"}**
-       
-المكتشف: **${r.detectedLabel}**
-       
-النتيجة: **${ok ? "✅ صحيح" : "❌ خطأ"}**
-       
-هامش الفصل: **${r.margin}**
-       
-القرار: **${r.decision}**
-        `;   ` });
+results.forEach(function (r, index) { const ok = r.actualKey && r.detectedKey && r.actualKey === r.detectedKey;
+ `html += `     <div style="       background:#111827;       padding:10px;       border-radius:10px;       margin:8px 0;       border-left:5px solid ${ok ? "#22c55e" : "#ef4444"};     ">       <div>#${index + 1}</div>       <div>زر الاختبار: <b>${r.buttonKey || "غير محدد"}</b></div>       <div>المنطوق فعليًا: <b>${r.actualKey || "غير محدد"}</b></div>       <div>المكتشف: <b>${r.detectedLabel}</b></div>       <div>النتيجة: <b>${ok ? "✅ صحيح" : "❌ خطأ"}</b></div>       <div>هامش الفصل: <b>${r.margin}</b></div>       <div>القرار: <b>${r.decision}</b></div>     </div>   `;   ` 
+});
  
-html += `   نسبة النجاح لهذه الحقيبة: **${accuracy}%**   `
-     متوسط هامش الفصل الصحيح:     **${avgCorrectMargin}**   
-    
-     عدد اختبارات هذه الحقيبة:     **${results.length}**   
-   `    `;
+html += ` 
+ نسبة النجاح لهذه الحقيبة: **${accuracy}%** 
+ `<div style="margin-top:8px;">     متوسط هامش الفصل الصحيح:     <b style="color:#38bdf8;">${avgCorrectMargin}</b>   </div>    <div style="margin-top:8px;">     عدد اختبارات هذه الحقيبة:     <b>${results.length}</b>   </div>   ` 
+`;
  
 box.innerHTML = html; }
  
@@ -258,7 +265,7 @@ function clearCognitiveMatchResultsLog() { localStorage.removeItem("cognitive_ma
  
 const box = document.getElementById("match-results-log-box");
  
-if (box) { box.innerHTML = ` <h3 style="margin-top:0;">   📊 سجل اختبارات الفصل   </h3>   <div>لا توجد نتائج محفوظة بعد.</div> `; }
+if (box) { box.innerHTML = `  <h3 style="margin-top:0;">   📊 سجل اختبارات الفصل   </h3>   <div>لا توجد نتائج محفوظة بعد.</div>  `; }
  
 alert("تم حذف سجل اختبارات الفصل بنجاح."); }
  
@@ -269,9 +276,3 @@ window.startPhonemeMatchTest = startPhonemeMatchTest;
 window.renderMatchResultsLog = renderMatchResultsLog;
  
 console.log("🎯 محرك الفصل بالجِينوم المركزي جاهز");
- 
-
- 
- 
-
- 
