@@ -1014,26 +1014,33 @@ function saveCognitiveMatchResult(
     localStorage.getItem(logKey) || "[]"
   );
 
+  oldLog.push({
+  buttonKey: buttonKey,
+
   actualKey: actual.key,
-actualText: actual.text,
-actualState: actual.state,
-detectedStateKey: winner.matchedStateKey,
-detectedStateText: winner.matchedStateText,
-isCorrect:
-  actual.key === winner.key &&
-  String(winner.matchedStateKey || "").includes(actual.state),
-    margin: Number(margin.toFixed(4)),
-    decision: decision.label,
-    results: results.map(function (r) {
-      return {
-        key: r.key,
-        label: r.label,
-        phoneme: r.phoneme,
-        distance: Number(r.distance.toFixed(4))
-      };
-    }),
-    createdAt: new Date().toISOString()
-  });
+  actualText: actual.text,
+  actualState: actual.state,
+
+  detectedKey: winner.key,
+  detectedLabel: winner.label,
+  detectedPhoneme: winner.phoneme,
+
+  detectedStateKey: winner.matchedStateKey,
+  detectedStateText: winner.matchedStateText,
+
+  isCorrect:
+    actual.key === winner.key &&
+    String(winner.matchedStateKey || "").includes(actual.state),
+
+  margin: Number(margin.toFixed(4)),
+  decision: decision.label,
+
+  results: results.map(function (r) {
+    ...
+  }),
+
+  createdAt: new Date().toISOString()
+});
 
   localStorage.setItem(
     logKey,
