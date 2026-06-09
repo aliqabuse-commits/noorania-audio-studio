@@ -855,15 +855,20 @@ function scoreIdentityBestState(summary, identity, perceptualMemory) {
     const genomeState = genomeByState[stateKey];
     const memoryState = memoryByState[stateKey];
 
-    const text = genomeState?.text || memoryState?.text || stateKey;
+    const text =
+  genomeState?.hmal ||
+  memoryState?.hmal ||
+  genomeState?.text ||
+  memoryState?.text ||
+  stateKey;
 
     // قرار الحركة فقط: نستبعد السكون المركب مثل تَتْ / تُتْ
     if (
-      String(text || "").includes("ْ") ||
-      String(stateKey || "").includes("sukoon")
-    ) {
-      return;
-    }
+  String(stateKey || "").includes("sukoon") ||
+  String(genomeState?.role || memoryState?.role || "").includes("sukoon")
+) {
+  return;
+}
 
     let genomeDistance = 0;
     let memoryDistance = 0;
