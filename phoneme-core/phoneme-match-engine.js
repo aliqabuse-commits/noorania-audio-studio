@@ -216,17 +216,23 @@ JSON.stringify(winner.stateDebug || {}, null, 2) +
 "\n\n";
 
     results.forEach(function (r, index) {
-      report +=
-        (index + 1) +
-        ") " +
-        r.label +
-        " (" +
-        r.phoneme +
-        ")" +
-        " → distance = " +
-        r.distance.toFixed(4) +
-        "\n";
-    });
+  report +=
+    (index + 1) +
+    ") " +
+    r.label +
+    " (" +
+    r.phoneme +
+    ")" +
+    " → distance = " +
+    r.distance.toFixed(4) +
+    "\n";
+
+  report +=
+    "genome = " + r.genomeDistance.toFixed(4) +
+    " | seal = " + r.sealDistance.toFixed(4) +
+    " | state = " + r.stateDistance.toFixed(4) +
+    "\n\n";
+});
 
     report +=
       "\nهامش الفصل: " +
