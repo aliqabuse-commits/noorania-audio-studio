@@ -106,6 +106,7 @@ console.log(
     stateConfidence: stateDecision.confidence,
     stateMargin: stateDecision.stateMargin,
     stateScores: stateDecision.allStateScores,
+    stateDebug: stateDecision.debug,
 
     distance:
       compareSummaryWithFamilyAwareGenome(
