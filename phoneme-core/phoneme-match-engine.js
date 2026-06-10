@@ -175,7 +175,9 @@ async function startPhonemeMatchTest(targetKey) {
       "زر الاختبار: " +
       targetKey +
       "\n";
-
+report += "\n";
+report += JSON.stringify(summary, null, 2);
+report += "\n\n";
     report +=
       "المنطوق فعليًا: " +
       actual.text +
