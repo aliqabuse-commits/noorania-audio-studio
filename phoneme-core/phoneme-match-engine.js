@@ -812,7 +812,11 @@ function scorePerceptualMemoryBestState(summary, perceptualMemory) {
     scores.push({
       distance: total,
       stateKey: stateKey,
-      stateText: sig.text || stateKey,
+      stateText:
+  sig.hmal ||
+  sig.haml ||
+  sig.text ||
+  stateKey,
       stateRole: sig.role || null
     });
   });
@@ -860,7 +864,14 @@ function scoreIdentityBestState(summary, identity, perceptualMemory) {
     const genomeState = genomeByState[stateKey];
     const memoryState = memoryByState[stateKey];
 
-    const text = genomeState?.text || memoryState?.text || stateKey;
+    const text =
+  genomeState?.hmal ||
+  genomeState?.haml ||
+  genomeState?.text ||
+  memoryState?.hmal ||
+  memoryState?.haml ||
+  memoryState?.text ||
+  stateKey;
 
     // قرار الحركة فقط: نستبعد السكون المركب مثل تَتْ / تُتْ
     if (
