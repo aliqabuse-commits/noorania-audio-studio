@@ -1014,12 +1014,6 @@ function getAudioPromiseForMemory(key, timeoutMs) {
 
 function persistTrainingAudioToLocalStorage(key, blob) {
   try {
-    const existing =
-      localStorage.getItem("audio_" + key) ||
-      localStorage.getItem(key);
-
-    if (existing && existing.startsWith("data:")) return;
-
     const reader = new FileReader();
 
     reader.onload = function () {
@@ -1029,19 +1023,19 @@ function persistTrainingAudioToLocalStorage(key, blob) {
         if (typeof dataUrl === "string" && dataUrl.startsWith("data:")) {
           localStorage.setItem("audio_" + key, dataUrl);
           localStorage.setItem(key, dataUrl);
-          console.log("💾 تم تثبيت التسجيل بعد القراءة:", key);
+
+          console.log("💾 تم حفظ آخر تسجيل للحقيبة:", key);
         }
       } catch (err) {
-        console.warn("⚠️ تعذر تثبيت التسجيل:", key, err);
+        console.warn("⚠️ تعذر حفظ آخر تسجيل:", key, err);
       }
     };
 
     reader.readAsDataURL(blob);
   } catch (err) {
-    console.warn("⚠️ فشل تثبيت التسجيل:", key, err);
+    console.warn("⚠️ فشل حفظ آخر تسجيل:", key, err);
   }
 }
-
 
 function getTrainingAudioFromLocalStorage(fileName) {
   const dataUrl =
