@@ -242,7 +242,7 @@ if (typeof buildFamilyDecisionForPhoneme === "function") {
       units: cognitiveUnits.map(function (u) {
         return {
           id: u.id,
-          text: u.text,
+          text: u.hmal || u.haml || u.text,
           file: u.file,
           role: u.role,
           description: u.description,
