@@ -859,11 +859,10 @@ function scoreIdentityBestState(summary, identity, perceptualMemory) {
 
     // قرار الحركة فقط: نستبعد السكون المركب مثل تَتْ / تُتْ
     if (
-      String(text || "").includes("ْ") ||
-      String(stateKey || "").includes("sukoon")
-    ) {
-      return;
-    }
+  String(stateKey || "").includes("sukoon")
+) {
+  return;
+}
 
     let genomeDistance = 0;
     let memoryDistance = 0;
