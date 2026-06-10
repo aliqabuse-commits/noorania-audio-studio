@@ -933,7 +933,12 @@ if (!genomeKeys.length) {
       memoryDistance += weightedNormalizedDistance(summary.meanZcr, memoryState.zcr?.mean, memoryState.zcr?.variance, 1.1);
       memoryDistance += weightedNormalizedDistance(summary.duration, memoryState.duration?.mean, memoryState.duration?.variance, 1.2);
     }
-
+alert(
+  stateKey +
+  "\ntext = " + text +
+  "\ndistance = " +
+  (genomeDistance + memoryDistance).toFixed(4)
+);
     scores.push({
       stateKey,
       stateText: text,
