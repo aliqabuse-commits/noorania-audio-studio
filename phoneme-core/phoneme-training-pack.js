@@ -415,7 +415,17 @@ function createPhonemeTrainingPack(config) {
     colorData && colorData.colorName
       ? colorData.colorName
       : config.colorName || "Noorani Color";
+const normalizedPositions =
+  (config.positions || generateStandardPositions(config)).map(function (p) {
+    const label = p.hmal || p.haml || p.text;
 
+    return {
+      ...p,
+      hmal: label,
+      haml: label,
+      text: label
+    };
+  });
   return {
     key: config.key,
     letter: config.letter,
