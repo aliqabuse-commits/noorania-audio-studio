@@ -180,7 +180,7 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
 
       cognitiveUnits.push({
         id: unit.id || unit.file.replace(/\.[^.]+$/, ""),
-        text: unit.text,
+        text: unit.hmal || unit.haml || unit.text,
         file: unit.file,
         role: unit.role,
         description: unit.description || "",
@@ -297,7 +297,7 @@ function saveCognitiveIdentityAndCumulativeMemory(phonemeKey, identity) {
   units: (identity.units || []).map(function (u) {
     return {
       id: u.id,
-      text: u.text,
+      text: u.hmal || u.haml || u.text,
       file: u.file,
       role: u.role,
       description: u.description,
@@ -817,7 +817,7 @@ function buildCognitiveGenomeByState(units) {
     const summary = unit.summary;
 
     byState[key] = {
-      text: unit.text,
+     text: unit.hmal || unit.haml || unit.text,
       role: unit.role,
       file: unit.file,
       duration: statCognitive([summary.duration]),
@@ -889,7 +889,7 @@ function buildUnitDecisionTrace(unit, summary, phases) {
   return {
     unit: unit.id || unit.file,
     role: unit.role,
-    text: unit.text,
+    text: unit.hmal || unit.haml || unit.text,
     phaseQuality: summary.phaseQuality,
     warnings,
     usableForDecision: warnings.length === 0
