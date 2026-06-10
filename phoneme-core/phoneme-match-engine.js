@@ -43,7 +43,8 @@ async function startPhonemeMatchTest(targetKey) {
     const decoded = await decodeCognitiveBlob(blob);
     const timeline = buildCognitiveTimeline(decoded.samples, decoded.sampleRate);
     const phases = detectCognitivePhases(timeline);
-    const summary = summarizeCognitiveTimeline(timeline, phases);
+    const sampleProfile =
+  buildSampleIdentityProfile(summary, phases);
 
     const actual = askActualSpokenKey();
 
@@ -58,22 +59,19 @@ async function startPhonemeMatchTest(targetKey) {
       const familyContext = loadFamilyContextForMatch(identity.phonemeKey);
       const perceptualMemory = loadPerceptualMemoryForMatch(identity.phonemeKey);
 
-      const stateDecision =
-        scoreIdentityBestState(summary, identity, perceptualMemory);
+const stateDecision =
+  scoreIdentityBestState(summary, identity, perceptualMemory);
 
-      const genomeDistance =
-        compareSummaryWithFamilyAwareGenome(
-          summary,
-          identity.genome,
-          familyContext
-        );
+const identityMatch =
+  compareSampleProfileWithStoredIdentity(
+    sampleProfile,
+    identity,
+    familyContext,
+    perceptualMemory,
+    stateDecision
+  );
 
-      const sealDistance =
-        scoreSpectralSealDistance(summary, identity.genome);
-
-      const stateDistance = stateDecision.distance;
-
-      return {
+return {
         key: identity.phonemeKey,
         phoneme: identity.phoneme,
         label: identity.label,
@@ -87,14 +85,16 @@ async function startPhonemeMatchTest(targetKey) {
         stateScores: stateDecision.allStateScores,
         stateDebug: stateDecision.debug,
 
-        genomeDistance,
-        sealDistance,
-        stateDistance,
+        genomeDistance: identityMatch.parts.genome,
+sealDistance: identityMatch.parts.seal,
+stateDistance: identityMatch.parts.state,
+familyDistance: identityMatch.parts.family,
+memoryDistance: identityMatch.parts.memory,
+absenceDistance: identityMatch.parts.absence,
 
-        distance:
-          genomeDistance +
-          sealDistance +
-          stateDistance
+identityMatch,
+
+distance: identityMatch.total
       };
     });
 
@@ -184,6 +184,9 @@ async function startPhonemeMatchTest(targetKey) {
         "   genome = " + safeFixed(r.genomeDistance, 4) +
         " | seal = " + safeFixed(r.sealDistance, 4) +
         " | state = " + safeFixed(r.stateDistance, 4) +
+" | memory = " + safeFixed(r.memoryDistance, 4) +
+" | family = " + safeFixed(r.familyDistance, 4) +
+" | absence = " + safeFixed(r.absenceDistance, 4) +
         "\n\n";
     });
 
@@ -531,7 +534,145 @@ if (!text) return;
     debug
   };
 }
+function buildSampleIdentityProfile(summary, phases) {
+  return {
+    source: "match-sample",
+    genomeLike: {
+      energy: summary.meanEnergy,
+      centroid: summary.meanCentroid,
+      spread: summary.meanSpread,
+      zcr: summary.meanZcr,
+      duration: summary.duration,
+      burstEnergy: summary.burstEnergy,
+      burstCentroid: summary.burstCentroid,
+      burstSpread: summary.burstSpread,
+      energyMovement: summary.energyMovement,
+      spectralMovement: summary.spectralMovement,
+      phaseQuality: summary.phaseQuality
+    },
+    hasSpectralShape:
+      Number(summary.meanCentroid || 0) > 0 &&
+      Number(summary.meanSpread || 0) > 0,
+    hasBurst:
+      Number(summary.burstEnergy || 0) > 0,
+    hasTimeline:
+      Number(summary.duration || 0) > 0 &&
+      Number(summary.phaseQuality || 0) > 0,
+    phases: phases || null
+  };
+}
 
+
+function compareSampleProfileWithStoredIdentity(
+  sampleProfile,
+  identity,
+  familyContext,
+  perceptualMemory,
+  stateDecision
+) {
+  const genome = identity?.genome || {};
+  const seal = genome?.spectralSeal || null;
+
+  const genomeDistance =
+    compareSummaryWithFamilyAwareGenome(
+      profileToSummary(sampleProfile),
+      genome,
+      familyContext
+    );
+
+  const sealDistance =
+    seal
+      ? scoreSpectralSealDistance(
+          profileToSummary(sampleProfile),
+          genome
+        )
+      : knowledgeAbsenceDistance(
+          sampleProfile.hasSpectralShape,
+          false,
+          2.0
+        );
+
+  const stateDistance =
+    Number(stateDecision?.distance || 0) * 0.35;
+
+  const memoryDistance =
+    perceptualMemory?.perceptualSignature
+      ? scorePerceptualMemoryDistance(
+          profileToSummary(sampleProfile),
+          perceptualMemory
+        ) * 0.25
+      : knowledgeAbsenceDistance(true, false, 1.0);
+
+  const familyDistance =
+    scoreFamilyPresenceDistance(identity, familyContext);
+
+  const absenceDistance =
+    scoreIdentityKnowledgeAbsence(sampleProfile, identity);
+
+  const total =
+    genomeDistance +
+    sealDistance +
+    stateDistance +
+    memoryDistance +
+    familyDistance +
+    absenceDistance;
+
+  return {
+    total,
+    parts: {
+      genome: genomeDistance,
+      seal: sealDistance,
+      state: stateDistance,
+      memory: memoryDistance,
+      family: familyDistance,
+      absence: absenceDistance
+    }
+  };
+}
+
+
+function profileToSummary(profile) {
+  const g = profile?.genomeLike || {};
+
+  return {
+    meanEnergy: g.energy,
+    meanCentroid: g.centroid,
+    meanSpread: g.spread,
+    meanZcr: g.zcr,
+    duration: g.duration,
+    burstEnergy: g.burstEnergy,
+    burstCentroid: g.burstCentroid,
+    burstSpread: g.burstSpread,
+    energyMovement: g.energyMovement,
+    spectralMovement: g.spectralMovement,
+    phaseQuality: g.phaseQuality
+  };
+}
+
+
+function knowledgeAbsenceDistance(sampleHas, storedHas, weight) {
+  if (sampleHas === storedHas) return 0;
+  return Number(weight || 1);
+}
+
+
+function scoreFamilyPresenceDistance(identity, familyContext) {
+  if (!familyContext && !identity?.familyDecision) return 1.5;
+  return 0;
+}
+
+
+function scoreIdentityKnowledgeAbsence(sampleProfile, identity) {
+  let total = 0;
+
+  if (!identity?.genome) total += 10;
+  if (!identity?.genomeByState) total += 2;
+  if (!identity?.genome?.spectralSeal && sampleProfile.hasSpectralShape) {
+    total += 2;
+  }
+
+  return total;
+}
 function weightedNormalizedDistance(value, mean, variance, weight) {
   value = Number(value || 0);
   mean = Number(mean || 0);
