@@ -203,10 +203,12 @@ report += "\n\n";
     report +=
       "ثقة تحديد الحركة: " +
       (winner.stateConfidence || 0) +
-      "\n" +
-      "هامش الحركة: " +
-      (winner.stateMargin || 0) +
-      "\n\n";
+      "\n" +"هامش الحركة: " +
+(winner.stateMargin || 0) +
+"\n" +
+"فحص الحالات: " +
+JSON.stringify(winner.stateDebug || {}, null, 2) +
+"\n\n";
 
     results.forEach(function (r, index) {
       report +=
@@ -864,9 +866,33 @@ function scorePerceptualMemoryBestState(summary, perceptualMemory) {
 
 function scoreIdentityBestState(summary, identity, perceptualMemory) {
   const genomeByState = identity?.genomeByState || {};
-  const memoryByState = perceptualMemory?.perceptualSignatureByState || {};
-  const scores = [];
+const memoryByState = perceptualMemory?.perceptualSignatureByState || {};
 
+const genomeKeys = Object.keys(genomeByState);
+const memoryKeys = Object.keys(memoryByState);
+
+const debug = {
+  phonemeKey: identity?.phonemeKey || null,
+  genomeByStateCount: genomeKeys.length,
+  genomeByStateKeys: genomeKeys,
+  memoryByStateCount: memoryKeys.length,
+  memoryByStateKeys: memoryKeys
+};
+
+const scores = [];
+
+if (!genomeKeys.length) {
+  return {
+    distance: scorePerceptualMemoryDistance(summary, perceptualMemory),
+    stateKey: null,
+    stateText: null,
+    stateRole: null,
+    confidence: 0,
+    stateMargin: 0,
+    allStateScores: [],
+    debug
+  };
+}
   Object.keys(genomeByState).forEach(function (stateKey) {
     const genomeState = genomeByState[stateKey];
     const memoryState = memoryByState[stateKey];
@@ -936,16 +962,17 @@ function scoreIdentityBestState(summary, identity, perceptualMemory) {
   const margin = second ? second.distance - best.distance : 0;
 
   return {
-    distance: best.distance,
-    stateKey: best.stateKey,
-    stateText: best.stateText,
-    stateRole: best.stateRole,
-    stateMargin: Number(margin.toFixed(4)),
-    confidence: second
-      ? Number((margin / Math.max(best.distance, 0.0001)).toFixed(4))
-      : 1,
-    allStateScores: scores
-  };
+  distance: best.distance,
+  stateKey: best.stateKey,
+  stateText: best.stateText,
+  stateRole: best.stateRole,
+  stateMargin: Number(margin.toFixed(4)),
+  confidence: second
+    ? Number((margin / Math.max(best.distance, 0.0001)).toFixed(4))
+    : 1,
+  allStateScores: scores,
+  debug
+};
 }
 
 function weightedNormalizedDistance(value, mean, variance, weight) {
