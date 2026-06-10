@@ -94,7 +94,21 @@ console.log(
 );
   const stateDecision =
     scoreIdentityBestState(summary, identity, perceptualMemory);
+const genomeDistance =
+  compareSummaryWithFamilyAwareGenome(
+    summary,
+    identity.genome,
+    familyContext
+  );
 
+const sealDistance =
+  scoreSpectralSealDistance(
+    summary,
+    identity.genome
+  );
+
+const stateDistance =
+  stateDecision.distance;
   return {
     key: identity.phonemeKey,
     phoneme: identity.phoneme,
@@ -109,18 +123,9 @@ console.log(
     stateDebug: stateDecision.debug,
 
     distance:
-      compareSummaryWithFamilyAwareGenome(
-        summary,
-        identity.genome,
-        familyContext
-      )
-      +
-      scoreSpectralSealDistance(
-        summary,
-        identity.genome
-      )
-      +
-      stateDecision.distance
+  genomeDistance +
+  sealDistance +
+  stateDistance
   };
 });
 
