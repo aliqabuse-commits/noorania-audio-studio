@@ -760,14 +760,14 @@ function scorePerceptualMemoryDistanceByState(
   const sig = stateMap[stateKey];
 if (
   String(
-  sig.hmal ||
-  sig.haml ||
-  sig.text ||
-  ""
-).includes("ْ") ||
+    sig.hmal ||
+    sig.haml ||
+    sig.text ||
+    ""
+  ).includes("ْ") ||
   String(stateKey || "").includes("sukoon")
 ) {
-  return;
+  return Infinity;
 }
   let total = 0;
 
