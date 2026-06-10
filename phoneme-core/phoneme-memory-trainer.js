@@ -166,7 +166,8 @@ async function trainPhonemeMemory(phonemeKey) {
         ? pack.positions.map(function (p) {
             return {
               id: p.id || p.file.replace(/\.[^.]+$/, ""),
-              text: p.text,
+              hmal: p.hmal || p.haml || p.text,
+text: p.hmal || p.haml || p.text,
               file: p.file,
               role: p.role,
               description: p.description || ""
@@ -211,7 +212,8 @@ async function trainPhonemeMemory(phonemeKey) {
 
       samples.push({
         id: unit.id || unit.file.replace(/\.[^.]+$/, ""),
-        text: unit.text,
+        hmal: unit.hmal || unit.haml || unit.text,
+text: unit.hmal || unit.haml || unit.text,
         file: unit.file,
         role: unit.role,
         description: unit.description || "",
@@ -420,7 +422,8 @@ function buildPerceptualIdentity(memory, samples) {
     trainingUnits: samples.map(function (s) {
       return {
         id: s.id,
-        text: s.text,
+        hmal: s.hmal || s.haml || s.text,
+text: s.hmal || s.haml || s.text,
         file: s.file,
         role: s.role,
         description: s.description,
