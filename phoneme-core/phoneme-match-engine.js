@@ -87,7 +87,11 @@ async function startPhonemeMatchTest(targetKey) {
     loadPerceptualMemoryForMatch(
       identity.phonemeKey
     );
-
+console.log(
+  "STATE GENOME",
+  identity.phonemeKey,
+  Object.keys(identity.genomeByState || {})
+);
   const stateDecision =
     scoreIdentityBestState(summary, identity, perceptualMemory);
 
