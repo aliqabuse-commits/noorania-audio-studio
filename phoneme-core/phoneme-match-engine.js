@@ -866,6 +866,10 @@ function scorePerceptualMemoryBestState(summary, perceptualMemory) {
 
 function scoreIdentityBestState(summary, identity, perceptualMemory) {
   const genomeByState = identity?.genomeByState || {};
+  alert(
+  "genomeByState keys:\n\n" +
+  Object.keys(genomeByState).join("\n")
+);
 const memoryByState = perceptualMemory?.perceptualSignatureByState || {};
 
 const genomeKeys = Object.keys(genomeByState);
