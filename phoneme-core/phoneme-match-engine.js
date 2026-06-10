@@ -480,7 +480,7 @@ function scoreIdentityBestState(summary, identity, perceptualMemory) {
       memoryDistance += weightedNormalizedDistance(summary.meanZcr, memoryState.zcr?.mean, memoryState.zcr?.variance, 1.1);
       memoryDistance += weightedNormalizedDistance(summary.duration, memoryState.duration?.mean, memoryState.duration?.variance, 1.2);
     }
-
+if (!text) return;
     scores.push({
       stateKey,
       stateText: text,
@@ -520,8 +520,13 @@ function scoreIdentityBestState(summary, identity, perceptualMemory) {
     stateRole: best.stateRole,
     stateMargin: Number(margin.toFixed(4)),
     confidence: second
-      ? Number((margin / Math.max(best.distance, 0.0001)).toFixed(4))
-      : 1,
+  ? Number(
+      (
+        margin /
+        Math.max(second.distance, 0.0001)
+      ).toFixed(4)
+    )
+  : 1,
     allStateScores: scores,
     debug
   };
