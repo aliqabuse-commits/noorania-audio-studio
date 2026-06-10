@@ -448,10 +448,7 @@ const normalizedPositions =
       config.name +
       "، وتُربط بلون إدراكي واحد.",
 
-    positions:
-      config.positions ||
-      generateStandardPositions(config),
-
+    positions: normalizedPositions,
     perceptualNotes: config.notes || [
       "المطلوب إدراك صوت الحرف لا صوت القارئ",
       "اللون يمثل هوية الحرف الإدراكية",
