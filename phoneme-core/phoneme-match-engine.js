@@ -73,7 +73,6 @@ const timelineKnowledge =
   );
 
       return {
-  key:return {
   key: identity.phonemeKey,
   phoneme: identity.phoneme,
   label: identity.label,
@@ -324,8 +323,10 @@ function compareIdentityMap(
   identity,
   familyContext,
   perceptualMemory,
+  timelineKnowledge,
   stateDecision
-) {
+)
+{
   const genome = identity?.genome || {};
   const hasGenome = !!identity?.genome;
   const hasSeal = !!genome?.spectralSeal;
