@@ -427,14 +427,11 @@ function compareIdentityMap(
       hasFamily
     });
 // خريطة هوية الحرف لا تُجمع
-const identityMapDecision =
-  judgeIdentityByCoordinateMap({
-    genome: genomeDistance,
-    seal: sealDistance,
-    memory: memoryDistance,
-    family: familyDistance,
-    absence: absenceDistance
-  });
+judgeIdentityByCoordinateMap({
+  genome: genomeDistance,
+  seal: sealDistance,
+  memory: memoryDistance
+});
 
   return {
   total: identityMapDecision.rank,
@@ -769,11 +766,12 @@ function applyPerceptualFamilyDecision(results, summary) {
 
   if (!decision || !decision.applied) return;
 
-  first.distance += decision.firstPenalty;
-  second.distance += decision.secondPenalty;
-
   first.familyDecision = decision;
-  second.familyDecision = decision;
+second.familyDecision = decision;
+
+if (decision.winnerKey) {
+  first.familyWinner = decision.winnerKey === first.key;
+  second.familyWinner = decision.winnerKey === second.key;
 }
 
 
@@ -862,7 +860,12 @@ function resolveFamilyConfusionByDecisiveTraits(summary, first, second) {
       reason: "لم نجد أرقاماً فارقة كافية داخل المعارف المخزنة."
     };
   }
-
+const winnerKey =
+  firstPenalty < secondPenalty
+    ? first.key
+    : secondPenalty < firstPenalty
+      ? second.key
+      : null;
   return {
     applied: true,
     method: "perceptual-family-decisive-traits",
@@ -871,6 +874,7 @@ function resolveFamilyConfusionByDecisiveTraits(summary, first, second) {
     usedKnowledge: used,
     firstPenalty,
     secondPenalty,
+winnerKey,
     note:
       "تم استدعاء العائلة الإدراكية عند الاشتباه، واستُعملت الصفات الفارقة فقط."
   };
