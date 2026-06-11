@@ -651,6 +651,35 @@ function weightedNormalizedDistance(value, mean, variance, weight) {
 
   return (Math.abs(value - mean) / tolerance) * weight;
 }
+// تحميل معرفة المسار الزمني للحرف
+function loadTimelineKnowledgeForMatch(key) {
+  const candidates = [
+    key + "_timeline_genome",
+    "timeline_genome_" + key,
+    key + "_timeline_identity",
+    "phoneme_timeline_" + key,
+    "cognitive_timeline_" + key
+  ];
+
+  for (const storageKey of candidates) {
+    try {
+      const raw = localStorage.getItem(storageKey);
+
+      if (!raw) continue;
+
+      return JSON.parse(raw);
+
+    } catch (err) {
+      console.warn(
+        "⚠️ فشل تحميل الجينوم الزمني:",
+        storageKey,
+        err
+      );
+    }
+  }
+
+  return null;
+}
 // ======================================
 // العائلة الإدراكية:
 // لا تضيف رقماً عاماً.
