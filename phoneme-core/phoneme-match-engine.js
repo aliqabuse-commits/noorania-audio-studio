@@ -879,45 +879,53 @@ function buildNumericIdentityMapForDecision(result) {
     map.timelineRelease = timeSummary.release?.index?.mean;
   }
 
-  return map;
-}
-
-
+  
+// ربط الصفات الفارقة بالمقاييس الرقمية
 function mapTraitToNumericMetrics(trait) {
   const map = {
     burst: [
       "burstEnergy",
       "burstCentroid",
       "energyMovement",
-      "timelineBurst"
+      "timelineBurst",
+      "sealBurstCentroid",
+      "sealBurstSpread"
     ],
 
     frication: [
       "zcr",
       "spread",
-      "spectralMovement"
+      "spectralMovement",
+      "sealSpread"
     ],
 
     voiced: [
       "energy",
-      "zcr"
+      "zcr",
+      "memoryEnergy",
+      "memoryZcr"
     ],
 
     hams: [
       "zcr",
-      "energy"
+      "energy",
+      "memoryZcr",
+      "memoryEnergy"
     ],
 
     tafkheem: [
       "centroid",
       "spread",
       "sealCentroid",
-      "sealSpread"
+      "sealSpread",
+      "memoryCentroid",
+      "memorySpread"
     ],
 
     place: [
       "centroid",
       "burstCentroid",
+      "sealCentroid",
       "sealBurstCentroid",
       "timelineOnset",
       "timelineBurst"
@@ -933,7 +941,9 @@ function mapTraitToNumericMetrics(trait) {
       "centroid",
       "spread",
       "zcr",
-      "spectralMovement"
+      "spectralMovement",
+      "sealCentroid",
+      "sealSpread"
     ],
 
     breathy: [
@@ -972,13 +982,13 @@ function mapTraitToNumericMetrics(trait) {
 
     spreading: [
       "spread",
-      "spectralMovement"
+      "spectralMovement",
+      "sealSpread"
     ]
   };
 
   return map[trait] || [];
 }
-
 
 function isFiniteNumber(value) {
   return typeof value === "number" && Number.isFinite(value);
