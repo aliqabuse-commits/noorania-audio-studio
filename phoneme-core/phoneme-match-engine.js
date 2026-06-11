@@ -5,6 +5,8 @@
 
 console.log("🎯 phoneme-match-engine.js جاهز — Identity Map Clean");
 
+
+// مفاتيح الحروف المتاحة للاختبار
 function getAvailablePhonemeKeysForMatch() {
   if (
     typeof PHONEME_LETTER_DEFINITIONS !== "undefined" &&
@@ -16,6 +18,8 @@ function getAvailablePhonemeKeysForMatch() {
   return ["ba", "qaf"];
 }
 
+
+// اختبار تحديد هوية الحرف
 async function startPhonemeMatchTest(targetKey) {
   try {
     const identities = getAvailablePhonemeKeysForMatch();
@@ -45,6 +49,8 @@ async function startPhonemeMatchTest(targetKey) {
     const phases = detectCognitivePhases(timeline);
     const summary = summarizeCognitiveTimeline(timeline, phases);
 
+    summary.__phases = phases;
+
     const actual = askActualSpokenKey();
 
     if (!actual) {
@@ -57,94 +63,64 @@ async function startPhonemeMatchTest(targetKey) {
     const results = availableIdentities.map(function (identity) {
       const familyContext = loadFamilyContextForMatch(identity.phonemeKey);
       const perceptualMemory = loadPerceptualMemoryForMatch(identity.phonemeKey);
-const timelineKnowledge =
-  loadTimelineKnowledgeForMatch(identity.phonemeKey);
+      const timelineKnowledge = loadTimelineKnowledgeForMatch(identity.phonemeKey);
+
       const stateDecision =
         scoreIdentityBestState(summary, identity, perceptualMemory);
 
       const identityScore =
-  compareIdentityMap(
-    summary,
-    identity,
-    familyContext,
-    perceptualMemory,
-    timelineKnowledge,
-    stateDecision
-  );
+        compareIdentityMap(
+          summary,
+          identity,
+          familyContext,
+          perceptualMemory,
+          timelineKnowledge,
+          stateDecision
+        );
 
       return {
-  key: identity.phonemeKey,
-  phoneme: identity.phoneme,
-  label: identity.label,
-  color: identity.color,
+        key: identity.phonemeKey,
+        phoneme: identity.phoneme,
+        label: identity.label,
+        color: identity.color,
 
-  // ======================================
-  // مراجع المعرفة الأصلية للحرف
-  // تحتاجها العائلة الإدراكية لاحقاً
-  // للوصول إلى الجينوم والختم والذاكرة
-  // والجينوم الزمني عند حسم الاشتباه.
-  // ======================================
-  __identity: identity,
-  __memory: perceptualMemory,
-  __timeline: timelineKnowledge,
+        __identity: identity,
+        __memory: perceptualMemory,
+        __timeline: timelineKnowledge,
 
-  matchedStateKey: stateDecision.stateKey,
-  matchedStateText: stateDecision.stateText,
-  matchedStateRole: stateDecision.stateRole,
-  stateConfidence: stateDecision.confidence,
-  stateMargin: stateDecision.stateMargin,
-  stateScores: stateDecision.allStateScores,
-  stateDebug: stateDecision.debug,
+        matchedStateKey: stateDecision.stateKey,
+        matchedStateText: stateDecision.stateText,
+        matchedStateRole: stateDecision.stateRole,
+        stateConfidence: stateDecision.confidence,
+        stateMargin: stateDecision.stateMargin,
+        stateScores: stateDecision.allStateScores,
+        stateDebug: stateDecision.debug,
 
-  genomeDistance: identityScore.genome,
-  sealDistance: identityScore.seal,
-  stateDistance: identityScore.state,
-  memoryDistance: identityScore.memory,
-  familyDistance: identityScore.family,
-  absenceDistance: identityScore.absence,
+        genomeDistance: identityScore.genome,
+        sealDistance: identityScore.seal,
+        stateDistance: identityScore.state,
+        memoryDistance: identityScore.memory,
+        timelineDistance: identityScore.timeline,
+        familyDistance: identityScore.family,
+        absenceDistance: identityScore.absence,
 
-  identityScore,
-  distance: identityScore.total
-};
+        identityScore,
+
+        // ليست مجموع مسافات، بل رتبة خريطة الهوية
+        distance: identityScore.total
+      };
     });
 
     results.sort(compareIdentityCandidates);
-});
-// ترتيب مرشحي الهوية
-function compareIdentityCandidates(a, b) {
-  if (a.familyWinner && !b.familyWinner) return -1;
-  if (b.familyWinner && !a.familyWinner) return 1;
 
-  const ar = a.identityScore?.identityMapDecision?.rank || 999;
-  const br = b.identityScore?.identityMapDecision?.rank || 999;
+    applyPerceptualFamilyDecision(results, summary);
 
-  if (ar !== br) return ar - br;
+    results.sort(compareIdentityCandidates);
 
-  const aw = a.identityScore?.identityMapDecision?.verdict?.weak?.length || 0;
-  const bw = b.identityScore?.identityMapDecision?.verdict?.weak?.length || 0;
+    const winner = results[0];
+    const second = results[1] || null;
 
-  if (aw !== bw) return aw - bw;
-
-  const as = a.identityScore?.identityMapDecision?.verdict?.strong?.length || 0;
-  const bs = b.identityScore?.identityMapDecision?.verdict?.strong?.length || 0;
-
-  return bs - as;
-}
-// ======================================
-// العائلة الإدراكية:
-// إزالة الاشتباه بين المرشحين المتقاربين
-// باستعمال الصفات الفارقة والمعارف المخزنة.
-// ======================================
-applyPerceptualFamilyDecision(results, summary);
-
-results.sort(function (a, b) {
-  return a.distance - b.distance;
-});
-
-const winner = results[0];
-const second = results[1] || null;
-    const margin = second ? second.distance - winner.distance : 0;
-
+    const margin = second ? compareIdentityRankMargin(winner, second) : 0;
     const decision = classifySeparationDecision(winner, second, margin);
 
     if (typeof window.recordDecisionTrace === "function") {
@@ -157,6 +133,7 @@ const second = results[1] || null;
           "spectral-seal",
           "phoneme-family-map",
           "perceptual-memory",
+          "timeline-genome",
           "state-genome",
           "knowledge-presence-map"
         ],
@@ -165,13 +142,14 @@ const second = results[1] || null;
           "spectral-seal",
           "phoneme-family-map",
           "perceptual-memory",
+          "timeline-genome",
           "state-genome",
           "knowledge-presence-map"
         ],
         result: decision.label,
         confidence: margin,
         notes:
-          "تمت مقارنة خريطة هوية العينة بخريطة هوية الحروف المخزنة."
+          "تمت مقارنة خريطة هوية العينة بخريطة هوية الحروف المخزنة دون جمع أرقام الهوية."
       });
     }
 
@@ -212,6 +190,8 @@ const second = results[1] || null;
       "\n\n";
 
     results.forEach(function (r, index) {
+      const mapDecision = r.identityScore?.identityMapDecision || null;
+
       report +=
         (index + 1) +
         ") " +
@@ -219,7 +199,7 @@ const second = results[1] || null;
         " (" +
         r.phoneme +
         ")" +
-        " → identity distance = " +
+        " → identity rank = " +
         safeFixed(r.distance, 4) +
         "\n";
 
@@ -228,26 +208,47 @@ const second = results[1] || null;
         " | seal = " + safeFixed(r.sealDistance, 4) +
         " | state = " + safeFixed(r.stateDistance, 4) +
         " | memory = " + safeFixed(r.memoryDistance, 4) +
+        " | timeline = " + safeFixed(r.timelineDistance, 4) +
         " | family = " + safeFixed(r.familyDistance, 4) +
         " | absence = " + safeFixed(r.absenceDistance, 4) +
-"\n";
+        "\n";
 
-if (r.identityScore && r.identityScore.identityMapDecision) {
-  report +=
-    "   map-rank = " +
-    r.identityScore.identityMapDecision.rank +
-    " | strong = " +
-    JSON.stringify(r.identityScore.identityMapDecision.verdict.strong) +
-    " | weak = " +
-    JSON.stringify(r.identityScore.identityMapDecision.verdict.weak) +
-    "\n";
-}
+      if (mapDecision) {
+        report +=
+          "   map-rank = " +
+          mapDecision.rank +
+          " | strong = " +
+          JSON.stringify(mapDecision.verdict.strong) +
+          " | acceptable = " +
+          JSON.stringify(mapDecision.verdict.acceptable) +
+          " | weak = " +
+          JSON.stringify(mapDecision.verdict.weak) +
+          " | missing = " +
+          JSON.stringify(mapDecision.verdict.missing) +
+          "\n";
+      }
 
-report += "\n";
+      if (r.familyDecision) {
+        report +=
+          "   family-decision = " +
+          (r.familyDecision.applied ? "applied" : "not-applied") +
+          " | reason = " +
+          (r.familyDecision.note || r.familyDecision.reason || "غير محدد") +
+          "\n";
+
+        if (r.familyDecision.winnerKey) {
+          report +=
+            "   family-winner = " +
+            r.familyDecision.winnerKey +
+            "\n";
+        }
+      }
+
+      report += "\n";
     });
 
     report += "هامش الفصل: " + safeFixed(margin, 4) + "\n";
-    report += "قرار الفصل: " + decision.label + "\n\n";
+    report += "قرار الهوية: " + decision.label + "\n\n";
     report += decision.note;
 
     alert(report);
@@ -261,6 +262,8 @@ report += "\n";
   }
 }
 
+
+// تحميل هوية الحرف
 function loadCognitiveIdentity(key) {
   try {
     const raw = localStorage.getItem(key + "_cognitive_identity");
@@ -272,6 +275,8 @@ function loadCognitiveIdentity(key) {
   }
 }
 
+
+// تحميل سياق العائلة الإدراكية
 function loadFamilyContextForMatch(key) {
   if (typeof buildFamilyDecisionContext === "function") {
     return buildFamilyDecisionContext(key);
@@ -279,6 +284,8 @@ function loadFamilyContextForMatch(key) {
   return null;
 }
 
+
+// تحليل الحرف المنطوق
 function resolveArabicSpokenInput(input) {
   const text = String(input || "").trim();
   const cleanLetter = text.replace(/[\u064B-\u065F\u0640]/g, "").trim();
@@ -311,6 +318,8 @@ function resolveArabicSpokenInput(input) {
   return { key, state, text };
 }
 
+
+// تسجيل عينة الاختبار
 async function recordMatchSample() {
   return new Promise(async function (resolve) {
     try {
@@ -348,6 +357,8 @@ async function recordMatchSample() {
     }
   });
 }
+
+
 // حسم الهوية بخريطة الإحداثيات
 function judgeIdentityByCoordinateMap(map) {
   const verdict = {
@@ -380,12 +391,18 @@ function judgeIdentityByCoordinateMap(map) {
 
   let rank = 1000;
 
-  if (verdict.strong.length >= 2 && verdict.weak.length === 0) {
+  if (verdict.strong.length >= 3 && verdict.weak.length === 0) {
     rank = 1;
-  } else if (verdict.strong.length >= 1 && verdict.acceptable.length >= 1) {
+  } else if (verdict.strong.length >= 2 && verdict.weak.length <= 1) {
     rank = 2;
-  } else if (verdict.acceptable.length >= 2 && verdict.weak.length <= 1) {
+  } else if (
+    verdict.strong.length >= 1 &&
+    verdict.acceptable.length >= 1 &&
+    verdict.weak.length <= 1
+  ) {
     rank = 3;
+  } else if (verdict.acceptable.length >= 2 && verdict.weak.length <= 1) {
+    rank = 4;
   } else {
     rank = 9;
   }
@@ -393,10 +410,39 @@ function judgeIdentityByCoordinateMap(map) {
   return {
     rank,
     verdict,
-    rule:
-      "الهوية تُحسم بتشكيلة الإحداثيات لا بجمع الأرقام."
+    rule: "الهوية تُحسم بتشكيلة الإحداثيات لا بجمع الأرقام."
   };
 }
+
+
+// ترتيب مرشحي الهوية
+function compareIdentityCandidates(a, b) {
+  if (a.familyWinner && !b.familyWinner) return -1;
+  if (b.familyWinner && !a.familyWinner) return 1;
+
+  const ar = a.identityScore?.identityMapDecision?.rank || 999;
+  const br = b.identityScore?.identityMapDecision?.rank || 999;
+
+  if (ar !== br) return ar - br;
+
+  const aw = a.identityScore?.identityMapDecision?.verdict?.weak?.length || 0;
+  const bw = b.identityScore?.identityMapDecision?.verdict?.weak?.length || 0;
+
+  if (aw !== bw) return aw - bw;
+
+  const as = a.identityScore?.identityMapDecision?.verdict?.strong?.length || 0;
+  const bs = b.identityScore?.identityMapDecision?.verdict?.strong?.length || 0;
+
+  if (as !== bs) return bs - as;
+
+  const aa = a.identityScore?.identityMapDecision?.verdict?.acceptable?.length || 0;
+  const ba = b.identityScore?.identityMapDecision?.verdict?.acceptable?.length || 0;
+
+  return ba - aa;
+}
+
+
+// محرك مقارنة الهوية الإدراكية
 function compareIdentityMap(
   summary,
   identity,
@@ -404,37 +450,43 @@ function compareIdentityMap(
   perceptualMemory,
   timelineKnowledge,
   stateDecision
-)
-{
+) {
   const genome = identity?.genome || {};
+
   const hasGenome = !!identity?.genome;
   const hasSeal = !!genome?.spectralSeal;
   const hasState = !!identity?.genomeByState;
   const hasMemory = !!perceptualMemory?.perceptualSignature;
+  const hasTimeline = !!timelineKnowledge;
   const hasFamily = !!familyContext || !!identity?.familyDecision;
 
   const genomeDistance =
     hasGenome
       ? compareSummaryWithFamilyAwareGenome(summary, genome, familyContext)
-      : 20;
+      : NaN;
 
   const sealDistance =
     hasSeal
       ? scoreSpectralSealDistance(summary, genome)
-      : 3;
+      : NaN;
 
   const stateDistance =
     hasState
       ? Number(stateDecision?.distance || 0) * 0.35
-      : 3;
+      : NaN;
 
   const memoryDistance =
     hasMemory
       ? scorePerceptualMemoryDistance(summary, perceptualMemory) * 0.25
-      : 2;
+      : NaN;
+
+  const timelineDistance =
+    hasTimeline
+      ? scoreTimelineKnowledgeDistance(summary, timelineKnowledge)
+      : NaN;
 
   const familyDistance =
-    hasFamily ? 0 : 2;
+    hasFamily ? 0 : NaN;
 
   const absenceDistance =
     scoreKnowledgePresenceMap({
@@ -442,27 +494,34 @@ function compareIdentityMap(
       hasSeal,
       hasState,
       hasMemory,
+      hasTimeline,
       hasFamily
     });
-// خريطة هوية الحرف لا تُجمع
-judgeIdentityByCoordinateMap({
-  genome: genomeDistance,
-  seal: sealDistance,
-  memory: memoryDistance
-});
+
+  const identityMapDecision =
+    judgeIdentityByCoordinateMap({
+      genome: genomeDistance,
+      seal: sealDistance,
+      memory: memoryDistance,
+      timeline: timelineDistance
+    });
 
   return {
-  total: identityMapDecision.rank,
-  identityMapDecision,
-    genome: genomeDistance,
-    seal: sealDistance,
-    state: stateDistance,
-    memory: memoryDistance,
-    family: familyDistance,
+    total: identityMapDecision.rank,
+    identityMapDecision,
+
+    genome: Number.isFinite(genomeDistance) ? genomeDistance : 0,
+    seal: Number.isFinite(sealDistance) ? sealDistance : 0,
+    state: Number.isFinite(stateDistance) ? stateDistance : 0,
+    memory: Number.isFinite(memoryDistance) ? memoryDistance : 0,
+    timeline: Number.isFinite(timelineDistance) ? timelineDistance : 0,
+    family: Number.isFinite(familyDistance) ? familyDistance : 0,
     absence: absenceDistance
   };
 }
 
+
+// خريطة نقص المعرفة
 function scoreKnowledgePresenceMap(flags) {
   let total = 0;
 
@@ -470,11 +529,14 @@ function scoreKnowledgePresenceMap(flags) {
   if (!flags.hasSeal) total += 3;
   if (!flags.hasState) total += 3;
   if (!flags.hasMemory) total += 2;
+  if (!flags.hasTimeline) total += 2;
   if (!flags.hasFamily) total += 2;
 
   return total;
 }
 
+
+// مقارنة الجينوم المركزي
 function compareSummaryWithFamilyAwareGenome(summary, genome, familyContext) {
   if (!summary || !genome) return Infinity;
 
@@ -532,9 +594,11 @@ function compareSummaryWithFamilyAwareGenome(summary, genome, familyContext) {
   return total;
 }
 
+
+// مقارنة الختم الطيفي
 function scoreSpectralSealDistance(summary, genome) {
   const seal = genome?.spectralSeal;
-  if (!summary || !seal) return 0;
+  if (!summary || !seal) return NaN;
 
   let total = 0;
 
@@ -546,6 +610,8 @@ function scoreSpectralSealDistance(summary, genome) {
   return total * (seal.confidence || 1);
 }
 
+
+// تحميل الذاكرة الإدراكية
 function loadPerceptualMemoryForMatch(key) {
   const candidates = [
     key + "_perceptual_identity",
@@ -590,8 +656,10 @@ function loadPerceptualMemoryForMatch(key) {
   return null;
 }
 
+
+// مقارنة الذاكرة الإدراكية
 function scorePerceptualMemoryDistance(summary, perceptualMemory) {
-  if (!summary || !perceptualMemory?.perceptualSignature) return 0;
+  if (!summary || !perceptualMemory?.perceptualSignature) return NaN;
 
   const sig = perceptualMemory.perceptualSignature;
   let total = 0;
@@ -606,6 +674,8 @@ function scorePerceptualMemoryDistance(summary, perceptualMemory) {
   return total;
 }
 
+
+// تحديد أقرب حالة داخل الحرف
 function scoreIdentityBestState(summary, identity, perceptualMemory) {
   const genomeByState = identity?.genomeByState || {};
   const memoryByState = perceptualMemory?.perceptualSignatureByState || {};
@@ -716,6 +786,8 @@ function scoreIdentityBestState(summary, identity, perceptualMemory) {
   };
 }
 
+
+// مسافة معيارية داخل المعرفة الواحدة
 function weightedNormalizedDistance(value, mean, variance, weight) {
   value = Number(value || 0);
   mean = Number(mean || 0);
@@ -729,7 +801,9 @@ function weightedNormalizedDistance(value, mean, variance, weight) {
 
   return (Math.abs(value - mean) / tolerance) * weight;
 }
-// تحميل معرفة المسار الزمني للحرف
+
+
+// تحميل معرفة المسار الزمني
 function loadTimelineKnowledgeForMatch(key) {
   const candidates = [
     key + "_timeline_genome",
@@ -742,38 +816,87 @@ function loadTimelineKnowledgeForMatch(key) {
   for (const storageKey of candidates) {
     try {
       const raw = localStorage.getItem(storageKey);
-
       if (!raw) continue;
-
       return JSON.parse(raw);
-
     } catch (err) {
-      console.warn(
-        "⚠️ فشل تحميل الجينوم الزمني:",
-        storageKey,
-        err
-      );
+      console.warn("⚠️ فشل تحميل الجينوم الزمني:", storageKey, err);
     }
   }
 
   return null;
 }
-// ======================================
-// العائلة الإدراكية:
-// لا تضيف رقماً عاماً.
-// بل تتدخل عند الاشتباه، وتستعمل الصفات الفارقة
-// الموجودة في phoneme-family-map.js لخدمة قرار الهوية.
-// ======================================
+
+
+// مقارنة المسار الزمني
+function scoreTimelineKnowledgeDistance(summary, timelineKnowledge) {
+  if (!summary || !timelineKnowledge) return NaN;
+
+  const avg =
+    timelineKnowledge.summary ||
+    timelineKnowledge.average ||
+    timelineKnowledge.averagePhases ||
+    timelineKnowledge.phaseAverages ||
+    timelineKnowledge.timelineAverage ||
+    null;
+
+  if (!avg) return NaN;
+
+  const samplePhases = summary.__phases || {};
+
+  const pairs = [
+    ["onset", "onset"],
+    ["burst", "burst"],
+    ["transition", "transition"],
+    ["trans", "transition"],
+    ["sustain", "sustain"],
+    ["sus", "sustain"],
+    ["release", "release"],
+    ["rel", "release"]
+  ];
+
+  let total = 0;
+  let count = 0;
+
+  pairs.forEach(function (pair) {
+    const sampleKey = pair[0];
+    const storedKey = pair[1];
+
+    const sampleValue =
+      samplePhases?.[sampleKey]?.index ??
+      samplePhases?.[sampleKey] ??
+      null;
+
+    const storedNode = avg?.[storedKey] || avg?.[sampleKey] || null;
+
+    const storedValue =
+      storedNode?.index?.mean ??
+      storedNode?.mean ??
+      storedNode ??
+      null;
+
+    if (isFiniteNumber(sampleValue) && isFiniteNumber(storedValue)) {
+      const scale = Math.max(Math.abs(storedValue), 1);
+      total += Math.abs(sampleValue - storedValue) / scale;
+      count += 1;
+    }
+  });
+
+  if (!count) return NaN;
+
+  return total / count;
+}
+
+
+// العائلة الإدراكية
 function applyPerceptualFamilyDecision(results, summary) {
   if (!Array.isArray(results) || results.length < 2) return;
 
   const first = results[0];
   const second = results[1];
 
-  const gap = Math.abs(second.distance - first.distance);
+  const gap = compareIdentityRankMargin(first, second);
 
-  // لا نستدعي العائلة إلا عند الاشتباه الحقيقي
-  if (gap > 12) return;
+  if (gap > 3) return;
 
   const decision =
     resolveFamilyConfusionByDecisiveTraits(
@@ -782,17 +905,23 @@ function applyPerceptualFamilyDecision(results, summary) {
       second
     );
 
+  first.familyDecision = decision || {
+    applied: false,
+    reason: "لم تعد العائلة قرارًا."
+  };
+
+  second.familyDecision = first.familyDecision;
+
   if (!decision || !decision.applied) return;
 
-  first.familyDecision = decision;
-second.familyDecision = decision;
-
-if (decision.winnerKey) {
-  first.familyWinner = decision.winnerKey === first.key;
-  second.familyWinner = decision.winnerKey === second.key;
+  if (decision.winnerKey) {
+    first.familyWinner = decision.winnerKey === first.key;
+    second.familyWinner = decision.winnerKey === second.key;
+  }
 }
 
 
+// حسم الاشتباه بالصفات الفارقة
 function resolveFamilyConfusionByDecisiveTraits(summary, first, second) {
   if (typeof buildFamilyDecisionContext !== "function") {
     return {
@@ -851,7 +980,6 @@ function resolveFamilyConfusionByDecisiveTraits(summary, first, second) {
       const diff = Math.abs(a - b);
       const scale = Math.max(Math.abs(a), Math.abs(b), 1);
 
-      // إذا الرقم متقارب بين الحرفين فلا يحسم
       if (diff / scale < 0.18) return;
 
       const firstD = Math.abs(sample - a) / scale;
@@ -875,15 +1003,17 @@ function resolveFamilyConfusionByDecisiveTraits(summary, first, second) {
   if (!used.length) {
     return {
       applied: false,
-      reason: "لم نجد أرقاماً فارقة كافية داخل المعارف المخزنة."
+      reason: "لم نجد أرقامًا فارقة كافية داخل المعارف المخزنة."
     };
   }
-const winnerKey =
-  firstPenalty < secondPenalty
-    ? first.key
-    : secondPenalty < firstPenalty
-      ? second.key
-      : null;
+
+  const winnerKey =
+    firstPenalty < secondPenalty
+      ? first.key
+      : secondPenalty < firstPenalty
+        ? second.key
+        : null;
+
   return {
     applied: true,
     method: "perceptual-family-decisive-traits",
@@ -892,13 +1022,14 @@ const winnerKey =
     usedKnowledge: used,
     firstPenalty,
     secondPenalty,
-winnerKey,
+    winnerKey,
     note:
       "تم استدعاء العائلة الإدراكية عند الاشتباه، واستُعملت الصفات الفارقة فقط."
   };
 }
 
 
+// خريطة أرقام العينة
 function buildSampleNumericMap(summary) {
   return {
     energy: summary.meanEnergy,
@@ -911,11 +1042,17 @@ function buildSampleNumericMap(summary) {
     burstSpread: summary.burstSpread,
     energyMovement: summary.energyMovement,
     spectralMovement: summary.spectralMovement,
-    phaseQuality: summary.phaseQuality
+    phaseQuality: summary.phaseQuality,
+
+    sealCentroid: summary.meanCentroid,
+    sealSpread: summary.meanSpread,
+    sealBurstCentroid: summary.burstCentroid,
+    sealBurstSpread: summary.burstSpread
   };
 }
 
 
+// خريطة أرقام الحرف المخزن
 function buildNumericIdentityMapForDecision(result) {
   const identity = result.__identity || {};
   const memory = result.__memory || {};
@@ -966,6 +1103,8 @@ function buildNumericIdentityMapForDecision(result) {
 
   return map;
 }
+
+
 // ربط الصفات الفارقة بالمقاييس الرقمية
 function mapTraitToNumericMetrics(trait) {
   const map = {
@@ -1076,9 +1215,35 @@ function mapTraitToNumericMetrics(trait) {
   return map[trait] || [];
 }
 
+
+// فحص الرقم الصالح
 function isFiniteNumber(value) {
   return typeof value === "number" && Number.isFinite(value);
 }
+
+
+// هامش رتبة الهوية
+function compareIdentityRankMargin(winner, second) {
+  if (!winner || !second) return 0;
+
+  const wr = winner.identityScore?.identityMapDecision?.rank || 999;
+  const sr = second.identityScore?.identityMapDecision?.rank || 999;
+
+  if (sr !== wr) return sr - wr;
+
+  const ww = winner.identityScore?.identityMapDecision?.verdict?.weak?.length || 0;
+  const sw = second.identityScore?.identityMapDecision?.verdict?.weak?.length || 0;
+
+  if (sw !== ww) return sw - ww;
+
+  const ws = winner.identityScore?.identityMapDecision?.verdict?.strong?.length || 0;
+  const ss = second.identityScore?.identityMapDecision?.verdict?.strong?.length || 0;
+
+  return ws - ss;
+}
+
+
+// تصنيف قرار الهوية
 function classifySeparationDecision(winner, second, margin) {
   if (!second) {
     return {
@@ -1087,28 +1252,39 @@ function classifySeparationDecision(winner, second, margin) {
     };
   }
 
-  const ratio = second.distance / Math.max(winner.distance, 0.0001);
-
-  if (margin > 3 || ratio > 1.6) {
+  if (winner.familyWinner) {
     return {
-      label: "فصل قوي ✅",
-      note: "العينة بعيدة بوضوح عن الحرف الثاني."
+      label: "حسم عائلي إدراكي ✅",
+      note:
+        "تم حسم الاشتباه بواسطة العائلة الإدراكية والمعارف الفارقة، لا بجمع المسافات."
     };
   }
 
-  if (margin > 1 || ratio > 1.25) {
+  if (margin >= 2) {
     return {
-      label: "فصل متوسط ⚠️",
-      note: "العينة أقرب إلى الحرف الفائز، لكن المسافة ليست كبيرة بما يكفي."
+      label: "هوية مستقرة ✅",
+      note:
+        "خريطة الهوية أقوى من المرشح التالي وفق رتب الإحداثيات."
+    };
+  }
+
+  if (margin >= 1) {
+    return {
+      label: "هوية راجحة ⚠️",
+      note:
+        "خريطة الهوية راجحة، لكن ما زال هناك قرب يحتاج مراقبة."
     };
   }
 
   return {
-    label: "فصل ملتبس ❌",
-    note: "خرائط الهوية قريبة من العينة. نحتاج تقوية الهوية المخزنة أو تحسين التسجيل."
+    label: "اشتباه إدراكي ❌",
+    note:
+      "خرائط الهوية متقاربة. نحتاج حسمًا عائليًا أو تقوية المعارف المخزنة."
   };
 }
 
+
+// سؤال الحرف المنطوق
 function askActualSpokenKey() {
   const answer = prompt(
     "ما الحرف الذي نطقته فعليًا؟\n\nاكتب الحرف بحركته مثل:\n\nبَ\nصِ\nطُ"
@@ -1131,6 +1307,8 @@ function askActualSpokenKey() {
   return parsed;
 }
 
+
+// حفظ نتيجة اختبار الهوية
 function saveCognitiveMatchResult(buttonKey, actualKey, winner, results, decision, margin) {
   const logKey = "cognitive_match_results_log";
   const oldLog = JSON.parse(localStorage.getItem(logKey) || "[]");
@@ -1149,13 +1327,16 @@ function saveCognitiveMatchResult(buttonKey, actualKey, winner, results, decisio
         key: r.key,
         label: r.label,
         phoneme: r.phoneme,
-        distance: Number(r.distance.toFixed(4)),
-        genomeDistance: Number(r.genomeDistance.toFixed(4)),
-        sealDistance: Number(r.sealDistance.toFixed(4)),
-        stateDistance: Number(r.stateDistance.toFixed(4)),
-        memoryDistance: Number(r.memoryDistance.toFixed(4)),
-        familyDistance: Number(r.familyDistance.toFixed(4)),
-        absenceDistance: Number(r.absenceDistance.toFixed(4))
+        rank: Number(r.distance.toFixed(4)),
+        genomeDistance: safeNumber(r.genomeDistance),
+        sealDistance: safeNumber(r.sealDistance),
+        stateDistance: safeNumber(r.stateDistance),
+        memoryDistance: safeNumber(r.memoryDistance),
+        timelineDistance: safeNumber(r.timelineDistance),
+        familyDistance: safeNumber(r.familyDistance),
+        absenceDistance: safeNumber(r.absenceDistance),
+        identityMapDecision: r.identityScore?.identityMapDecision || null,
+        familyDecision: r.familyDecision || null
       };
     }),
     createdAt: new Date().toISOString()
@@ -1165,6 +1346,8 @@ function saveCognitiveMatchResult(buttonKey, actualKey, winner, results, decisio
   renderMatchResultsLog(buttonKey);
 }
 
+
+// عرض سجل النتائج
 function renderMatchResultsLog(filterKey) {
   const raw = localStorage.getItem("cognitive_match_results_log");
   const allResults = JSON.parse(raw || "[]");
@@ -1188,7 +1371,7 @@ function renderMatchResultsLog(filterKey) {
   if (!box) return;
 
   let html = `
-    <h3 style="margin-top:0;">📊 سجل اختبارات الفصل ${filterKey ? " — " + filterKey : ""}</h3>
+    <h3 style="margin-top:0;">📊 سجل اختبارات الهوية ${filterKey ? " — " + filterKey : ""}</h3>
   `;
 
   if (!results.length) {
@@ -1206,7 +1389,7 @@ function renderMatchResultsLog(filterKey) {
         <div>المنطوق فعليًا: <b>${r.actualKey || "غير محدد"}</b></div>
         <div>المكتشف: <b>${r.detectedLabel}</b></div>
         <div>النتيجة: <b>${ok ? "✅ صحيح" : "❌ خطأ"}</b></div>
-        <div>هامش الفصل: <b>${r.margin}</b></div>
+        <div>هامش الهوية: <b>${r.margin}</b></div>
         <div>القرار: <b>${r.decision}</b></div>
       </div>
     `;
@@ -1220,6 +1403,8 @@ function renderMatchResultsLog(filterKey) {
   box.innerHTML = html;
 }
 
+
+// حذف سجل النتائج
 function clearCognitiveMatchResultsLog() {
   localStorage.removeItem("cognitive_match_results_log");
 
@@ -1227,18 +1412,28 @@ function clearCognitiveMatchResultsLog() {
 
   if (box) {
     box.innerHTML = `
-      <h3 style="margin-top:0;">📊 سجل اختبارات الفصل</h3>
+      <h3 style="margin-top:0;">📊 سجل اختبارات الهوية</h3>
       <div>لا توجد نتائج محفوظة بعد.</div>
     `;
   }
 
-  alert("تم حذف سجل اختبارات الفصل بنجاح.");
+  alert("تم حذف سجل اختبارات الهوية بنجاح.");
 }
 
+
+// تنسيق رقم آمن
 function safeFixed(value, digits) {
   const n = Number(value);
   return Number.isFinite(n) ? n.toFixed(digits || 4) : "0.0000";
 }
+
+
+// رقم آمن للحفظ
+function safeNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? Number(n.toFixed(4)) : 0;
+}
+
 
 window.clearCognitiveMatchResultsLog = clearCognitiveMatchResultsLog;
 window.startPhonemeMatchTest = startPhonemeMatchTest;
