@@ -108,10 +108,28 @@ const timelineKnowledge =
 };
     });
 
-    results.sort(function (a, b) {
-  return a.distance - b.distance;
+    results.sort(compareIdentityCandidates);
 });
+// ترتيب مرشحي الهوية
+function compareIdentityCandidates(a, b) {
+  if (a.familyWinner && !b.familyWinner) return -1;
+  if (b.familyWinner && !a.familyWinner) return 1;
 
+  const ar = a.identityScore?.identityMapDecision?.rank || 999;
+  const br = b.identityScore?.identityMapDecision?.rank || 999;
+
+  if (ar !== br) return ar - br;
+
+  const aw = a.identityScore?.identityMapDecision?.verdict?.weak?.length || 0;
+  const bw = b.identityScore?.identityMapDecision?.verdict?.weak?.length || 0;
+
+  if (aw !== bw) return aw - bw;
+
+  const as = a.identityScore?.identityMapDecision?.verdict?.strong?.length || 0;
+  const bs = b.identityScore?.identityMapDecision?.verdict?.strong?.length || 0;
+
+  return bs - as;
+}
 // ======================================
 // العائلة الإدراكية:
 // إزالة الاشتباه بين المرشحين المتقاربين
