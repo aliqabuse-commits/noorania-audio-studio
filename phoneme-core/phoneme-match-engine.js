@@ -879,7 +879,8 @@ function buildNumericIdentityMapForDecision(result) {
     map.timelineRelease = timeSummary.release?.index?.mean;
   }
 
-  
+  return map;
+}
 // ربط الصفات الفارقة بالمقاييس الرقمية
 function mapTraitToNumericMetrics(trait) {
   const map = {
