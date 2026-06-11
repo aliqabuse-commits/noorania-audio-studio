@@ -212,7 +212,20 @@ const second = results[1] || null;
         " | memory = " + safeFixed(r.memoryDistance, 4) +
         " | family = " + safeFixed(r.familyDistance, 4) +
         " | absence = " + safeFixed(r.absenceDistance, 4) +
-        "\n\n";
+"\n";
+
+if (r.identityScore && r.identityScore.identityMapDecision) {
+  report +=
+    "   map-rank = " +
+    r.identityScore.identityMapDecision.rank +
+    " | strong = " +
+    JSON.stringify(r.identityScore.identityMapDecision.verdict.strong) +
+    " | weak = " +
+    JSON.stringify(r.identityScore.identityMapDecision.verdict.weak) +
+    "\n";
+}
+
+report += "\n";
     });
 
     report += "هامش الفصل: " + safeFixed(margin, 4) + "\n";
@@ -317,7 +330,55 @@ async function recordMatchSample() {
     }
   });
 }
+// حسم الهوية بخريطة الإحداثيات
+function judgeIdentityByCoordinateMap(map) {
+  const verdict = {
+    strong: [],
+    acceptable: [],
+    weak: [],
+    missing: []
+  };
 
+  Object.keys(map).forEach(function (key) {
+    const value = map[key];
+
+    if (!Number.isFinite(Number(value))) {
+      verdict.missing.push(key);
+      return;
+    }
+
+    if (value <= 4) {
+      verdict.strong.push(key);
+      return;
+    }
+
+    if (value <= 9) {
+      verdict.acceptable.push(key);
+      return;
+    }
+
+    verdict.weak.push(key);
+  });
+
+  let rank = 1000;
+
+  if (verdict.strong.length >= 2 && verdict.weak.length === 0) {
+    rank = 1;
+  } else if (verdict.strong.length >= 1 && verdict.acceptable.length >= 1) {
+    rank = 2;
+  } else if (verdict.acceptable.length >= 2 && verdict.weak.length <= 1) {
+    rank = 3;
+  } else {
+    rank = 9;
+  }
+
+  return {
+    rank,
+    verdict,
+    rule:
+      "الهوية تُحسم بتشكيلة الإحداثيات لا بجمع الأرقام."
+  };
+}
 function compareIdentityMap(
   summary,
   identity,
@@ -365,17 +426,19 @@ function compareIdentityMap(
       hasMemory,
       hasFamily
     });
-
-  const total =
-    genomeDistance +
-    sealDistance +
-    stateDistance +
-    memoryDistance +
-    familyDistance +
-    absenceDistance;
+// خريطة هوية الحرف لا تُجمع
+const identityMapDecision =
+  judgeIdentityByCoordinateMap({
+    genome: genomeDistance,
+    seal: sealDistance,
+    memory: memoryDistance,
+    family: familyDistance,
+    absence: absenceDistance
+  });
 
   return {
-    total,
+  total: identityMapDecision.rank,
+  identityMapDecision,
     genome: genomeDistance,
     seal: sealDistance,
     state: stateDistance,
