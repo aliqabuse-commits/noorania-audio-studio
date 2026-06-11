@@ -207,26 +207,38 @@ function stopTrainingStepRecording() {
 // ======================================
 // حفظ صوت التدريب
 // ======================================
-
 async function saveTrainingAudio(fileName, blob) {
-  if (typeof saveAudio === "function") { await saveAudio(fileName, blob); return; }
-  if (typeof putAudio === "function") { await putAudio(fileName, blob); return; }
-  if (typeof saveBlob === "function") { await saveBlob(fileName, blob); return; }
+  // الحفظ الرئيسي إن وُجد
+  if (typeof saveAudio === "function") {
+    await saveAudio(fileName, blob);
+  } else if (typeof putAudio === "function") {
+    await putAudio(fileName, blob);
+  } else if (typeof saveBlob === "function") {
+    await saveBlob(fileName, blob);
+  }
 
+  // الحفظ المحلي الإجباري: آخر تسجيل فقط لكل ملف
   const reader = new FileReader();
+
   return new Promise(function (resolve, reject) {
     reader.onloadend = function () {
       try {
-  localStorage.setItem("audio_" + fileName, reader.result);
+        localStorage.setItem("audio_" + fileName, reader.result);
+        localStorage.setItem(fileName, reader.result);
 
-  localStorage.setItem("last_training_audio_file", fileName);
-  localStorage.setItem("last_training_audio_time", new Date().toISOString());
+        localStorage.setItem("last_training_audio_file", fileName);
+        localStorage.setItem("last_training_audio_time", new Date().toISOString());
 
-  resolve();
-}
-      catch (err) { reject(err); }
+        console.log("💾 تم حفظ آخر تسجيل:", fileName);
+
+        resolve();
+      } catch (err) {
+        reject(err);
+      }
     };
-    reader.onerror = reject; reader.readAsDataURL(blob);
+
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
   });
 }
 
