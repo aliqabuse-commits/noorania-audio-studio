@@ -97,11 +97,22 @@ async function startPhonemeMatchTest(targetKey) {
     });
 
     results.sort(function (a, b) {
-      return a.distance - b.distance;
-    });
+  return a.distance - b.distance;
+});
 
-    const winner = results[0];
-    const second = results[1] || null;
+// ======================================
+// العائلة الإدراكية:
+// إزالة الاشتباه بين المرشحين المتقاربين
+// باستعمال الصفات الفارقة والمعارف المخزنة.
+// ======================================
+applyPerceptualFamilyDecision(results, summary);
+
+results.sort(function (a, b) {
+  return a.distance - b.distance;
+});
+
+const winner = results[0];
+const second = results[1] || null;
     const margin = second ? second.distance - winner.distance : 0;
 
     const decision = classifySeparationDecision(winner, second, margin);
@@ -626,7 +637,309 @@ function weightedNormalizedDistance(value, mean, variance, weight) {
 
   return (Math.abs(value - mean) / tolerance) * weight;
 }
+// ======================================
+// العائلة الإدراكية:
+// لا تضيف رقماً عاماً.
+// بل تتدخل عند الاشتباه، وتستعمل الصفات الفارقة
+// الموجودة في phoneme-family-map.js لخدمة قرار الهوية.
+// ======================================
+function applyPerceptualFamilyDecision(results, summary) {
+  if (!Array.isArray(results) || results.length < 2) return;
 
+  const first = results[0];
+  const second = results[1];
+
+  const gap = Math.abs(second.distance - first.distance);
+
+  // لا نستدعي العائلة إلا عند الاشتباه الحقيقي
+  if (gap > 12) return;
+
+  const decision =
+    resolveFamilyConfusionByDecisiveTraits(
+      summary,
+      first,
+      second
+    );
+
+  if (!decision || !decision.applied) return;
+
+  first.distance += decision.firstPenalty;
+  second.distance += decision.secondPenalty;
+
+  first.familyDecision = decision;
+  second.familyDecision = decision;
+}
+
+
+function resolveFamilyConfusionByDecisiveTraits(summary, first, second) {
+  if (typeof buildFamilyDecisionContext !== "function") {
+    return {
+      applied: false,
+      reason: "خريطة العائلة غير محملة."
+    };
+  }
+
+  const context = buildFamilyDecisionContext(first.key);
+
+  const candidate =
+    (context.candidates || []).find(function (c) {
+      return c.key === second.key;
+    });
+
+  if (!candidate) {
+    return {
+      applied: false,
+      reason: "المرشح الثاني ليس ضمن منافسي العائلة."
+    };
+  }
+
+  const decisiveTraits = candidate.decisiveTraits || [];
+
+  if (!decisiveTraits.length) {
+    return {
+      applied: false,
+      reason: "لا توجد صفات فارقة لهذا الاشتباه."
+    };
+  }
+
+  const firstMap = buildNumericIdentityMapForDecision(first);
+  const secondMap = buildNumericIdentityMapForDecision(second);
+  const sampleMap = buildSampleNumericMap(summary);
+
+  let firstPenalty = 0;
+  let secondPenalty = 0;
+  const used = [];
+
+  decisiveTraits.forEach(function (trait) {
+    const metricKeys = mapTraitToNumericMetrics(trait);
+
+    metricKeys.forEach(function (metric) {
+      const sample = sampleMap[metric];
+      const a = firstMap[metric];
+      const b = secondMap[metric];
+
+      if (
+        !isFiniteNumber(sample) ||
+        !isFiniteNumber(a) ||
+        !isFiniteNumber(b)
+      ) {
+        return;
+      }
+
+      const diff = Math.abs(a - b);
+      const scale = Math.max(Math.abs(a), Math.abs(b), 1);
+
+      // إذا الرقم متقارب بين الحرفين فلا يحسم
+      if (diff / scale < 0.18) return;
+
+      const firstD = Math.abs(sample - a) / scale;
+      const secondD = Math.abs(sample - b) / scale;
+
+      firstPenalty += firstD;
+      secondPenalty += secondD;
+
+      used.push({
+        trait,
+        metric,
+        sample,
+        firstValue: a,
+        secondValue: b,
+        firstDistance: firstD,
+        secondDistance: secondD
+      });
+    });
+  });
+
+  if (!used.length) {
+    return {
+      applied: false,
+      reason: "لم نجد أرقاماً فارقة كافية داخل المعارف المخزنة."
+    };
+  }
+
+  return {
+    applied: true,
+    method: "perceptual-family-decisive-traits",
+    pair: [first.key, second.key],
+    decisiveTraits,
+    usedKnowledge: used,
+    firstPenalty,
+    secondPenalty,
+    note:
+      "تم استدعاء العائلة الإدراكية عند الاشتباه، واستُعملت الصفات الفارقة فقط."
+  };
+}
+
+
+function buildSampleNumericMap(summary) {
+  return {
+    energy: summary.meanEnergy,
+    centroid: summary.meanCentroid,
+    spread: summary.meanSpread,
+    zcr: summary.meanZcr,
+    duration: summary.duration,
+    burstEnergy: summary.burstEnergy,
+    burstCentroid: summary.burstCentroid,
+    burstSpread: summary.burstSpread,
+    energyMovement: summary.energyMovement,
+    spectralMovement: summary.spectralMovement,
+    phaseQuality: summary.phaseQuality
+  };
+}
+
+
+function buildNumericIdentityMapForDecision(result) {
+  const identity = result.__identity || {};
+  const memory = result.__memory || {};
+  const timeline = result.__timeline || {};
+  const genome = identity.genome || {};
+  const seal = genome.spectralSeal || null;
+
+  const map = {
+    energy: genome.energy?.mean,
+    centroid: genome.centroid?.mean,
+    spread: genome.spread?.mean,
+    zcr: genome.zcr?.mean,
+    duration: genome.duration?.mean,
+    burstEnergy: genome.burstEnergy?.mean,
+    burstCentroid: genome.burstCentroid?.mean,
+    burstSpread: genome.burstSpread?.mean,
+    energyMovement: genome.energyMovement?.mean,
+    spectralMovement: genome.spectralMovement?.mean,
+    phaseQuality: genome.phaseQuality?.mean
+  };
+
+  if (seal) {
+    map.sealCentroid = seal.averageCentroid;
+    map.sealSpread = seal.averageSpread;
+    map.sealBurstCentroid = seal.averageBurstCentroid;
+    map.sealBurstSpread = seal.averageBurstSpread;
+  }
+
+  const mem = memory.perceptualSignature || null;
+
+  if (mem) {
+    map.memoryCentroid = mem.centroid?.mean;
+    map.memorySpread = mem.spread?.mean;
+    map.memoryEnergy = mem.energy?.mean;
+    map.memoryZcr = mem.zcr?.mean;
+    map.memoryDuration = mem.duration?.mean;
+  }
+
+  const timeSummary = timeline.summary || null;
+
+  if (timeSummary) {
+    map.timelineOnset = timeSummary.onset?.index?.mean;
+    map.timelineBurst = timeSummary.burst?.index?.mean;
+    map.timelineTransition = timeSummary.transition?.index?.mean;
+    map.timelineSustain = timeSummary.sustain?.index?.mean;
+    map.timelineRelease = timeSummary.release?.index?.mean;
+  }
+
+  return map;
+}
+
+
+function mapTraitToNumericMetrics(trait) {
+  const map = {
+    burst: [
+      "burstEnergy",
+      "burstCentroid",
+      "energyMovement",
+      "timelineBurst"
+    ],
+
+    frication: [
+      "zcr",
+      "spread",
+      "spectralMovement"
+    ],
+
+    voiced: [
+      "energy",
+      "zcr"
+    ],
+
+    hams: [
+      "zcr",
+      "energy"
+    ],
+
+    tafkheem: [
+      "centroid",
+      "spread",
+      "sealCentroid",
+      "sealSpread"
+    ],
+
+    place: [
+      "centroid",
+      "burstCentroid",
+      "sealBurstCentroid",
+      "timelineOnset",
+      "timelineBurst"
+    ],
+
+    nasal: [
+      "spread",
+      "energy",
+      "memorySpread"
+    ],
+
+    sibilant: [
+      "centroid",
+      "spread",
+      "zcr",
+      "spectralMovement"
+    ],
+
+    breathy: [
+      "zcr",
+      "energy",
+      "spread"
+    ],
+
+    fricationShape: [
+      "spread",
+      "spectralMovement",
+      "sealSpread"
+    ],
+
+    repeated: [
+      "energyMovement",
+      "timelineSustain"
+    ],
+
+    lateral: [
+      "spread",
+      "timelineSustain"
+    ],
+
+    glide: [
+      "duration",
+      "spectralMovement",
+      "timelineTransition"
+    ],
+
+    elongation: [
+      "duration",
+      "timelineSustain",
+      "timelineRelease"
+    ],
+
+    spreading: [
+      "spread",
+      "spectralMovement"
+    ]
+  };
+
+  return map[trait] || [];
+}
+
+
+function isFiniteNumber(value) {
+  return typeof value === "number" && Number.isFinite(value);
+}
 function classifySeparationDecision(winner, second, margin) {
   if (!second) {
     return {
