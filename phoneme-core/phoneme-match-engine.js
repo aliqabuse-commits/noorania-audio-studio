@@ -57,43 +57,56 @@ async function startPhonemeMatchTest(targetKey) {
     const results = availableIdentities.map(function (identity) {
       const familyContext = loadFamilyContextForMatch(identity.phonemeKey);
       const perceptualMemory = loadPerceptualMemoryForMatch(identity.phonemeKey);
-
+const timelineKnowledge =
+  loadTimelineKnowledgeForMatch(identity.phonemeKey);
       const stateDecision =
         scoreIdentityBestState(summary, identity, perceptualMemory);
 
       const identityScore =
-        compareIdentityMap(
-          summary,
-          identity,
-          familyContext,
-          perceptualMemory,
-          stateDecision
-        );
+  compareIdentityMap(
+    summary,
+    identity,
+    familyContext,
+    perceptualMemory,
+    timelineKnowledge,
+    stateDecision
+  );
 
       return {
-        key: identity.phonemeKey,
-        phoneme: identity.phoneme,
-        label: identity.label,
-        color: identity.color,
+  key:return {
+  key: identity.phonemeKey,
+  phoneme: identity.phoneme,
+  label: identity.label,
+  color: identity.color,
 
-        matchedStateKey: stateDecision.stateKey,
-        matchedStateText: stateDecision.stateText,
-        matchedStateRole: stateDecision.stateRole,
-        stateConfidence: stateDecision.confidence,
-        stateMargin: stateDecision.stateMargin,
-        stateScores: stateDecision.allStateScores,
-        stateDebug: stateDecision.debug,
+  // ======================================
+  // مراجع المعرفة الأصلية للحرف
+  // تحتاجها العائلة الإدراكية لاحقاً
+  // للوصول إلى الجينوم والختم والذاكرة
+  // والجينوم الزمني عند حسم الاشتباه.
+  // ======================================
+  __identity: identity,
+  __memory: perceptualMemory,
+  __timeline: timelineKnowledge,
 
-        genomeDistance: identityScore.genome,
-        sealDistance: identityScore.seal,
-        stateDistance: identityScore.state,
-        memoryDistance: identityScore.memory,
-        familyDistance: identityScore.family,
-        absenceDistance: identityScore.absence,
+  matchedStateKey: stateDecision.stateKey,
+  matchedStateText: stateDecision.stateText,
+  matchedStateRole: stateDecision.stateRole,
+  stateConfidence: stateDecision.confidence,
+  stateMargin: stateDecision.stateMargin,
+  stateScores: stateDecision.allStateScores,
+  stateDebug: stateDecision.debug,
 
-        identityScore,
-        distance: identityScore.total
-      };
+  genomeDistance: identityScore.genome,
+  sealDistance: identityScore.seal,
+  stateDistance: identityScore.state,
+  memoryDistance: identityScore.memory,
+  familyDistance: identityScore.family,
+  absenceDistance: identityScore.absence,
+
+  identityScore,
+  distance: identityScore.total
+};
     });
 
     results.sort(function (a, b) {
