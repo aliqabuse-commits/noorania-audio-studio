@@ -1,9 +1,9 @@
 // ================================
 // phoneme-match-engine.js
-// محرك الفصل بالجِينوم المركزي — نسخة نظيفة
+// محرك تحديد هوية الحرف بخريطة المعارف — Clean Identity Map
 // ================================
 
-console.log("🎯 phoneme-match-engine.js جاهز — Clean");
+console.log("🎯 phoneme-match-engine.js جاهز — Identity Map Clean");
 
 function getAvailablePhonemeKeysForMatch() {
   if (
@@ -31,7 +31,7 @@ async function startPhonemeMatchTest(targetKey) {
       return;
     }
 
-    alert("سيبدأ اختبار الفصل بالجِينوم المركزي.\n\nسجّل الآن صوت الحرف.");
+    alert("سيبدأ اختبار تحديد هوية الحرف.\n\nسجّل الآن صوت الحرف.");
 
     const blob = await recordMatchSample();
 
@@ -43,8 +43,7 @@ async function startPhonemeMatchTest(targetKey) {
     const decoded = await decodeCognitiveBlob(blob);
     const timeline = buildCognitiveTimeline(decoded.samples, decoded.sampleRate);
     const phases = detectCognitivePhases(timeline);
-    const sampleProfile =
-  buildSampleIdentityProfile(summary, phases);
+    const summary = summarizeCognitiveTimeline(timeline, phases);
 
     const actual = askActualSpokenKey();
 
@@ -59,19 +58,19 @@ async function startPhonemeMatchTest(targetKey) {
       const familyContext = loadFamilyContextForMatch(identity.phonemeKey);
       const perceptualMemory = loadPerceptualMemoryForMatch(identity.phonemeKey);
 
-const stateDecision =
-  scoreIdentityBestState(summary, identity, perceptualMemory);
+      const stateDecision =
+        scoreIdentityBestState(summary, identity, perceptualMemory);
 
-const identityMatch =
-  compareSampleProfileWithStoredIdentity(
-    sampleProfile,
-    identity,
-    familyContext,
-    perceptualMemory,
-    stateDecision
-  );
+      const identityScore =
+        compareIdentityMap(
+          summary,
+          identity,
+          familyContext,
+          perceptualMemory,
+          stateDecision
+        );
 
-return {
+      return {
         key: identity.phonemeKey,
         phoneme: identity.phoneme,
         label: identity.label,
@@ -85,16 +84,15 @@ return {
         stateScores: stateDecision.allStateScores,
         stateDebug: stateDecision.debug,
 
-        genomeDistance: identityMatch.parts.genome,
-sealDistance: identityMatch.parts.seal,
-stateDistance: identityMatch.parts.state,
-familyDistance: identityMatch.parts.family,
-memoryDistance: identityMatch.parts.memory,
-absenceDistance: identityMatch.parts.absence,
+        genomeDistance: identityScore.genome,
+        sealDistance: identityScore.seal,
+        stateDistance: identityScore.state,
+        memoryDistance: identityScore.memory,
+        familyDistance: identityScore.family,
+        absenceDistance: identityScore.absence,
 
-identityMatch,
-
-distance: identityMatch.total
+        identityScore,
+        distance: identityScore.total
       };
     });
 
@@ -104,7 +102,6 @@ distance: identityMatch.total
 
     const winner = results[0];
     const second = results[1] || null;
-
     const margin = second ? second.distance - winner.distance : 0;
 
     const decision = classifySeparationDecision(winner, second, margin);
@@ -112,24 +109,28 @@ distance: identityMatch.total
     if (typeof window.recordDecisionTrace === "function") {
       window.recordDecisionTrace({
         decisionId: "identify-phoneme",
-        decisionName: "تمييز حرف",
+        decisionName: "تحديد هوية حرف",
         target: winner.key,
         invokedKnowledge: [
           "cognitive-genome",
-          "phoneme-family-map",
           "spectral-seal",
-          "perceptual-memory"
+          "phoneme-family-map",
+          "perceptual-memory",
+          "state-genome",
+          "knowledge-presence-map"
         ],
         influentialKnowledge: [
           "cognitive-genome",
-          "phoneme-family-map",
           "spectral-seal",
-          "perceptual-memory"
+          "phoneme-family-map",
+          "perceptual-memory",
+          "state-genome",
+          "knowledge-presence-map"
         ],
         result: decision.label,
         confidence: margin,
         notes:
-          "تم إشراك الجينوم المركزي والعائلة الإدراكية والختم الطيفي والذاكرة الإدراكية حسب حالة الحركة."
+          "تمت مقارنة خريطة هوية العينة بخريطة هوية الحروف المخزنة."
       });
     }
 
@@ -142,10 +143,11 @@ distance: identityMatch.total
       margin
     );
 
-    let report = "🎯 نتيجة اختبار الفصل بالجِينوم المركزي\n\n";
+    let report = "🎯 نتيجة اختبار هوية الحرف بخريطة المعارف\n\n";
 
     report += "زر الاختبار: " + targetKey + "\n";
     report += "المنطوق فعليًا: " + actual.text + "\n";
+
     report +=
       "العينة أقرب إلى: " +
       winner.label +
@@ -176,7 +178,7 @@ distance: identityMatch.total
         " (" +
         r.phoneme +
         ")" +
-        " → distance = " +
+        " → identity distance = " +
         safeFixed(r.distance, 4) +
         "\n";
 
@@ -184,9 +186,9 @@ distance: identityMatch.total
         "   genome = " + safeFixed(r.genomeDistance, 4) +
         " | seal = " + safeFixed(r.sealDistance, 4) +
         " | state = " + safeFixed(r.stateDistance, 4) +
-" | memory = " + safeFixed(r.memoryDistance, 4) +
-" | family = " + safeFixed(r.familyDistance, 4) +
-" | absence = " + safeFixed(r.absenceDistance, 4) +
+        " | memory = " + safeFixed(r.memoryDistance, 4) +
+        " | family = " + safeFixed(r.familyDistance, 4) +
+        " | absence = " + safeFixed(r.absenceDistance, 4) +
         "\n\n";
     });
 
@@ -200,8 +202,8 @@ distance: identityMatch.total
     console.log("🎯 COGNITIVE MATCH RESULTS:", results);
 
   } catch (err) {
-    console.error("❌ فشل اختبار الفصل بالجِينوم المركزي", err);
-    alert("فشل اختبار الفصل بالجِينوم المركزي:\n" + err.message);
+    console.error("❌ فشل اختبار تحديد هوية الحرف", err);
+    alert("فشل اختبار تحديد هوية الحرف:\n" + err.message);
   }
 }
 
@@ -267,7 +269,9 @@ async function recordMatchSample() {
       };
 
       recorder.onstop = function () {
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach(function (track) {
+          track.stop();
+        });
 
         resolve(
           new Blob(chunks, {
@@ -289,6 +293,83 @@ async function recordMatchSample() {
       resolve(null);
     }
   });
+}
+
+function compareIdentityMap(
+  summary,
+  identity,
+  familyContext,
+  perceptualMemory,
+  stateDecision
+) {
+  const genome = identity?.genome || {};
+  const hasGenome = !!identity?.genome;
+  const hasSeal = !!genome?.spectralSeal;
+  const hasState = !!identity?.genomeByState;
+  const hasMemory = !!perceptualMemory?.perceptualSignature;
+  const hasFamily = !!familyContext || !!identity?.familyDecision;
+
+  const genomeDistance =
+    hasGenome
+      ? compareSummaryWithFamilyAwareGenome(summary, genome, familyContext)
+      : 20;
+
+  const sealDistance =
+    hasSeal
+      ? scoreSpectralSealDistance(summary, genome)
+      : 3;
+
+  const stateDistance =
+    hasState
+      ? Number(stateDecision?.distance || 0) * 0.35
+      : 3;
+
+  const memoryDistance =
+    hasMemory
+      ? scorePerceptualMemoryDistance(summary, perceptualMemory) * 0.25
+      : 2;
+
+  const familyDistance =
+    hasFamily ? 0 : 2;
+
+  const absenceDistance =
+    scoreKnowledgePresenceMap({
+      hasGenome,
+      hasSeal,
+      hasState,
+      hasMemory,
+      hasFamily
+    });
+
+  const total =
+    genomeDistance +
+    sealDistance +
+    stateDistance +
+    memoryDistance +
+    familyDistance +
+    absenceDistance;
+
+  return {
+    total,
+    genome: genomeDistance,
+    seal: sealDistance,
+    state: stateDistance,
+    memory: memoryDistance,
+    family: familyDistance,
+    absence: absenceDistance
+  };
+}
+
+function scoreKnowledgePresenceMap(flags) {
+  let total = 0;
+
+  if (!flags.hasGenome) total += 20;
+  if (!flags.hasSeal) total += 3;
+  if (!flags.hasState) total += 3;
+  if (!flags.hasMemory) total += 2;
+  if (!flags.hasFamily) total += 2;
+
+  return total;
 }
 
 function compareSummaryWithFamilyAwareGenome(summary, genome, familyContext) {
@@ -467,6 +548,8 @@ function scoreIdentityBestState(summary, identity, perceptualMemory) {
       memoryState?.text ||
       stateKey;
 
+    if (!text) return;
+
     let genomeDistance = 0;
     let memoryDistance = 0;
 
@@ -483,7 +566,7 @@ function scoreIdentityBestState(summary, identity, perceptualMemory) {
       memoryDistance += weightedNormalizedDistance(summary.meanZcr, memoryState.zcr?.mean, memoryState.zcr?.variance, 1.1);
       memoryDistance += weightedNormalizedDistance(summary.duration, memoryState.duration?.mean, memoryState.duration?.variance, 1.2);
     }
-if (!text) return;
+
     scores.push({
       stateKey,
       stateText: text,
@@ -523,156 +606,13 @@ if (!text) return;
     stateRole: best.stateRole,
     stateMargin: Number(margin.toFixed(4)),
     confidence: second
-  ? Number(
-      (
-        margin /
-        Math.max(second.distance, 0.0001)
-      ).toFixed(4)
-    )
-  : 1,
+      ? Number((margin / Math.max(second.distance, 0.0001)).toFixed(4))
+      : 1,
     allStateScores: scores,
     debug
   };
 }
-function buildSampleIdentityProfile(summary, phases) {
-  return {
-    source: "match-sample",
-    genomeLike: {
-      energy: summary.meanEnergy,
-      centroid: summary.meanCentroid,
-      spread: summary.meanSpread,
-      zcr: summary.meanZcr,
-      duration: summary.duration,
-      burstEnergy: summary.burstEnergy,
-      burstCentroid: summary.burstCentroid,
-      burstSpread: summary.burstSpread,
-      energyMovement: summary.energyMovement,
-      spectralMovement: summary.spectralMovement,
-      phaseQuality: summary.phaseQuality
-    },
-    hasSpectralShape:
-      Number(summary.meanCentroid || 0) > 0 &&
-      Number(summary.meanSpread || 0) > 0,
-    hasBurst:
-      Number(summary.burstEnergy || 0) > 0,
-    hasTimeline:
-      Number(summary.duration || 0) > 0 &&
-      Number(summary.phaseQuality || 0) > 0,
-    phases: phases || null
-  };
-}
 
-
-function compareSampleProfileWithStoredIdentity(
-  sampleProfile,
-  identity,
-  familyContext,
-  perceptualMemory,
-  stateDecision
-) {
-  const genome = identity?.genome || {};
-  const seal = genome?.spectralSeal || null;
-
-  const genomeDistance =
-    compareSummaryWithFamilyAwareGenome(
-      profileToSummary(sampleProfile),
-      genome,
-      familyContext
-    );
-
-  const sealDistance =
-    seal
-      ? scoreSpectralSealDistance(
-          profileToSummary(sampleProfile),
-          genome
-        )
-      : knowledgeAbsenceDistance(
-          sampleProfile.hasSpectralShape,
-          false,
-          2.0
-        );
-
-  const stateDistance =
-    Number(stateDecision?.distance || 0) * 0.35;
-
-  const memoryDistance =
-    perceptualMemory?.perceptualSignature
-      ? scorePerceptualMemoryDistance(
-          profileToSummary(sampleProfile),
-          perceptualMemory
-        ) * 0.25
-      : knowledgeAbsenceDistance(true, false, 1.0);
-
-  const familyDistance =
-    scoreFamilyPresenceDistance(identity, familyContext);
-
-  const absenceDistance =
-    scoreIdentityKnowledgeAbsence(sampleProfile, identity);
-
-  const total =
-    genomeDistance +
-    sealDistance +
-    stateDistance +
-    memoryDistance +
-    familyDistance +
-    absenceDistance;
-
-  return {
-    total,
-    parts: {
-      genome: genomeDistance,
-      seal: sealDistance,
-      state: stateDistance,
-      memory: memoryDistance,
-      family: familyDistance,
-      absence: absenceDistance
-    }
-  };
-}
-
-
-function profileToSummary(profile) {
-  const g = profile?.genomeLike || {};
-
-  return {
-    meanEnergy: g.energy,
-    meanCentroid: g.centroid,
-    meanSpread: g.spread,
-    meanZcr: g.zcr,
-    duration: g.duration,
-    burstEnergy: g.burstEnergy,
-    burstCentroid: g.burstCentroid,
-    burstSpread: g.burstSpread,
-    energyMovement: g.energyMovement,
-    spectralMovement: g.spectralMovement,
-    phaseQuality: g.phaseQuality
-  };
-}
-
-
-function knowledgeAbsenceDistance(sampleHas, storedHas, weight) {
-  if (sampleHas === storedHas) return 0;
-  return Number(weight || 1);
-}
-
-
-function scoreFamilyPresenceDistance(identity, familyContext) {
-  if (!familyContext && !identity?.familyDecision) return 1.5;
-  return 0;
-}
-
-
-function scoreIdentityKnowledgeAbsence(sampleProfile, identity) {
-  let total = 0;
-
-  if (!identity?.genome) total += 10;
-  if (!identity?.genomeByState) total += 2;
-  if (!identity?.genome?.spectralSeal && sampleProfile.hasSpectralShape) {
-    total += 2;
-  }
-
-  return total;
-}
 function weightedNormalizedDistance(value, mean, variance, weight) {
   value = Number(value || 0);
   mean = Number(mean || 0);
@@ -713,7 +653,7 @@ function classifySeparationDecision(winner, second, margin) {
 
   return {
     label: "فصل ملتبس ❌",
-    note: "الجينومات قريبة من العينة. نحتاج تحسين الجينوم أو أوزان القرار."
+    note: "خرائط الهوية قريبة من العينة. نحتاج تقوية الهوية المخزنة أو تحسين التسجيل."
   };
 }
 
@@ -760,7 +700,10 @@ function saveCognitiveMatchResult(buttonKey, actualKey, winner, results, decisio
         distance: Number(r.distance.toFixed(4)),
         genomeDistance: Number(r.genomeDistance.toFixed(4)),
         sealDistance: Number(r.sealDistance.toFixed(4)),
-        stateDistance: Number(r.stateDistance.toFixed(4))
+        stateDistance: Number(r.stateDistance.toFixed(4)),
+        memoryDistance: Number(r.memoryDistance.toFixed(4)),
+        familyDistance: Number(r.familyDistance.toFixed(4)),
+        absenceDistance: Number(r.absenceDistance.toFixed(4))
       };
     }),
     createdAt: new Date().toISOString()
@@ -775,10 +718,15 @@ function renderMatchResultsLog(filterKey) {
   const allResults = JSON.parse(raw || "[]");
 
   const results = filterKey
-    ? allResults.filter(r => r.buttonKey === filterKey)
+    ? allResults.filter(function (r) {
+        return r.buttonKey === filterKey;
+      })
     : allResults;
 
-  const correctResults = results.filter(r => r.actualKey === r.detectedKey);
+  const correctResults =
+    results.filter(function (r) {
+      return r.actualKey === r.detectedKey;
+    });
 
   const accuracy = results.length
     ? ((correctResults.length / results.length) * 100).toFixed(2)
@@ -844,4 +792,4 @@ window.clearCognitiveMatchResultsLog = clearCognitiveMatchResultsLog;
 window.startPhonemeMatchTest = startPhonemeMatchTest;
 window.renderMatchResultsLog = renderMatchResultsLog;
 
-console.log("🎯 محرك الفصل بالجِينوم المركزي جاهز — Clean");
+console.log("🎯 محرك تحديد هوية الحرف بخريطة المعارف جاهز — Clean");
