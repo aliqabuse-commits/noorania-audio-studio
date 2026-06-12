@@ -708,6 +708,13 @@ console.log(
     compareFamilyRecordsShape(sampleFamilyRecord, storedRecord);
 console.log("🧾 مفاتيح سجل العائلة:", identity.phonemeKey, Object.keys(storedRecord.coordinates || {}));
 console.log("🧾 سجل العائلة كامل:", identity.phonemeKey, storedRecord.coordinates);
+  alert(
+  "externalCognitiveOnset = " + storedRecord.coordinates.externalCognitiveOnset + "\n" +
+  "externalCognitiveBurst = " + storedRecord.coordinates.externalCognitiveBurst + "\n" +
+  "externalCognitiveCoreStart = " + storedRecord.coordinates.externalCognitiveCoreStart + "\n" +
+  "externalCognitiveCoreEnd = " + storedRecord.coordinates.externalCognitiveCoreEnd + "\n" +
+  "externalCognitiveTail = " + storedRecord.coordinates.externalCognitiveTail
+);
   return {
     total: familyShape.maxMismatch,
     familyShape,
