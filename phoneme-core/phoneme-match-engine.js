@@ -1308,10 +1308,11 @@ function askActualSpokenKey() {
 // حفظ نتيجة اختبار الهوية
 // ======================================
 function saveCognitiveMatchResult(buttonKey, actualKey, winner, results, decision, margin) {
-  const logKey = "cognitive_match_results_log";
-  const oldLog = JSON.parse(localStorage.getItem(logKey) || "[]");
+  // الاختبار ليس ذاكرة معرفية.
+  // لا نحفظه في localStorage حتى لا يملأ التخزين.
+  // نحتفظ بآخر نتيجة مؤقتًا فقط أثناء الجلسة.
 
-  oldLog.push({
+  window.lastCognitiveMatchResult = {
     buttonKey,
     actualKey,
     detectedKey: winner.key,
@@ -1321,29 +1322,11 @@ function saveCognitiveMatchResult(buttonKey, actualKey, winner, results, decisio
     familyShape: safeNumber(winner.distance),
     margin: safeNumber(margin),
     decision: decision.label,
-    results: results.map(function (r) {
-      return {
-        key: r.key,
-        label: r.label,
-        phoneme: r.phoneme,
-        familyShape: safeNumber(r.distance),
-        genomeDistance: safeNumber(r.genomeDistance),
-        sealDistance: safeNumber(r.sealDistance),
-        stateDistance: safeNumber(r.stateDistance),
-        memoryDistance: safeNumber(r.memoryDistance),
-        timelineDistance: safeNumber(r.timelineDistance),
-        missingCount: r.absenceDistance,
-        familyShapeDetails: r.identityScore?.familyShape || null,
-        familyDecision: r.familyDecision || null
-      };
-    }),
     createdAt: new Date().toISOString()
-  });
+  };
 
-  localStorage.setItem(logKey, JSON.stringify(oldLog, null, 2));
-  renderMatchResultsLog(buttonKey);
+  console.log("🧪 آخر نتيجة اختبار هوية مؤقتة:", window.lastCognitiveMatchResult);
 }
-
 
 // ======================================
 // عرض سجل النتائج
