@@ -384,6 +384,18 @@ async function recordMatchSample() {
 // هذا السجل لا يحكم؛ بل يحمل التشكيلة الرقمية كما رصدتها الأدوات
 // ======================================
 function buildSampleFamilyRecord(summary) {
+  const phases = summary.__phases || {};
+
+  function phaseIndex(name1, name2) {
+    const v =
+      phases?.[name1]?.index ??
+      phases?.[name1] ??
+      phases?.[name2]?.index ??
+      phases?.[name2];
+
+    return isFiniteNumber(v) ? v : undefined;
+  }
+
   return {
     source: "sample",
     coordinates: {
@@ -404,9 +416,21 @@ function buildSampleFamilyRecord(summary) {
       sealCentroid: summary.meanCentroid,
       sealSpread: summary.meanSpread,
       sealBurstCentroid: summary.burstCentroid,
-      sealBurstSpread: summary.burstSpread
+      sealBurstSpread: summary.burstSpread,
+
+      memoryCentroid: summary.meanCentroid,
+      memorySpread: summary.meanSpread,
+      memoryEnergy: summary.meanEnergy,
+      memoryZcr: summary.meanZcr,
+      memoryDuration: summary.duration,
+
+      timelineOnset: phaseIndex("onset"),
+      timelineBurst: phaseIndex("burst"),
+      timelineTransition: phaseIndex("transition", "trans"),
+      timelineSustain: phaseIndex("sustain", "sus"),
+      timelineRelease: phaseIndex("release", "rel")
     },
-    phases: summary.__phases || null
+    phases: phases
   };
 }
 
