@@ -644,7 +644,11 @@ function compareIdentityMap(
       timelineKnowledge,
       familyContext
     );
-
+console.log(
+  "🔍 STORED FAMILY RECORD:",
+  identity.phonemeKey,
+  storedRecord
+);
   const familyShape =
     compareFamilyRecordsShape(sampleFamilyRecord, storedRecord);
 
