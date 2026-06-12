@@ -203,34 +203,43 @@ function stopTrainingStepRecording() {
   }
 }
 
-
-// ======================================
-// حفظ صوت التدريب
-// ======================================
+// حفظ صوت التدريب + تثبيت آخر نسخة دائمًا
 async function saveTrainingAudio(fileName, blob) {
-  // الحفظ الرئيسي إن وُجد
-  if (typeof saveAudio === "function") {
-    await saveAudio(fileName, blob);
-  } else if (typeof putAudio === "function") {
-    await putAudio(fileName, blob);
-  } else if (typeof saveBlob === "function") {
-    await saveBlob(fileName, blob);
+  if (!fileName || !blob) return;
+
+  try {
+    if (typeof saveAudio === "function") {
+      await saveAudio(fileName, blob);
+    } else if (typeof putAudio === "function") {
+      await putAudio(fileName, blob);
+    } else if (typeof saveBlob === "function") {
+      await saveBlob(fileName, blob);
+    }
+  } catch (err) {
+    console.warn("⚠️ فشل الحفظ الأساسي، سيتم الاعتماد على النسخة الاحتياطية:", fileName, err);
   }
 
-  // الحفظ المحلي الإجباري: آخر تسجيل فقط لكل ملف
-  const reader = new FileReader();
+  // النسخة الأخيرة تُحفظ دائمًا وتستبدل القديمة
+  await saveLastTrainingAudioBackup(fileName, blob);
+}
 
+
+// حفظ آخر تسجيل دائمًا في localStorage
+function saveLastTrainingAudioBackup(fileName, blob) {
   return new Promise(function (resolve, reject) {
+    const reader = new FileReader();
+
     reader.onloadend = function () {
       try {
-        localStorage.setItem("audio_" + fileName, reader.result);
-        localStorage.setItem(fileName, reader.result);
+        const dataUrl = reader.result;
+
+        localStorage.setItem("audio_" + fileName, dataUrl);
+        localStorage.setItem(fileName, dataUrl);
 
         localStorage.setItem("last_training_audio_file", fileName);
         localStorage.setItem("last_training_audio_time", new Date().toISOString());
 
-        console.log("💾 تم حفظ آخر تسجيل:", fileName);
-
+        console.log("💾 تم تثبيت آخر تسجيل واستبدال السابق:", fileName);
         resolve();
       } catch (err) {
         reject(err);
@@ -241,7 +250,6 @@ async function saveTrainingAudio(fileName, blob) {
     reader.readAsDataURL(blob);
   });
 }
-
 
 // ======================================
 // إيقاف الميكروفون
