@@ -704,6 +704,11 @@ console.log(
   identity.phonemeKey,
   storedRecord
 );
+  alert(
+  "memory loaded = " + !!perceptualMemory + "\n" +
+  "has signature = " + !!perceptualMemory?.perceptualSignature + "\n" +
+  "memory keys = " + Object.keys(perceptualMemory?.perceptualSignature || {}).join(", ")
+);
   const familyShape =
     compareFamilyRecordsShape(sampleFamilyRecord, storedRecord);
 console.log("🧾 مفاتيح سجل العائلة:", identity.phonemeKey, Object.keys(storedRecord.coordinates || {}));
