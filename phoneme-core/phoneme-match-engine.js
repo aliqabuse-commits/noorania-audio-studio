@@ -67,7 +67,12 @@ async function startPhonemeMatchTest(targetKey) {
     }
 
     const actualKey = actual.key;
-    const sampleFamilyRecord = buildSampleFamilyRecord(summary);
+    const sampleTimeline =
+  typeof buildOrderedPhonemeTimeline === "function"
+    ? buildOrderedPhonemeTimeline(decoded.samples, decoded.sampleRate)
+    : null;
+
+const sampleFamilyRecord = buildSampleFamilyRecord(summary, sampleTimeline);
 
     const results = availableIdentities.map(function (identity) {
       const familyContext = loadFamilyContextForMatch(identity.phonemeKey);
@@ -383,30 +388,41 @@ async function recordMatchSample() {
 // بناء سجل العائلة الإدراكية للعينة الوافدة
 // هذا السجل لا يحكم؛ بل يحمل التشكيلة الرقمية كما رصدتها الأدوات
 // ======================================
-function buildSampleFamilyRecord(summary) {
+function buildSampleFamilyRecord(summary, timeline) {
+  const coordinates = {
+    energy: summary.meanEnergy,
+    centroid: summary.meanCentroid,
+    spread: summary.meanSpread,
+    zcr: summary.meanZcr,
+    duration: summary.duration,
+
+    burstEnergy: summary.burstEnergy,
+    burstCentroid: summary.burstCentroid,
+    burstSpread: summary.burstSpread,
+
+    energyMovement: summary.energyMovement,
+    spectralMovement: summary.spectralMovement,
+    phaseQuality: summary.phaseQuality,
+
+    sealCentroid: summary.meanCentroid,
+    sealSpread: summary.meanSpread,
+    sealBurstCentroid: summary.burstCentroid,
+    sealBurstSpread: summary.burstSpread
+  };
+
+  if (timeline) {
+    coordinates.timelineOnset = timeline.onset?.index;
+    coordinates.timelineBurst = timeline.burst?.index;
+    coordinates.timelineTransition = timeline.transition?.index;
+    coordinates.timelineSustain = timeline.sustain?.index;
+    coordinates.timelineRelease = timeline.release?.index;
+  }
+
   return {
     source: "sample",
-    coordinates: {
-      energy: summary.meanEnergy,
-      centroid: summary.meanCentroid,
-      spread: summary.meanSpread,
-      zcr: summary.meanZcr,
-      duration: summary.duration,
-
-      burstEnergy: summary.burstEnergy,
-      burstCentroid: summary.burstCentroid,
-      burstSpread: summary.burstSpread,
-
-      energyMovement: summary.energyMovement,
-      spectralMovement: summary.spectralMovement,
-      phaseQuality: summary.phaseQuality,
-
-      sealCentroid: summary.meanCentroid,
-      sealSpread: summary.meanSpread,
-      sealBurstCentroid: summary.burstCentroid,
-      sealBurstSpread: summary.burstSpread
-    },
-    phases: summary.__phases || null
+    coordinates,
+    phases: summary.__phases || null,
+    timeline: timeline || null
   };
 }
 
