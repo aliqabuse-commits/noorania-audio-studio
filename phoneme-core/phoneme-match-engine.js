@@ -117,6 +117,7 @@ const sampleFamilyRecord = buildSampleFamilyRecord(summary, sampleTimeline);
         stateDistance: identityScore.state || 0,
         memoryDistance: identityScore.parts.memory || 0,
         timelineDistance: identityScore.parts.timeline || 0,
+        cognitiveDistance: identityScore.parts.cognitive || 0,
         familyDistance: identityScore.shapeMismatch,
         absenceDistance: identityScore.missing.length,
 
@@ -220,14 +221,15 @@ const sampleFamilyRecord = buildSampleFamilyRecord(summary, sampleTimeline);
         "\n";
 
       report +=
-        "   genome = " + safeFixed(r.genomeDistance, 4) +
-        " | seal = " + safeFixed(r.sealDistance, 4) +
-        " | state = " + safeFixed(r.stateDistance, 4) +
-        " | memory = " + safeFixed(r.memoryDistance, 4) +
-        " | timeline = " + safeFixed(r.timelineDistance, 4) +
-        " | family = " + safeFixed(r.familyDistance, 4) +
-        " | missing = " + r.absenceDistance +
-        "\n";
+  "   genome = " + safeFixed(r.genomeDistance, 4) +
+  " | seal = " + safeFixed(r.sealDistance, 4) +
+  " | cognitive = " + safeFixed(r.cognitiveDistance, 4) +
+  " | state = " + safeFixed(r.stateDistance, 4) +
+  " | memory = " + safeFixed(r.memoryDistance, 4) +
+  " | timeline = " + safeFixed(r.timelineDistance, 4) +
+  " | family = " + safeFixed(r.familyDistance, 4) +
+  " | missing = " + r.absenceDistance +
+  "\n";
 
       if (shape) {
         report +=
@@ -389,6 +391,8 @@ async function recordMatchSample() {
 // هذا السجل لا يحكم؛ بل يحمل التشكيلة الرقمية كما رصدتها الأدوات
 // ======================================
 function buildSampleFamilyRecord(summary, timeline) {
+  const phases = summary.__phases || {};
+
   const coordinates = {
     energy: summary.meanEnergy,
     centroid: summary.meanCentroid,
@@ -407,7 +411,13 @@ function buildSampleFamilyRecord(summary, timeline) {
     sealCentroid: summary.meanCentroid,
     sealSpread: summary.meanSpread,
     sealBurstCentroid: summary.burstCentroid,
-    sealBurstSpread: summary.burstSpread
+    sealBurstSpread: summary.burstSpread,
+
+    externalCognitiveOnset: phases.onsetIndex,
+    externalCognitiveBurst: phases.burstIndex,
+    externalCognitiveCoreStart: phases.coreStartIndex,
+    externalCognitiveCoreEnd: phases.coreEndIndex,
+    externalCognitiveTail: phases.tailIndex
   };
 
   if (timeline) {
@@ -421,11 +431,35 @@ function buildSampleFamilyRecord(summary, timeline) {
   return {
     source: "sample",
     coordinates,
-    phases: summary.__phases || null,
+    phases,
     timeline: timeline || null
   };
 }
+function addExternalCognitiveCoordinatesToFamilyRecord(coordinates, identity) {
+  const units = identity?.units || [];
 
+  function avgPhase(field) {
+    const values = units
+      .map(function (u) {
+        return u?.phases?.[field];
+      })
+      .filter(function (v) {
+        return typeof v === "number" && Number.isFinite(v);
+      });
+
+    if (!values.length) return undefined;
+
+    return values.reduce(function (a, b) {
+      return a + b;
+    }, 0) / values.length;
+  }
+
+  coordinates.externalCognitiveOnset = avgPhase("onsetIndex");
+  coordinates.externalCognitiveBurst = avgPhase("burstIndex");
+  coordinates.externalCognitiveCoreStart = avgPhase("coreStartIndex");
+  coordinates.externalCognitiveCoreEnd = avgPhase("coreEndIndex");
+  coordinates.externalCognitiveTail = avgPhase("tailIndex");
+}
 
 // ======================================
 // بناء سجل العائلة الإدراكية للحرف المخزن من الرواصد الموجودة
@@ -468,7 +502,7 @@ function buildStoredFamilyRecordForMatch(identity, memory, timeline, familyConte
   }
 
   addTimelineCoordinatesToFamilyRecord(coordinates, timeline);
-
+addExternalCognitiveCoordinatesToFamilyRecord(coordinates, identity);
   return {
     source: "stored-family-record",
     key: identity?.phonemeKey,
@@ -634,6 +668,11 @@ function registerMismatchPart(parts, key, mismatch) {
 
   if (key.includes("timeline")) {
     parts.timeline = Math.max(parts.timeline || 0, mismatch);
+    return;
+  }
+
+  if (key.includes("externalCognitive")) {
+    parts.cognitive = Math.max(parts.cognitive || 0, mismatch);
     return;
   }
 
