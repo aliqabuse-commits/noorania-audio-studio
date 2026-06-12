@@ -651,7 +651,8 @@ console.log(
 );
   const familyShape =
     compareFamilyRecordsShape(sampleFamilyRecord, storedRecord);
-
+console.log("🧾 مفاتيح سجل العائلة:", identity.phonemeKey, Object.keys(storedRecord.coordinates || {}));
+console.log("🧾 سجل العائلة كامل:", identity.phonemeKey, storedRecord.coordinates);
   return {
     total: familyShape.maxMismatch,
     familyShape,
