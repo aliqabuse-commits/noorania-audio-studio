@@ -739,13 +739,7 @@ function loadPerceptualMemoryForMatch(key) {
       console.warn("⚠️ فشل تحميل الذاكرة الإدراكية:", storageKey, err);
     }
   }
-if (parsed?.layers?.perceptual?.signature) {
-  return {
-    perceptualSignature: parsed.layers.perceptual.signature,
-    perceptualSignatureByState:
-      parsed.layers.cognitive?.byState || {}
-  };
-}
+
   return null;
 }
 
