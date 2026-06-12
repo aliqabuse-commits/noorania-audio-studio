@@ -358,91 +358,191 @@ async function recordMatchSample() {
   });
 }
 
-
-// حسم الهوية بخريطة الإحداثيات
-function judgeIdentityByCoordinateMap(map) {
-  const verdict = {
-    strong: [],
-    acceptable: [],
-    weak: [],
-    missing: []
-  };
-
-  Object.keys(map).forEach(function (key) {
-    const value = map[key];
-
-    if (!Number.isFinite(Number(value))) {
-      verdict.missing.push(key);
-      return;
-    }
-
-    if (value <= 4) {
-      verdict.strong.push(key);
-      return;
-    }
-
-    if (value <= 9) {
-      verdict.acceptable.push(key);
-      return;
-    }
-
-    verdict.weak.push(key);
-  });
-
-  let rank = 1000;
-
-  if (verdict.strong.length >= 3 && verdict.weak.length === 0) {
-    rank = 1;
-  } else if (verdict.strong.length >= 2 && verdict.weak.length <= 1) {
-    rank = 2;
-  } else if (
-    verdict.strong.length >= 1 &&
-    verdict.acceptable.length >= 1 &&
-    verdict.weak.length <= 1
-  ) {
-    rank = 3;
-  } else if (verdict.acceptable.length >= 2 && verdict.weak.length <= 1) {
-    rank = 4;
-  } else {
-    rank = 9;
-  }
-
+// بناء سجل العائلة الإدراكية للعينة الوافدة
+function buildSampleFamilyRecord(summary) {
   return {
-    rank,
-    verdict,
-    rule: "الهوية تُحسم بتشكيلة الإحداثيات لا بجمع الأرقام."
+    source: "sample",
+    coordinates: {
+      energy: summary.meanEnergy,
+      centroid: summary.meanCentroid,
+      spread: summary.meanSpread,
+      zcr: summary.meanZcr,
+      duration: summary.duration,
+
+      burstEnergy: summary.burstEnergy,
+      burstCentroid: summary.burstCentroid,
+      burstSpread: summary.burstSpread,
+
+      energyMovement: summary.energyMovement,
+      spectralMovement: summary.spectralMovement,
+      phaseQuality: summary.phaseQuality,
+
+      sealCentroid: summary.meanCentroid,
+      sealSpread: summary.meanSpread,
+      sealBurstCentroid: summary.burstCentroid,
+      sealBurstSpread: summary.burstSpread
+    },
+    phases: summary.__phases || null
   };
 }
 
 
-// ترتيب مرشحي الهوية
+// بناء سجل العائلة الإدراكية للحرف المخزن من الرواصد الموجودة
+function buildStoredFamilyRecordForMatch(identity, memory, timeline, familyContext) {
+  const genome = identity?.genome || {};
+  const seal = genome.spectralSeal || null;
+  const mem = memory?.perceptualSignature || null;
+
+  const coordinates = {
+    energy: genome.energy?.mean,
+    centroid: genome.centroid?.mean,
+    spread: genome.spread?.mean,
+    zcr: genome.zcr?.mean,
+    duration: genome.duration?.mean,
+
+    burstEnergy: genome.burstEnergy?.mean,
+    burstCentroid: genome.burstCentroid?.mean,
+    burstSpread: genome.burstSpread?.mean,
+
+    energyMovement: genome.energyMovement?.mean,
+    spectralMovement: genome.spectralMovement?.mean,
+    phaseQuality: genome.phaseQuality?.mean
+  };
+
+  if (seal) {
+    coordinates.sealCentroid = seal.averageCentroid;
+    coordinates.sealSpread = seal.averageSpread;
+    coordinates.sealBurstCentroid = seal.averageBurstCentroid;
+    coordinates.sealBurstSpread = seal.averageBurstSpread;
+  }
+
+  if (mem) {
+    coordinates.memoryCentroid = mem.centroid?.mean;
+    coordinates.memorySpread = mem.spread?.mean;
+    coordinates.memoryEnergy = mem.energy?.mean;
+    coordinates.memoryZcr = mem.zcr?.mean;
+    coordinates.memoryDuration = mem.duration?.mean;
+  }
+
+  const timeSummary = timeline?.summary || null;
+
+  if (timeSummary) {
+    coordinates.timelineOnset = timeSummary.onset?.index?.mean;
+    coordinates.timelineBurst = timeSummary.burst?.index?.mean;
+    coordinates.timelineTransition = timeSummary.transition?.index?.mean;
+    coordinates.timelineSustain = timeSummary.sustain?.index?.mean;
+    coordinates.timelineRelease = timeSummary.release?.index?.mean;
+  }
+
+  return {
+    source: "stored-family-record",
+    key: identity?.phonemeKey,
+    phoneme: identity?.phoneme,
+    label: identity?.label,
+    familyContext,
+    coordinates
+  };
+}
+
+
+// تحميل سجل العائلة الإدراكية إن كان محفوظًا سابقًا
+function loadPerceptualFamilyRecordForMatch(key) {
+  const candidates = [
+    key + "_perceptual_family_record",
+    "family_record_" + key,
+    key + "_family_identity"
+  ];
+
+  for (const storageKey of candidates) {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) continue;
+      return JSON.parse(raw);
+    } catch (err) {
+      console.warn("⚠️ فشل تحميل سجل العائلة الإدراكية:", storageKey, err);
+    }
+  }
+
+  return null;
+}
+
+
+// حفظ سجل العائلة الإدراكية مستقبلاً من دوال البناء
+function savePerceptualFamilyRecord(key, record) {
+  if (!key || !record) return;
+
+  localStorage.setItem(
+    key + "_perceptual_family_record",
+    JSON.stringify(record, null, 2)
+  );
+}
+// مطابقة سجلين: لا جمع، بل مقارنة شكل التشكيلة الرقمية
+function compareFamilyRecordsShape(sampleRecord, storedRecord) {
+  const sample = sampleRecord?.coordinates || {};
+  const stored = storedRecord?.coordinates || {};
+
+  const details = [];
+  const missing = [];
+  const parts = {};
+
+  Object.keys(sample).forEach(function (key) {
+    const a = sample[key];
+    const b = stored[key];
+
+    if (!isFiniteNumber(a) || !isFiniteNumber(b)) {
+      missing.push(key);
+      return;
+    }
+
+    const scale = Math.max(Math.abs(a), Math.abs(b), 1);
+    const mismatch = Math.abs(a - b) / scale;
+
+    details.push({
+      key,
+      sample: a,
+      stored: b,
+      mismatch
+    });
+
+    if (key.includes("seal")) parts.seal = Math.max(parts.seal || 0, mismatch);
+    else if (key.includes("memory")) parts.memory = Math.max(parts.memory || 0, mismatch);
+    else if (key.includes("timeline")) parts.timeline = Math.max(parts.timeline || 0, mismatch);
+    else parts.genome = Math.max(parts.genome || 0, mismatch);
+  });
+
+  details.sort(function (a, b) {
+    return b.mismatch - a.mismatch;
+  });
+
+  return {
+    method: "family-record-shape-match",
+    details,
+    missing,
+    parts,
+    maxMismatch: details[0]?.mismatch ?? Infinity,
+    comparedCount: details.length
+  };
+}
 function compareIdentityCandidates(a, b) {
   if (a.familyWinner && !b.familyWinner) return -1;
   if (b.familyWinner && !a.familyWinner) return 1;
 
-  const ar = a.identityScore?.identityMapDecision?.rank || 999;
-  const br = b.identityScore?.identityMapDecision?.rank || 999;
+  const av = a.identityScore?.familyShape?.details || [];
+  const bv = b.identityScore?.familyShape?.details || [];
 
-  if (ar !== br) return ar - br;
+  const max = Math.max(av.length, bv.length);
 
-  const aw = a.identityScore?.identityMapDecision?.verdict?.weak?.length || 0;
-  const bw = b.identityScore?.identityMapDecision?.verdict?.weak?.length || 0;
+  for (let i = 0; i < max; i++) {
+    const am = av[i]?.mismatch ?? Infinity;
+    const bm = bv[i]?.mismatch ?? Infinity;
 
-  if (aw !== bw) return aw - bw;
+    if (am !== bm) return am - bm;
+  }
 
-  const as = a.identityScore?.identityMapDecision?.verdict?.strong?.length || 0;
-  const bs = b.identityScore?.identityMapDecision?.verdict?.strong?.length || 0;
-
-  if (as !== bs) return bs - as;
-
-  const aa = a.identityScore?.identityMapDecision?.verdict?.acceptable?.length || 0;
-  const ba = b.identityScore?.identityMapDecision?.verdict?.acceptable?.length || 0;
-
-  return ba - aa;
+  return 0;
 }
 
-
-// محرك مقارنة الهوية الإدراكية
+// محرك تجهيز سجل العائلة الإدراكية للمطابقة
 function compareIdentityMap(
   summary,
   identity,
@@ -451,72 +551,31 @@ function compareIdentityMap(
   timelineKnowledge,
   stateDecision
 ) {
-  const genome = identity?.genome || {};
+  const sampleRecord = buildSampleFamilyRecord(summary);
 
-  const hasGenome = !!identity?.genome;
-  const hasSeal = !!genome?.spectralSeal;
-  const hasState = !!identity?.genomeByState;
-  const hasMemory = !!perceptualMemory?.perceptualSignature;
-  const hasTimeline = !!timelineKnowledge;
-  const hasFamily = !!familyContext || !!identity?.familyDecision;
+  const storedRecord =
+    loadPerceptualFamilyRecordForMatch(identity.phonemeKey) ||
+    buildStoredFamilyRecordForMatch(
+      identity,
+      perceptualMemory,
+      timelineKnowledge,
+      familyContext
+    );
 
-  const genomeDistance =
-    hasGenome
-      ? compareSummaryWithFamilyAwareGenome(summary, genome, familyContext)
-      : NaN;
-
-  const sealDistance =
-    hasSeal
-      ? scoreSpectralSealDistance(summary, genome)
-      : NaN;
-
-  const stateDistance =
-    hasState
-      ? Number(stateDecision?.distance || 0) * 0.35
-      : NaN;
-
-  const memoryDistance =
-    hasMemory
-      ? scorePerceptualMemoryDistance(summary, perceptualMemory) * 0.25
-      : NaN;
-
-  const timelineDistance =
-    hasTimeline
-      ? scoreTimelineKnowledgeDistance(summary, timelineKnowledge)
-      : NaN;
-
-  const familyDistance =
-    hasFamily ? 0 : NaN;
-
-  const absenceDistance =
-    scoreKnowledgePresenceMap({
-      hasGenome,
-      hasSeal,
-      hasState,
-      hasMemory,
-      hasTimeline,
-      hasFamily
-    });
-
-  const identityMapDecision =
-    judgeIdentityByCoordinateMap({
-      genome: genomeDistance,
-      seal: sealDistance,
-      memory: memoryDistance,
-      timeline: timelineDistance
-    });
+  const familyShape =
+    compareFamilyRecordsShape(sampleRecord, storedRecord);
 
   return {
-    total: identityMapDecision.rank,
-    identityMapDecision,
+    total: familyShape.maxMismatch,
+    familyShape,
 
-    genome: Number.isFinite(genomeDistance) ? genomeDistance : 0,
-    seal: Number.isFinite(sealDistance) ? sealDistance : 0,
-    state: Number.isFinite(stateDistance) ? stateDistance : 0,
-    memory: Number.isFinite(memoryDistance) ? memoryDistance : 0,
-    timeline: Number.isFinite(timelineDistance) ? timelineDistance : 0,
-    family: Number.isFinite(familyDistance) ? familyDistance : 0,
-    absence: absenceDistance
+    genome: familyShape.parts.genome ?? 0,
+    seal: familyShape.parts.seal ?? 0,
+    state: Number(stateDecision?.distance || 0) * 0.35,
+    memory: familyShape.parts.memory ?? 0,
+    timeline: familyShape.parts.timeline ?? 0,
+    family: 0,
+    absence: familyShape.missing.length
   };
 }
 
