@@ -735,6 +735,7 @@ function loadPerceptualMemoryForMatch(key) {
           perceptualSignatureByState: parsed.cumulativePerceptualSignatureByState
         };
       }
+
     } catch (err) {
       console.warn("⚠️ فشل تحميل الذاكرة الإدراكية:", storageKey, err);
     }
@@ -742,7 +743,6 @@ function loadPerceptualMemoryForMatch(key) {
 
   return null;
 }
-
 
 // ======================================
 // تحديد أقرب حالة داخل الحرف
