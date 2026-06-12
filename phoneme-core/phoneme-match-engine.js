@@ -412,12 +412,7 @@ function buildSampleFamilyRecord(summary, timeline) {
     sealSpread: summary.meanSpread,
     sealBurstCentroid: summary.burstCentroid,
     sealBurstSpread: summary.burstSpread,
-memoryCentroid: summary.meanCentroid,
-memorySpread: summary.meanSpread,
-memoryEnergy: summary.meanEnergy,
-memoryZcr: summary.meanZcr,
-memoryDuration: summary.duration,
-memoryBurstiness: summary.burstEnergy,
+
     externalCognitiveOnset: phases.onsetIndex,
     externalCognitiveBurst: phases.burstIndex,
     externalCognitiveCoreStart: phases.coreStartIndex,
