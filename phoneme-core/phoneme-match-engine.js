@@ -412,12 +412,7 @@ function buildSampleFamilyRecord(summary, timeline) {
     sealSpread: summary.meanSpread,
     sealBurstCentroid: summary.burstCentroid,
     sealBurstSpread: summary.burstSpread,
-memoryCentroid: summary.meanCentroid,
-memorySpread: summary.meanSpread,
-memoryEnergy: summary.meanEnergy,
-memoryZcr: summary.meanZcr,
-memoryDuration: summary.duration,
-memoryBurstiness: summary.burstEnergy,
+
     externalCognitiveOnset: phases.onsetIndex,
     externalCognitiveBurst: phases.burstIndex,
     externalCognitiveCoreStart: phases.coreStartIndex,
@@ -624,16 +619,8 @@ function compareFamilyRecordsShape(sampleRecord, storedRecord) {
     const a = sample[key];
     const b = stored[key];
 
-    if (!isFiniteNumber(a)) return;
-
-    const optionalKnowledge =
-      key.includes("memory") ||
-      key.includes("timeline") ||
-      key.includes("externalCognitive") ||
-      key.includes("seal");
-
-    if (!isFiniteNumber(b)) {
-      if (!optionalKnowledge) missing.push(key);
+    if (!isFiniteNumber(a) || !isFiniteNumber(b)) {
+      missing.push(key);
       return;
     }
 
@@ -663,7 +650,6 @@ function compareFamilyRecordsShape(sampleRecord, storedRecord) {
     comparedCount: details.length
   };
 }
-
 
 // ======================================
 // توزيع الفروقات حسب مصدر المعرفة
