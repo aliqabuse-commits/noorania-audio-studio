@@ -500,6 +500,8 @@ function buildStoredFamilyRecordForMatch(identity, memory, timeline, familyConte
     coordinates.memoryEnergy = mem.energy?.mean;
     coordinates.memoryZcr = mem.zcr?.mean;
     coordinates.memoryDuration = mem.duration?.mean;
+    coordinates.memoryActiveRatio = mem.activeRatio?.mean;
+coordinates.memoryBurstiness = mem.burstiness?.mean;
   }
 
   addTimelineCoordinatesToFamilyRecord(coordinates, timeline);
