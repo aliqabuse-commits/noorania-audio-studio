@@ -1013,28 +1013,9 @@ function getAudioPromiseForMemory(key, timeoutMs) {
 
 
 function persistTrainingAudioToLocalStorage(key, blob) {
-  try {
-    const reader = new FileReader();
-
-    reader.onload = function () {
-      try {
-        const dataUrl = reader.result;
-
-        if (typeof dataUrl === "string" && dataUrl.startsWith("data:")) {
-          localStorage.setItem("audio_" + key, dataUrl);
-          localStorage.setItem(key, dataUrl);
-
-          console.log("💾 تم حفظ آخر تسجيل للحقيبة:", key);
-        }
-      } catch (err) {
-        console.warn("⚠️ تعذر حفظ آخر تسجيل:", key, err);
-      }
-    };
-
-    reader.readAsDataURL(blob);
-  } catch (err) {
-    console.warn("⚠️ فشل حفظ آخر تسجيل:", key, err);
-  }
+  // ممنوع حفظ الصوت الخام في localStorage
+  // localStorage للمعرفة فقط
+  return;
 }
 
 function getTrainingAudioFromLocalStorage(fileName) {
