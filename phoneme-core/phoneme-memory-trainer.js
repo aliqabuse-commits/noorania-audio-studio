@@ -288,8 +288,8 @@ function savePerceptualIdentityEverywhere(phonemeKey, identity) {
 
   const cumulativeValue = JSON.stringify(cumulative, null, 2);
 
-  localStorage.setItem(phonemeKey + "_cumulative_memory", cumulativeValue);
-  localStorage.setItem("cognitive_memory_" + phonemeKey, cumulativeValue);
+  // localStorage.setItem(phonemeKey + "_cumulative_memory", cumulativeValue);
+// localStorage.setItem("cognitive_memory_" + phonemeKey, cumulativeValue); 
 }
 
 
