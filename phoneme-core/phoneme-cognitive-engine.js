@@ -66,33 +66,8 @@ async function getStoredAudio(fileName) {
 // 2) حفظ نسخة احتياطية من التسجيل
 // ======================================
 function persistAudioBlobBackup(fileName, blob) {
-  try {
-    const existing =
-      localStorage.getItem("audio_" + fileName) ||
-      localStorage.getItem(fileName);
-
-    if (existing && existing.startsWith("data:")) return;
-
-    const reader = new FileReader();
-
-    reader.onload = function () {
-      try {
-        const dataUrl = reader.result;
-
-        if (typeof dataUrl === "string" && dataUrl.startsWith("data:")) {
-          localStorage.setItem("audio_" + fileName, dataUrl);
-          localStorage.setItem(fileName, dataUrl);
-          console.log("💾 تم تثبيت نسخة التسجيل:", fileName);
-        }
-      } catch (err) {
-        console.warn("⚠️ تعذر حفظ التسجيل احتياطيًا:", fileName, err);
-      }
-    };
-
-    reader.readAsDataURL(blob);
-  } catch (err) {
-    console.warn("⚠️ فشل تجهيز نسخة التسجيل الاحتياطية:", fileName, err);
-  }
+  console.log("ℹ️ تم منع حفظ نسخة الصوت الخام في localStorage:", fileName);
+  return;
 }
 
 
