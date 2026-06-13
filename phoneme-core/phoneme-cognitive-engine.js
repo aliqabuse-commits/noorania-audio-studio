@@ -730,7 +730,10 @@ function summarizeCognitiveTimeline(timeline, phases) {
     energyMovement: roundCognitive(movementCognitive(active.map(f => f.energy))),
     spectralMovement: roundCognitive(movementCognitive(active.map(f => f.centroid))),
     activeFrames: active.length,
-    phaseQuality: scorePhaseQuality(active, phases)
+activeRatio: roundCognitive(
+  active.length / Math.max(1, timeline.length)
+),
+phaseQuality: scorePhaseQuality(active, phases)
   };
 }
 
