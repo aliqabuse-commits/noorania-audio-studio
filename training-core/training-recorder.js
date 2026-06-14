@@ -223,12 +223,32 @@ await saveLastTrainingAudioBackup(fileName, blob);
 
 // حفظ آخر تسجيل دائمًا في localStorage
 function saveLastTrainingAudioBackup(fileName, blob) {
-localStorage.setItem("last_training_audio_file", fileName);
-localStorage.setItem("last_training_audio_time", new Date().toISOString());
+  return new Promise(function (resolve, reject) {
+    const reader = new FileReader();
 
-console.log("ℹ️ لم يتم حفظ الصوت الخام في localStorage:", fileName);
+    reader.onloadend = function () {
+      try {
+        const dataUrl = reader.result;
 
-return Promise.resolve();
+        localStorage.removeItem("audio_" + fileName);
+        localStorage.removeItem(fileName);
+
+        localStorage.setItem("audio_" + fileName, dataUrl);
+        localStorage.setItem(fileName, dataUrl);
+
+        localStorage.setItem("last_training_audio_file", fileName);
+        localStorage.setItem("last_training_audio_time", new Date().toISOString());
+
+        console.log("💾 تم حفظ التسجيل الخام فعليًا:", fileName);
+        resolve(true);
+      } catch (err) {
+        reject(err);
+      }
+    };
+
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
 
 // ======================================
