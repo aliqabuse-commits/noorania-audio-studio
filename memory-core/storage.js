@@ -42,37 +42,44 @@ function initDB() {
 // =====================================
 
 function saveAudio(key, blob) {
+  return new Promise(function (resolve, reject) {
+    if (!db) {
+      reject(new Error("قاعدة البيانات غير جاهزة"));
+      return;
+    }
 
-  if (!db) return;
+    const tx = db.transaction("recordings", "readwrite");
 
-  const tx = db.transaction("recordings", "readwrite");
+    tx.objectStore("recordings").put(blob, key);
 
-  tx.objectStore("recordings").put(blob, key);
+    tx.oncomplete = function () {
+      resolve(true);
+    };
 
+    tx.onerror = function () {
+      reject(tx.error || new Error("فشل حفظ الصوت"));
+    };
+  });
 }
 
 
 function getAudio(key, callback) {
-
   if (!db) {
     callback(null);
     return;
   }
 
   const tx = db.transaction("recordings", "readonly");
-
   const request = tx.objectStore("recordings").get(key);
 
   request.onsuccess = function () {
-    callback(request.result);
+    callback(request.result || null);
   };
 
   request.onerror = function () {
     callback(null);
   };
-
 }
-
 
 function deleteAudio(key) {
 
