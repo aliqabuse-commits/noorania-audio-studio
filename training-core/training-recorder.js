@@ -228,7 +228,7 @@ async function saveTrainingAudio(fileName, blob) {
 function saveLastTrainingAudioBackup(fileName, blob) {
   localStorage.setItem("last_training_audio_file", fileName);
   localStorage.setItem("last_training_audio_time", new Date().toISOString());
-
+alert("اسم ملف التسجيل الذي سيُحفظ:\n" + fileName);
   console.log("ℹ️ لم يتم حفظ الصوت الخام في localStorage:", fileName);
 
   return Promise.resolve();
