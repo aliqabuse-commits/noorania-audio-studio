@@ -46,6 +46,7 @@ window.NOORANIYA_PHONEME_CORE = {
     "phoneme-core/spectral-seal-engine.js",
 "phoneme-core/phoneme-family-map.js",
 "phoneme-core/phoneme-cumulative-memory.js",
+    "memory-core/storage.js",
     "training-core/training-recorder.js",
     "phoneme-core/phoneme-core-app.js"
   ],
