@@ -206,7 +206,7 @@ function stopTrainingStepRecording() {
 // حفظ صوت التدريب + تثبيت آخر نسخة دائمًا
 async function saveTrainingAudio(fileName, blob) {
   if (!fileName || !blob) return;
-
+alert("اسم ملف التسجيل الذي سيُحفظ:\n" + fileName);
   try {
     if (typeof saveAudio === "function") {
       await saveAudio(fileName, blob);
