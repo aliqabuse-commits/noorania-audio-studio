@@ -206,23 +206,43 @@ function stopTrainingStepRecording() {
 // حفظ صوت التدريب + تثبيت آخر نسخة دائمًا
 async function saveTrainingAudio(fileName, blob) {
   if (!fileName || !blob) return;
-alert("اسم ملف التسجيل الذي سيُحفظ:\n" + fileName);
+
+  alert("اسم ملف التسجيل الذي سيُحفظ:\n" + fileName);
+
+  let saved = false;
+
   try {
     if (typeof saveAudio === "function") {
       await saveAudio(fileName, blob);
+      saved = true;
     } else if (typeof putAudio === "function") {
       await putAudio(fileName, blob);
+      saved = true;
     } else if (typeof saveBlob === "function") {
       await saveBlob(fileName, blob);
+      saved = true;
     }
   } catch (err) {
-    console.warn("⚠️ فشل الحفظ الأساسي، سيتم الاعتماد على النسخة الاحتياطية:", fileName, err);
+    console.warn("⚠️ فشل الحفظ الأساسي:", fileName, err);
   }
 
-  // النسخة الأخيرة تُحفظ دائمًا وتستبدل القديمة
-  await saveLastTrainingAudioBackup(fileName, blob);
-}
+  if (!saved) {
+    alert(
+      "لم يتم حفظ الصوت في التخزين الأساسي:\n" +
+      fileName +
+      "\n\nدوال الحفظ المتاحة:\n" +
+      "saveAudio = " + (typeof saveAudio) + "\n" +
+      "putAudio = " + (typeof putAudio) + "\n" +
+      "saveBlob = " + (typeof saveBlob)
+    );
+    return;
+  }
 
+  localStorage.setItem("last_training_audio_file", fileName);
+  localStorage.setItem("last_training_audio_time", new Date().toISOString());
+
+  console.log("✅ تم حفظ التسجيل في التخزين الأساسي:", fileName);
+}
 
 // حفظ آخر تسجيل دائمًا في localStorage
 function saveLastTrainingAudioBackup(fileName, blob) {
