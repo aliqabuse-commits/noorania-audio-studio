@@ -255,10 +255,7 @@ sendCognitiveGenomeKnowledgeSignal(
   }
 }
 
-console.log(
-  "🧬 GENOME BY STATE:",
-  JSON.stringify(identity.genomeByState, null, 2)
-);
+
 // ======================================
 // 4) حفظ الجينوم + الذاكرة التراكمية
 // ======================================
