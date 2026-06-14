@@ -202,12 +202,9 @@ function stopTrainingStepRecording() {
     perceptualTrainingRecorder.stop();
   }
 }
-
 // حفظ صوت التدريب + تثبيت آخر نسخة دائمًا
 async function saveTrainingAudio(fileName, blob) {
   if (!fileName || !blob) return;
-
-  alert("اسم ملف التسجيل الذي سيُحفظ:\n" + fileName);
 
   let saved = false;
 
@@ -223,18 +220,11 @@ async function saveTrainingAudio(fileName, blob) {
       saved = true;
     }
   } catch (err) {
-    console.warn("⚠️ فشل الحفظ الأساسي:", fileName, err);
+    console.warn("⚠️ فشل الحفظ الأساسي، سيتم استخدام الحفظ الاحتياطي:", fileName, err);
   }
 
   if (!saved) {
-    alert(
-      "لم يتم حفظ الصوت في التخزين الأساسي:\n" +
-      fileName +
-      "\n\nدوال الحفظ المتاحة:\n" +
-      "saveAudio = " + (typeof saveAudio) + "\n" +
-      "putAudio = " + (typeof putAudio) + "\n" +
-      "saveBlob = " + (typeof saveBlob)
-    );
+    await saveLastTrainingAudioBackup(fileName, blob);
     return;
   }
 
@@ -244,14 +234,36 @@ async function saveTrainingAudio(fileName, blob) {
   console.log("✅ تم حفظ التسجيل في التخزين الأساسي:", fileName);
 }
 
-// حفظ آخر تسجيل دائمًا في localStorage
-function saveLastTrainingAudioBackup(fileName, blob) {
-  localStorage.setItem("last_training_audio_file", fileName);
-  localStorage.setItem("last_training_audio_time", new Date().toISOString());
-alert("اسم ملف التسجيل الذي سيُحفظ:\n" + fileName);
-  console.log("ℹ️ لم يتم حفظ الصوت الخام في localStorage:", fileName);
 
-  return Promise.resolve();
+// حفظ آخر تسجيل في localStorage عند غياب التخزين الأساسي
+function saveLastTrainingAudioBackup(fileName, blob) {
+  return new Promise(function (resolve, reject) {
+    const reader = new FileReader();
+
+    reader.onloadend = function () {
+      try {
+        const dataUrl = reader.result;
+
+        localStorage.removeItem("audio_" + fileName);
+        localStorage.removeItem(fileName);
+
+        localStorage.setItem("audio_" + fileName, dataUrl);
+        localStorage.setItem(fileName, dataUrl);
+
+        localStorage.setItem("last_training_audio_file", fileName);
+        localStorage.setItem("last_training_audio_time", new Date().toISOString());
+
+        console.log("💾 تم حفظ التسجيل احتياطيًا:", fileName);
+        resolve();
+      } catch (err) {
+        console.warn("❌ فشل الحفظ الاحتياطي:", fileName, err);
+        reject(err);
+      }
+    };
+
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
 
 // ======================================
