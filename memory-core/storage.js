@@ -170,10 +170,17 @@ function saveUnitStatus() {
 
 }
 
-
 // =====================================
 // 5️⃣ التهيئة
 // =====================================
+
+window.saveAudio = saveAudio;
+window.getAudio = getAudio;
+window.deleteAudio = deleteAudio;
+window.saveGenome = saveGenome;
+window.getGenome = getGenome;
+window.deleteGenome = deleteGenome;
+window.saveUnitStatus = saveUnitStatus;
 
 initDB();
 
