@@ -202,68 +202,33 @@ function stopTrainingStepRecording() {
     perceptualTrainingRecorder.stop();
   }
 }
-// حفظ صوت التدريب + تثبيت آخر نسخة دائمًا
 async function saveTrainingAudio(fileName, blob) {
-  if (!fileName || !blob) return;
-
-  let saved = false;
-
-  try {
-    if (typeof saveAudio === "function") {
-      await saveAudio(fileName, blob);
-      saved = true;
-    } else if (typeof putAudio === "function") {
-      await putAudio(fileName, blob);
-      saved = true;
-    } else if (typeof saveBlob === "function") {
-      await saveBlob(fileName, blob);
-      saved = true;
-    }
-  } catch (err) {
-    console.warn("⚠️ فشل الحفظ الأساسي، سيتم استخدام الحفظ الاحتياطي:", fileName, err);
-  }
-
-  if (!saved) {
-    await saveLastTrainingAudioBackup(fileName, blob);
-    return;
-  }
-
-  localStorage.setItem("last_training_audio_file", fileName);
-  localStorage.setItem("last_training_audio_time", new Date().toISOString());
-
-  console.log("✅ تم حفظ التسجيل في التخزين الأساسي:", fileName);
+if (!fileName || !blob) return;
+alert("اسم ملف التسجيل الذي سيُحفظ:\n" + fileName);
+try {
+if (typeof saveAudio === "function") {
+await saveAudio(fileName, blob);
+} else if (typeof putAudio === "function") {
+await putAudio(fileName, blob);
+} else if (typeof saveBlob === "function") {
+await saveBlob(fileName, blob);
+}
+} catch (err) {
+console.warn("⚠️ فشل الحفظ الأساسي، سيتم الاعتماد على النسخة الاحتياطية:", fileName, err);
 }
 
+// النسخة الأخيرة تُحفظ دائمًا وتستبدل القديمة
+await saveLastTrainingAudioBackup(fileName, blob);
+}
 
-// حفظ آخر تسجيل في localStorage عند غياب التخزين الأساسي
+// حفظ آخر تسجيل دائمًا في localStorage
 function saveLastTrainingAudioBackup(fileName, blob) {
-  return new Promise(function (resolve, reject) {
-    const reader = new FileReader();
+localStorage.setItem("last_training_audio_file", fileName);
+localStorage.setItem("last_training_audio_time", new Date().toISOString());
+alert("اسم ملف التسجيل الذي سيُحفظ:\n" + fileName);
+console.log("ℹ️ لم يتم حفظ الصوت الخام في localStorage:", fileName);
 
-    reader.onloadend = function () {
-      try {
-        const dataUrl = reader.result;
-
-        localStorage.removeItem("audio_" + fileName);
-        localStorage.removeItem(fileName);
-
-        localStorage.setItem("audio_" + fileName, dataUrl);
-        localStorage.setItem(fileName, dataUrl);
-
-        localStorage.setItem("last_training_audio_file", fileName);
-        localStorage.setItem("last_training_audio_time", new Date().toISOString());
-
-        console.log("💾 تم حفظ التسجيل احتياطيًا:", fileName);
-        resolve();
-      } catch (err) {
-        console.warn("❌ فشل الحفظ الاحتياطي:", fileName, err);
-        reject(err);
-      }
-    };
-
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
+return Promise.resolve();
 }
 
 // ======================================
