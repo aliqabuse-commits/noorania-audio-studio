@@ -1013,9 +1013,31 @@ function getAudioPromiseForMemory(key, timeoutMs) {
 
 
 function persistTrainingAudioToLocalStorage(key, blob) {
-  // ممنوع حفظ الصوت الخام في localStorage
-  // localStorage للمعرفة فقط
-  return;
+  try {
+    const reader = new FileReader();
+
+    reader.onload = function () {
+      try {
+        const dataUrl = reader.result;
+
+        if (typeof dataUrl === "string" && dataUrl.startsWith("data:")) {
+          localStorage.removeItem("audio_" + key);
+          localStorage.removeItem(key);
+
+          localStorage.setItem("audio_" + key, dataUrl);
+          localStorage.setItem(key, dataUrl);
+
+          console.log("💾 تم حفظ التسجيل الخام مؤقتًا:", key);
+        }
+      } catch (err) {
+        console.warn("⚠️ تعذر حفظ التسجيل الخام مؤقتًا:", key, err);
+      }
+    };
+
+    reader.readAsDataURL(blob);
+  } catch (err) {
+    console.warn("⚠️ فشل تجهيز حفظ التسجيل الخام:", key, err);
+  }
 }
 
 function getTrainingAudioFromLocalStorage(fileName) {
