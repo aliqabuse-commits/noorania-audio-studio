@@ -242,7 +242,21 @@ function stopTrainingStream() {
   }
 }
 console.log("🎙 مسجل التدريب الإدراكي جاهز ");
+function clearQafRawAudioOnly() {
+  [
+    "qaf_fatha.wav",
+    "qaf_kasra.wav",
+    "qaf_damma.wav",
+    "qaf_sukoon_fatha.wav",
+    "qaf_sukoon_kasra.wav",
+    "qaf_sukoon_damma.wav"
+  ].forEach(function (file) {
+    localStorage.removeItem(file);
+    localStorage.removeItem("audio_" + file);
+  });
 
+  alert("تم حذف تسجيلات القاف الخام فقط.");
+}
 // ======================================
 // التصدير العام
 // ======================================
