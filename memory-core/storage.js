@@ -40,7 +40,6 @@ function initDB() {
 // =====================================
 // 2️⃣ الصوت الخام
 // =====================================
-
 function saveAudio(key, blob) {
   return new Promise(function (resolve, reject) {
     if (!db) {
@@ -49,7 +48,6 @@ function saveAudio(key, blob) {
     }
 
     const tx = db.transaction("recordings", "readwrite");
-
     tx.objectStore("recordings").put(blob, key);
 
     tx.oncomplete = function () {
