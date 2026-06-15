@@ -743,8 +743,12 @@ influentialKnowledge: decideInfluentialKnowledgeForSplit(splitContext, result),
   const carrierRawBuffer = sliceAudioBuffer(buffer, 0, cutPoint);
   const payloadRawBuffer = sliceAudioBuffer(buffer, cutPoint, buffer.duration);
 
-  const units = extractCognitiveJoinUnits(buffer, cutPoint);
-
+  const units = extractCognitiveJoinUnits(
+  buffer,
+  cutPoint,
+  getCognitiveJoinOptions(),
+  splitContext
+);
   return {
     carrierRawBlob: audioBufferToWavBlob(carrierRawBuffer),
     payloadRawBlob: audioBufferToWavBlob(payloadRawBuffer),
