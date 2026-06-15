@@ -520,26 +520,45 @@ function overlapAddAudioBuffers(bufferA, bufferB, overlapSeconds) {
 }
 
 
-function extractCognitiveJoinUnits(buffer, cutPoint) {
-  const transitionBefore = 0.045;
-  const transitionAfter = 0.045;
+function extractCognitiveJoinUnits(buffer, cutPoint, options, splitContext) {
+  options = options || getCognitiveJoinOptions();
 
-  const transStart = Math.max(0, cutPoint - transitionBefore);
-  const transEnd = Math.min(buffer.duration, cutPoint + transitionAfter);
+  const transStart = Math.max(0, cutPoint - options.before);
+  const transEnd = Math.min(buffer.duration, cutPoint + options.after);
 
   const carrierCore = sliceAudioBuffer(buffer, 0, transStart);
   const joinZone = sliceAudioBuffer(buffer, transStart, transEnd);
   const payloadCore = sliceAudioBuffer(buffer, transEnd, buffer.duration);
 
-  const carrierJoin = applyEnvelope(joinZone, 1.0, 0.0);
-  const payloadJoin = applyEnvelope(joinZone, 0.0, 1.0);
+  // المسار الآمن الحالي: لا يكسر آخر خطوة ناجحة
+  const carrierTail = dampenCarrierTail(
+    applyCurvedEnvelope(joinZone, 1.0, 0.0, options.curvePower),
+    options.tailGain
+  );
 
-  const carrierReady = concatAudioBuffers(carrierCore, carrierJoin);
-  const payloadReady = concatAudioBuffers(payloadJoin, payloadCore);
+  const payloadHead = applyCurvedEnvelope(
+    joinZone,
+    0.0,
+    1.0,
+    options.curvePower
+  );
+
+  const carrierReady = concatAudioBuffers(carrierCore, carrierTail);
+  const payloadReady = concatAudioBuffers(payloadHead, payloadCore);
 
   return {
+    cutPoint,
+    transStart,
+    transEnd,
+    carrierCore,
+    payloadCore,
+    joinZone,
+    carrierTail,
+    payloadHead,
     carrierReady,
-    payloadReady
+    payloadReady,
+    splitContext: splitContext || null,
+    options
   };
 }
 
