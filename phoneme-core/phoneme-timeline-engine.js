@@ -472,16 +472,35 @@ async function buildTimelineGenomeForPhoneme(key) {
       alert("⚠️ لم يتم تحليل أي عينة للحقيبة: " + key);
       return null;
     }
+const lightRecords = genomeRecords.map(function (record) {
+  return {
+    position: {
+      id: record.position.id,
+      text: record.position.text,
+      file: record.position.file,
+      role: record.position.role
+    },
+    timeline: {
+      onset: record.timeline.onset,
+      burst: record.timeline.burst,
+      transition: record.timeline.transition,
+      sustain: record.timeline.sustain,
+      release: record.timeline.release,
+      thresholds: record.timeline.thresholds,
+      governance: record.timeline.governance
+    }
+  };
+});
 
-    const timelineGenome = {
-      method: "Noorani Timeline Genome V2",
-      version: TIMELINE_ENGINE_VERSION,
-      key: key,
-      records: genomeRecords,
-      summary: buildTimelineGenomeSummary(genomeRecords),
-      governance: buildTimelineGenomeGovernance(key, genomeRecords),
-      timestamp: new Date().toISOString()
-    };
+const timelineGenome = {
+  method: "Noorani Timeline Genome V2",
+  version: TIMELINE_ENGINE_VERSION,
+  key: key,
+  records: lightRecords,
+  summary: buildTimelineGenomeSummary(lightRecords),
+  governance: buildTimelineGenomeGovernance(key, lightRecords),
+  timestamp: new Date().toISOString()
+};
 
     localStorage.setItem(
       key + "_timeline_genome",
