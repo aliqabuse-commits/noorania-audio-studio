@@ -166,13 +166,7 @@ async function startTrainingStepRecording(step) {
         updateTrainingStatus("⏳ جاري حفظ التسجيل...<br>" + step.file, "#facc15");
         await saveTrainingAudio(step.file, blob);
         stopTrainingStream();
-const verify = await getAudioPromiseForMemory(fileName, 3000);
 
-alert(
-  fileName +
-  "\n\nبعد الحفظ مباشرة:\n" +
-  (verify ? "تمت القراءة بنجاح" : "فشلت القراءة")
-);
         currentTrainingIndex++;
         if (currentTrainingIndex < currentTrainingPack.positions.length) { showTrainingStep(); } 
         else {
