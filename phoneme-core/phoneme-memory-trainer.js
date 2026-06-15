@@ -260,38 +260,53 @@ text: unit.hmal || unit.haml || unit.text,
 // 4) حفظ الذاكرة في كل المفاتيح التي قد يقرأها النظام
 // ======================================
 function savePerceptualIdentityEverywhere(phonemeKey, identity) {
+  const lightIdentity = {
+    method: identity.method,
+    version: identity.version,
+    phonemeKey: identity.phonemeKey,
+    phoneme: identity.phoneme,
+    label: identity.label,
+    color: identity.color,
+    pack: identity.pack,
+
+    trainingUnits: identity.trainingUnits,
+    perceptualSignature: identity.perceptualSignature,
+    perceptualSignatureByState: identity.perceptualSignatureByState,
+
+    samplesCount: identity.samplesCount,
+    confidence: identity.confidence,
+    governance: identity.governance,
+    concept: identity.concept,
+    createdAt: identity.createdAt
+  };
+
+  const value = JSON.stringify(lightIdentity);
+
   localStorage.setItem(
     phonemeKey + "_perceptual_identity",
-    JSON.stringify(identity, null, 2)
+    value
   );
 
   localStorage.setItem(
     phonemeKey + "_memory",
-    JSON.stringify(identity, null, 2)
+    value
   );
 
-  localStorage.setItem(
-    "phoneme_memory_" + phonemeKey,
-    JSON.stringify(identity, null, 2)
-  );
-
-  let cumulative = null;
+  // لا نحفظ نسخة ثالثة مكررة حتى لا يمتلئ localStorage
+  localStorage.removeItem("phoneme_memory_" + phonemeKey);
 
   if (typeof addPerceptualIdentityToCumulativeMemory === "function") {
-    cumulative = addPerceptualIdentityToCumulativeMemory(
+    addPerceptualIdentityToCumulativeMemory(
       phonemeKey,
-      identity
+      lightIdentity
     );
   } else {
-    cumulative = addPerceptualIdentityFallback(phonemeKey, identity);
+    addPerceptualIdentityFallback(
+      phonemeKey,
+      lightIdentity
+    );
   }
-
-  const cumulativeValue = JSON.stringify(cumulative, null, 2);
-
-  // localStorage.setItem(phonemeKey + "_cumulative_memory", cumulativeValue);
-// localStorage.setItem("cognitive_memory_" + phonemeKey, cumulativeValue); 
 }
-
 
 function addPerceptualIdentityFallback(phonemeKey, identity) {
   const oldRaw = localStorage.getItem(phonemeKey + "_cumulative_memory");
