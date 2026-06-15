@@ -483,6 +483,15 @@ function getPhonemeTrainingPack(key) {
 function getAllPhonemeTrainingPacks() {
   return PHONEME_TRAINING_PACK;
 }
+// ======================================
+// التصدير العام لمرجع الحقائب الإدراكية
+// ======================================
+window.PHONEME_LETTER_DEFINITIONS = PHONEME_LETTER_DEFINITIONS;
+window.PHONEME_TRAINING_PACK = PHONEME_TRAINING_PACK;
 
+window.generateStandardPositions = generateStandardPositions;
+window.createPhonemeTrainingPack = createPhonemeTrainingPack;
+window.getPhonemeTrainingPack = getPhonemeTrainingPack;
+window.getAllPhonemeTrainingPacks = getAllPhonemeTrainingPacks;
 
 console.log("🎒 حقائب التدريب الإدراكي للحروف مسجلة V4");
