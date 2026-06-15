@@ -25,6 +25,7 @@ window.NOORANIYA_OPERATION_LABS = {
     "غرفة تجارب لاختبار الفرضيات الصوتية والإدراكية قبل اعتمادها في الإدارات الرسمية عبر الحوكمة.",
 
   files: [
+  "phoneme-core/phoneme-training-pack.js",
   "segment-core/phoneme-boundary-engine.js",
   "operation-labs/phoneme-merge-split-engine.js",
   "operation-labs/weighted-join-zone.js",
