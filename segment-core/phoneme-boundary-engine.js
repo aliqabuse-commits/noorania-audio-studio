@@ -93,7 +93,74 @@ function scoreMemorySupportForPayload(payloadMemory) {
   // دعم بسيط أولي: كلما وجدت ذاكرة تراكمية أصبح القرار أكثر ثقة
   return Math.min(0.05, payloadMemory.samplesCount * 0.005);
 }
+function compareSummaryWithCognitiveGenome(summary, genome) {
+  if (!summary || !genome) return 999;
 
+  const summaryFeatures = {
+    energy: summary.avgEnergy ?? summary.energy ?? 0,
+    centroid: summary.avgCentroid ?? summary.centroid ?? 0,
+    spread: summary.avgSpread ?? summary.spread ?? 0,
+    zcr: summary.avgZcr ?? summary.zcr ?? 0,
+    duration: summary.duration ?? 0
+  };
+
+  const genomeFeatures = {
+    energy:
+      genome.energy?.mean ??
+      genome.avgEnergy ??
+      genome.energy ??
+      0,
+
+    centroid:
+      genome.centroid?.mean ??
+      genome.avgCentroid ??
+      genome.centroid ??
+      0,
+
+    spread:
+      genome.spread?.mean ??
+      genome.avgSpread ??
+      genome.spread ??
+      0,
+
+    zcr:
+      genome.zcr?.mean ??
+      genome.avgZcr ??
+      genome.zcr ??
+      0,
+
+    duration:
+      genome.duration?.mean ??
+      genome.avgDuration ??
+      genome.duration ??
+      0
+  };
+
+  const weights = {
+    energy: 1.0,
+    centroid: 1.3,
+    spread: 1.0,
+    zcr: 0.8,
+    duration: 0.5
+  };
+
+  let total = 0;
+  let count = 0;
+
+  Object.keys(weights).forEach(function (key) {
+    const a = Number(summaryFeatures[key] || 0);
+    const b = Number(genomeFeatures[key] || 0);
+
+    if (!a && !b) return;
+
+    const diff = Math.abs(a - b) / Math.max(Math.abs(a), Math.abs(b), 1);
+
+    total += diff * weights[key];
+    count += weights[key];
+  });
+
+  return count ? total / count : 999;
+}
 function detectPayloadBoundaryByIdentity(audioBuffer, options) {
   options = options || {};
 
@@ -241,5 +308,5 @@ function detectPayloadBoundaryByIdentity(audioBuffer, options) {
 }
 
 window.detectPayloadBoundaryByIdentity = detectPayloadBoundaryByIdentity;
-
+window.compareSummaryWithCognitiveGenome = compareSummaryWithCognitiveGenome;
 console.log("🧭 كاشف الحدود بالهوية الإدراكية جاهز V2");
