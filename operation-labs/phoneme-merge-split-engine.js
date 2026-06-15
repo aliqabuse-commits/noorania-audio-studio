@@ -691,7 +691,13 @@ async function performCoreCognitiveSplit(blob, text) {
   }
 
   const keys = resolveDynamicKeys(text);
-
+alert(
+  "النص: " + text + "\n" +
+  "بعد التنظيف: " + normalizeArabic(text) + "\n" +
+  "المفاتيح: " + JSON.stringify(keys) + "\n" +
+  "getAllPhonemeTrainingPacks: " +
+  (typeof getAllPhonemeTrainingPacks)
+);
   if (!keys || keys.length < 2) {
     throw new Error("لم يتم العثور على مفتاحين إدراكيين لهذا المقطع في الحقائب.");
   }
