@@ -511,7 +511,7 @@ const timelineGenome = {
   console.warn("⚠️ تعذر حفظ timelineGenome:", err);
 }
 
-    saveTimelineGenomeToCumulativeMemory(key, timelineGenome);
+    //saveTimelineGenomeToCumulativeMemory(key, timelineGenome);
 
     renderTimelineGenomeReport(key, timelineGenome);
 
