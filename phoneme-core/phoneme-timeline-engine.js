@@ -589,8 +589,18 @@ function buildTimelineGenomeGovernance(key, records) {
 
 function saveTimelineGenomeToCumulativeMemory(key, timelineGenome) {
   try {
+    const lightTimeline = {
+      method: timelineGenome.method,
+      version: timelineGenome.version,
+      phonemeKey: timelineGenome.phonemeKey || key,
+      summary: timelineGenome.summary,
+      averages: timelineGenome.averages,
+      governance: timelineGenome.governance,
+      createdAt: timelineGenome.createdAt
+    };
+
     if (typeof addTimelineGenomeToCumulativeMemory === "function") {
-      addTimelineGenomeToCumulativeMemory(key, timelineGenome);
+      addTimelineGenomeToCumulativeMemory(key, lightTimeline);
       return;
     }
 
@@ -602,44 +612,37 @@ function saveTimelineGenomeToCumulativeMemory(key, timelineGenome) {
 
     const memory = JSON.parse(raw);
 
-    if (!Array.isArray(memory.samples)) memory.samples = [];
     if (!Array.isArray(memory.attemptHistory)) memory.attemptHistory = [];
 
-    const sample = {
+    memory.attemptHistory.push({
       id: key + "_timeline_" + Date.now(),
       createdAt: new Date().toISOString(),
       source: "phoneme-timeline-engine",
-      phonemeKey: key,
-      timelineGenome: timelineGenome,
-      governance: timelineGenome.governance
-    };
-
-    memory.samples.push(sample);
-    memory.attemptHistory.push({
-      id: sample.id,
-      createdAt: sample.createdAt,
-      source: sample.source,
-      accepted: timelineGenome.governance?.decision !== "rejected",
-      decision: timelineGenome.governance?.decision || "unknown",
+      accepted: lightTimeline.governance?.decision !== "rejected",
+      decision: lightTimeline.governance?.decision || "unknown",
       decisionReason:
-        (timelineGenome.governance?.warnings || []).join(", ") || "لا توجد تحذيرات"
+        (lightTimeline.governance?.warnings || []).join(", ") || "لا توجد تحذيرات"
     });
 
-    memory.samplesCount = memory.samples.length;
-    memory.latestTimelineGenome = timelineGenome;
-    memory.latestTimelineGovernance = timelineGenome.governance;
+    if (memory.attemptHistory.length > 50) {
+      memory.attemptHistory = memory.attemptHistory.slice(-50);
+    }
+
+    memory.latestTimelineGenome = lightTimeline;
+    memory.latestTimelineGovernance = lightTimeline.governance;
     memory.updatedAt = new Date().toISOString();
 
-    const value = JSON.stringify(memory, null, 2);
+    localStorage.setItem(
+      key + "_cumulative_memory",
+      JSON.stringify(memory)
+    );
 
-    localStorage.setItem(key + "_cumulative_memory", value);
-    localStorage.setItem("cognitive_memory_" + key, value);
-    localStorage.setItem(key + "_perceptual_identity", value);
+    localStorage.removeItem("cognitive_memory_" + key);
+    localStorage.removeItem(key + "_perceptual_identity");
   } catch (err) {
     console.warn("⚠️ تعذر حفظ الجينوم الزمني داخل الذاكرة التراكمية:", err);
   }
 }
-
 
 // ======================================
 // 10) عرض تقرير الجينوم الزمني
