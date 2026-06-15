@@ -818,7 +818,18 @@ function nextPowerOfTwoTimeline(n) {
 function roundTimeline(num) {
   return Number(Number(num || 0).toFixed(4));
 }
+function clearHeavyTimelineStorageOnly() {
+  Object.keys(localStorage).forEach(function (key) {
+    if (
+      key.endsWith("_timeline_genome") ||
+      key.includes("_timeline_")
+    ) {
+      localStorage.removeItem(key);
+    }
+  });
 
+  alert("تم حذف تخزين المسار الزمني الثقيل فقط.");
+}
 
 // ======================================
 // 12) التصدير العام
