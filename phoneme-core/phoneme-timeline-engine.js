@@ -502,10 +502,14 @@ const timelineGenome = {
   timestamp: new Date().toISOString()
 };
 
-    localStorage.setItem(
-      key + "_timeline_genome",
-      JSON.stringify(timelineGenome, null, 2)
-    );
+    try {
+  localStorage.setItem(
+    key + "_timeline_genome",
+    JSON.stringify(timelineGenome)
+  );
+} catch (err) {
+  console.warn("⚠️ تعذر حفظ timelineGenome:", err);
+}
 
     saveTimelineGenomeToCumulativeMemory(key, timelineGenome);
 
