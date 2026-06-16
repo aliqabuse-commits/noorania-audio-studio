@@ -28,6 +28,7 @@ window.NOORANIYA_OPERATION_LABS = {
   "phoneme-core/phoneme-training-pack.js",
   "phoneme-core/phoneme-cognitive-engine.js",
   "phoneme-core/phoneme-family-map.js",
+  "phoneme-core/phoneme-match-engine.js",
   "segment-core/phoneme-boundary-engine.js",
   "operation-labs/phoneme-merge-split-engine.js",
   "operation-labs/weighted-join-zone.js",
