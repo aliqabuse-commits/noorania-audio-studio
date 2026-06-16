@@ -762,12 +762,13 @@ const splitContext = buildSplitKnowledgeContext(keys[0], keys[1], text);
     carrierMemory: splitContext.carrierMemory,
     payloadMemory: splitContext.payloadMemory
   });
+// لا نتعامل مع result.boundary كفلسفة نهائية
+// هو فقط موضع إرشادي مؤقت لتشغيل التفكيك الحالي
+const cutPoint = result && result.boundary;
 
-  const cutPoint = result && result.boundary;
-
-  if (!cutPoint) {
-    throw new Error("لم يستطع النظام تحديد نقطة الفصل إدراكيًا.");
-  }
+if (typeof cutPoint !== "number") {
+  throw new Error("لم يستطع النظام بناء موضع إرشادي لتفكيك المقطع إدراكيًا.");
+}
 // ======================================
   // أثر القرار الحوكمي: فصل المقطع
   // ======================================
@@ -794,12 +795,23 @@ influentialKnowledge: decideInfluentialKnowledgeForSplit(splitContext, result),
   splitContext
 );
   return {
-    carrierRawBlob: audioBufferToWavBlob(carrierRawBuffer),
-    payloadRawBlob: audioBufferToWavBlob(payloadRawBuffer),
-    carrierReadyBlob: audioBufferToWavBlob(units.carrierReady),
-    payloadReadyBlob: audioBufferToWavBlob(units.payloadReady),
-    cutPoint
-  };
+  carrierRawBlob: audioBufferToWavBlob(carrierRawBuffer),
+  payloadRawBlob: audioBufferToWavBlob(payloadRawBuffer),
+
+  carrierTailBlob: audioBufferToWavBlob(units.carrierTail),
+  payloadHeadBlob: audioBufferToWavBlob(units.payloadHead),
+
+  carrierReadyBlob: audioBufferToWavBlob(units.carrierReady),
+  payloadReadyBlob: audioBufferToWavBlob(units.payloadReady),
+
+  cutPoint,
+  transStart: units.transStart,
+  transEnd: units.transEnd,
+
+  joinOptions: units.options,
+  perceptualZones: result.perceptualZones || null,
+  boundaryEvidence: result
+};
 }
 
 
