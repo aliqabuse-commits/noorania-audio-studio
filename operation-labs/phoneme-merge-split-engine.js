@@ -519,7 +519,14 @@ function overlapAddAudioBuffers(bufferA, bufferB, overlapSeconds) {
   return outputBuffer;
 }
 
-
+function getCognitiveJoinOptions() {
+  return {
+    before: 0.025,
+    after: 0.035,
+    tailGain: 0.55,
+    curvePower: 1.7
+  };
+}
 function extractCognitiveJoinUnits(buffer, cutPoint, options, splitContext) {
   options = options || getCognitiveJoinOptions();
 
