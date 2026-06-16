@@ -557,7 +557,19 @@ function wjzApplyCurvedEnvelope(buffer, startVal, endVal, curvePower) {
 
   return out;
 }
-
+function applyCurvedEnvelope(
+  buffer,
+  startVal,
+  endVal,
+  curvePower
+) {
+  return wjzApplyCurvedEnvelope(
+    buffer,
+    startVal,
+    endVal,
+    curvePower
+  );
+}
 
 function wjzDampenCarrierTail(buffer, tailGain) {
   const out = new AudioBuffer({
