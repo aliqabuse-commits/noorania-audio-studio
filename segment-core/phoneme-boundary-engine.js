@@ -171,6 +171,100 @@ function compareSummaryWithCognitiveGenome(summary, genome) {
 
   return count ? total / count : 999;
 }
+function buildPerceptualZonesFromScores(scores, payloadKey, carrierKey) {
+  if (!scores || !scores.length) {
+    return {
+      carrierCore: null,
+      carrierTailThreads: null,
+      interactionZone: null,
+      payloadHeadThreads: null,
+      payloadCore: null,
+      method: "no-scores"
+    };
+  }
+
+  const zones = {
+    carrierCore: null,
+    carrierTailThreads: null,
+    interactionZone: null,
+    payloadHeadThreads: null,
+    payloadCore: null,
+    method: "perceptual-presence-zones-v1"
+  };
+
+  const labeled = scores.map(function (s) {
+    const carrierWins = s.winner === carrierKey;
+    const payloadWins = s.winner === payloadKey;
+
+    const interaction =
+      Math.abs(s.carrierDistance - s.adjustedPayloadDistance) <= 0.12;
+
+    return {
+      ...s,
+      perceptualRole: interaction
+        ? "interactionZone"
+        : carrierWins
+          ? "carrierPresence"
+          : payloadWins
+            ? "payloadPresence"
+            : "unknown"
+    };
+  });
+
+  const carrierItems = labeled.filter(function (s) {
+    return s.perceptualRole === "carrierPresence";
+  });
+
+  const payloadItems = labeled.filter(function (s) {
+    return s.perceptualRole === "payloadPresence";
+  });
+
+  const interactionItems = labeled.filter(function (s) {
+    return s.perceptualRole === "interactionZone";
+  });
+
+  if (carrierItems.length) {
+    zones.carrierCore = {
+      start: carrierItems[0].t,
+      end: carrierItems[carrierItems.length - 1].t,
+      count: carrierItems.length
+    };
+  }
+
+  if (interactionItems.length) {
+    zones.interactionZone = {
+      start: interactionItems[0].t,
+      end: interactionItems[interactionItems.length - 1].t,
+      count: interactionItems.length
+    };
+  }
+
+  if (payloadItems.length) {
+    zones.payloadCore = {
+      start: payloadItems[0].t,
+      end: payloadItems[payloadItems.length - 1].t,
+      count: payloadItems.length
+    };
+  }
+
+  if (zones.carrierCore && zones.interactionZone) {
+    zones.carrierTailThreads = {
+      start: zones.carrierCore.end,
+      end: zones.interactionZone.end
+    };
+  }
+
+  if (zones.interactionZone && zones.payloadCore) {
+    zones.payloadHeadThreads = {
+      start: zones.interactionZone.start,
+      end: zones.payloadCore.start
+    };
+  }
+
+  zones.labeledScores = labeled;
+
+  return zones;
+}
 function detectPayloadBoundaryByIdentity(audioBuffer, options) {
   options = options || {};
 
@@ -296,12 +390,15 @@ function detectPayloadBoundaryByIdentity(audioBuffer, options) {
 
     boundary = best.t;
   }
+  const perceptualZones =
+  buildPerceptualZonesFromScores(scores, payloadKey, carrierKey);
 
   return {
     carrierKey,
     payloadKey,
     boundary,
     scores,
+    perceptualZones,
     usedKnowledge: {
       cognitiveContext: !!cognitiveContext,
       carrierIdentity: !!carrierIdentity,
