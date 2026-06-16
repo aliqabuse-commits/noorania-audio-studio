@@ -1,17 +1,18 @@
 // ================================
 // phoneme-boundary-engine.js
-// كاشف حدود الحامل والمحمول بالهوية الإدراكية — V2
-// يستدعي الجينوم + العائلة + الذاكرة داخل قرار الفصل
+// باني خريطة الحضور الإدراكي للحامل والمحمول — V3
+// لا يبحث عن boundary ولا cutPoint
+// يبني حضور الحامل + حضور المحمول + منطقة الاشتباك
 // ================================
 
-console.log("🧭 phoneme-boundary-engine.js جاهز V2");
+console.log("🧭 phoneme-boundary-engine.js جاهز V3 — Perceptual Presence Map");
 
 function loadBoundaryIdentity(key) {
   try {
     const raw = localStorage.getItem(key + "_cognitive_identity");
     return raw ? JSON.parse(raw) : null;
   } catch (err) {
-    console.error("فشل تحميل جينوم الحدود:", key, err);
+    console.error("فشل تحميل هوية الحرف:", key, err);
     return null;
   }
 }
@@ -56,8 +57,12 @@ function summarizeBoundaryWindow(buffer) {
   const samples = monoFromBoundaryBuffer(buffer);
   const timeline = buildCognitiveTimeline(samples, buffer.sampleRate);
   const phases = detectCognitivePhases(timeline);
+  const summary = summarizeCognitiveTimeline(timeline, phases);
 
-  return summarizeCognitiveTimeline(timeline, phases);
+  summary.__timeline = timeline;
+  summary.__phases = phases;
+
+  return summary;
 }
 
 function getFamilyContextForBoundary(key, fallback) {
@@ -65,16 +70,14 @@ function getFamilyContextForBoundary(key, fallback) {
 
   if (typeof buildFamilyDecisionContext !== "function") {
     throw new Error(
-      "العائلة الإدراكية غير محمّلة. لا يجوز الفصل الإدراكي بدون buildFamilyDecisionContext."
+      "العائلة الإدراكية غير محمّلة. لا يجوز بناء خريطة حضور إدراكي بدون buildFamilyDecisionContext."
     );
   }
 
   const context = buildFamilyDecisionContext(key);
 
   if (!context) {
-    throw new Error(
-      "لم يتم بناء سياق العائلة الإدراكية للحرف: " + key
-    );
+    throw new Error("لم يتم بناء سياق العائلة الإدراكية للحرف: " + key);
   }
 
   return context;
@@ -84,195 +87,354 @@ function getMemoryContextForBoundary(key, fallback) {
   if (fallback) return fallback;
 
   if (typeof loadPhonemeCumulativeMemory === "function") {
-    return loadPhonemeCumulativeMemory(key);
+    const memory = loadPhonemeCumulativeMemory(key);
+    if (memory) return memory;
   }
 
-  return null;
+  const keys = [
+    key + "_cumulative_memory",
+    key + "_perceptual_identity",
+    key + "_memory",
+    "phoneme_memory_" + key,
+    "cognitive_memory_" + key
+  ];
+
+  for (const storageKey of keys) {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) continue;
+
+    try {
+      return JSON.parse(raw);
+    } catch (err) {
+      console.warn("ذاكرة تالفة:", storageKey, err);
+    }
+  }
+
+  throw new Error("الذاكرة الإدراكية/التراكمية غير متاحة للحرف: " + key);
 }
 
-function scoreFamilySupportForPayload(payloadFamily) {
-  if (!payloadFamily || !Array.isArray(payloadFamily.candidates)) return 0;
+function getFeatureValue(source, names) {
+  for (const name of names) {
+    const value = source && source[name];
 
-  // دعم بسيط أولي: وجود منافسين وسمات حاسمة يعني أن العائلة دخلت القرار
-  return Math.min(0.05, payloadFamily.candidates.length * 0.01);
+    if (typeof value === "number") return value;
+
+    if (value && typeof value.mean === "number") {
+      return value.mean;
+    }
+  }
+
+  return 0;
 }
 
-function scoreMemorySupportForPayload(payloadMemory) {
-  if (!payloadMemory || !payloadMemory.samplesCount) return 0;
-
-  // دعم بسيط أولي: كلما وجدت ذاكرة تراكمية أصبح القرار أكثر ثقة
-  return Math.min(0.05, payloadMemory.samplesCount * 0.005);
-}
 function compareSummaryWithCognitiveGenome(summary, genome) {
   if (!summary || !genome) return 999;
 
-  const summaryFeatures = {
-    energy: summary.avgEnergy ?? summary.energy ?? 0,
-    centroid: summary.avgCentroid ?? summary.centroid ?? 0,
-    spread: summary.avgSpread ?? summary.spread ?? 0,
-    zcr: summary.avgZcr ?? summary.zcr ?? 0,
-    duration: summary.duration ?? 0
-  };
-
-  const genomeFeatures = {
-    energy:
-      genome.energy?.mean ??
-      genome.avgEnergy ??
-      genome.energy ??
-      0,
-
-    centroid:
-      genome.centroid?.mean ??
-      genome.avgCentroid ??
-      genome.centroid ??
-      0,
-
-    spread:
-      genome.spread?.mean ??
-      genome.avgSpread ??
-      genome.spread ??
-      0,
-
-    zcr:
-      genome.zcr?.mean ??
-      genome.avgZcr ??
-      genome.zcr ??
-      0,
-
-    duration:
-      genome.duration?.mean ??
-      genome.avgDuration ??
-      genome.duration ??
-      0
-  };
-
-  const weights = {
-    energy: 1.0,
-    centroid: 1.3,
-    spread: 1.0,
-    zcr: 0.8,
-    duration: 0.5
-  };
+  const pairs = [
+    {
+      weight: 1.2,
+      a: getFeatureValue(summary, ["meanEnergy", "avgEnergy", "energy"]),
+      b: getFeatureValue(genome, ["energy", "meanEnergy", "avgEnergy"])
+    },
+    {
+      weight: 1.5,
+      a: getFeatureValue(summary, ["meanCentroid", "avgCentroid", "centroid"]),
+      b: getFeatureValue(genome, ["centroid", "meanCentroid", "avgCentroid"])
+    },
+    {
+      weight: 1.1,
+      a: getFeatureValue(summary, ["meanSpread", "avgSpread", "spread"]),
+      b: getFeatureValue(genome, ["spread", "meanSpread", "avgSpread"])
+    },
+    {
+      weight: 0.8,
+      a: getFeatureValue(summary, ["meanZcr", "avgZcr", "zcr"]),
+      b: getFeatureValue(genome, ["zcr", "meanZcr", "avgZcr"])
+    },
+    {
+      weight: 0.7,
+      a: getFeatureValue(summary, ["duration"]),
+      b: getFeatureValue(genome, ["duration"])
+    },
+    {
+      weight: 1.0,
+      a: getFeatureValue(summary, ["burstEnergy"]),
+      b: getFeatureValue(genome, ["burstEnergy"])
+    },
+    {
+      weight: 1.2,
+      a: getFeatureValue(summary, ["burstCentroid"]),
+      b: getFeatureValue(genome, ["burstCentroid"])
+    }
+  ];
 
   let total = 0;
-  let count = 0;
+  let weightSum = 0;
 
-  Object.keys(weights).forEach(function (key) {
-    const a = Number(summaryFeatures[key] || 0);
-    const b = Number(genomeFeatures[key] || 0);
+  pairs.forEach(function (p) {
+    if (!p.a && !p.b) return;
 
-    if (!a && !b) return;
+    const diff =
+      Math.abs(Number(p.a || 0) - Number(p.b || 0)) /
+      Math.max(Math.abs(Number(p.a || 0)), Math.abs(Number(p.b || 0)), 1);
 
-    const diff = Math.abs(a - b) / Math.max(Math.abs(a), Math.abs(b), 1);
-
-    total += diff * weights[key];
-    count += weights[key];
+    total += diff * p.weight;
+    weightSum += p.weight;
   });
 
-  return count ? total / count : 999;
+  return weightSum ? total / weightSum : 999;
 }
-function buildPerceptualZonesFromScores(scores, payloadKey, carrierKey) {
-  if (!scores || !scores.length) {
-    return {
-      carrierCore: null,
-      carrierTailThreads: null,
-      interactionZone: null,
-      payloadHeadThreads: null,
-      payloadCore: null,
-      method: "no-scores"
-    };
+
+function compareSummaryWithSpectralSeal(summary, identity) {
+  const seal =
+    identity &&
+    identity.genome &&
+    identity.genome.spectralSeal
+      ? identity.genome.spectralSeal
+      : null;
+
+  if (!seal) return 999;
+
+  const summaryCentroid = getFeatureValue(summary, [
+    "meanCentroid",
+    "avgCentroid",
+    "centroid"
+  ]);
+
+  const summarySpread = getFeatureValue(summary, [
+    "meanSpread",
+    "avgSpread",
+    "spread"
+  ]);
+
+  const sealCentroid =
+    seal.averageCentroid || seal.centroid || seal.avgCentroid || 0;
+
+  const sealSpread =
+    seal.averageSpread || seal.spread || seal.avgSpread || 0;
+
+  const d1 =
+    Math.abs(summaryCentroid - sealCentroid) /
+    Math.max(Math.abs(summaryCentroid), Math.abs(sealCentroid), 1);
+
+  const d2 =
+    Math.abs(summarySpread - sealSpread) /
+    Math.max(Math.abs(summarySpread), Math.abs(sealSpread), 1);
+
+  return (d1 * 1.4 + d2) / 2.4;
+}
+
+function compareSummaryWithMemory(summary, memory) {
+  if (!summary || !memory) return 999;
+
+  const genome =
+    memory.cumulativeGenome ||
+    memory.latestIdentity?.genome ||
+    memory.genome ||
+    null;
+
+  if (!genome) return 999;
+
+  return compareSummaryWithCognitiveGenome(summary, genome);
+}
+
+function calculatePresenceFromDistance(distance) {
+  if (!Number.isFinite(distance)) return 0;
+  return 1 / (1 + Math.max(0, distance));
+}
+
+function hasFamilyAuthority(family) {
+  if (!family) return false;
+
+  if (Array.isArray(family.candidates) && family.candidates.length) {
+    return true;
   }
 
-  const zones = {
-    carrierCore: null,
-    carrierTailThreads: null,
-    interactionZone: null,
-    payloadHeadThreads: null,
-    payloadCore: null,
-    method: "perceptual-presence-zones-v1"
+  if (Array.isArray(family.competitors) && family.competitors.length) {
+    return true;
+  }
+
+  if (Array.isArray(family.decisiveTraits) && family.decisiveTraits.length) {
+    return true;
+  }
+
+  if (family.family || family.macroFamilies || family.traits) {
+    return true;
+  }
+
+  return false;
+}
+
+function buildWindowPresenceRecord(ctx) {
+  const carrierGenomeDistance = compareSummaryWithCognitiveGenome(
+    ctx.summary,
+    ctx.carrierIdentity.genome
+  );
+
+  const payloadGenomeDistance = compareSummaryWithCognitiveGenome(
+    ctx.summary,
+    ctx.payloadIdentity.genome
+  );
+
+  const carrierSealDistance = compareSummaryWithSpectralSeal(
+    ctx.summary,
+    ctx.carrierIdentity
+  );
+
+  const payloadSealDistance = compareSummaryWithSpectralSeal(
+    ctx.summary,
+    ctx.payloadIdentity
+  );
+
+  const carrierMemoryDistance = compareSummaryWithMemory(
+    ctx.summary,
+    ctx.carrierMemory
+  );
+
+  const payloadMemoryDistance = compareSummaryWithMemory(
+    ctx.summary,
+    ctx.payloadMemory
+  );
+
+  const carrierFamilyReady = hasFamilyAuthority(ctx.carrierFamily);
+  const payloadFamilyReady = hasFamilyAuthority(ctx.payloadFamily);
+
+  if (!carrierFamilyReady || !payloadFamilyReady) {
+    throw new Error("العائلة الإدراكية لم تفرض حضورها على قرار الفصل.");
+  }
+
+  const carrierPresence =
+    calculatePresenceFromDistance(carrierGenomeDistance) * 0.38 +
+    calculatePresenceFromDistance(carrierSealDistance) * 0.22 +
+    calculatePresenceFromDistance(carrierMemoryDistance) * 0.25 +
+    0.15;
+
+  const payloadPresence =
+    calculatePresenceFromDistance(payloadGenomeDistance) * 0.38 +
+    calculatePresenceFromDistance(payloadSealDistance) * 0.22 +
+    calculatePresenceFromDistance(payloadMemoryDistance) * 0.25 +
+    0.15;
+
+  const difference = Math.abs(carrierPresence - payloadPresence);
+
+  let perceptualRole = "unknown";
+
+  if (carrierPresence >= 0.62 && payloadPresence < 0.48) {
+    perceptualRole = "carrierCore";
+  } else if (payloadPresence >= 0.62 && carrierPresence < 0.48) {
+    perceptualRole = "payloadCore";
+  } else if (
+    carrierPresence >= 0.48 &&
+    payloadPresence >= 0.48 &&
+    difference <= 0.22
+  ) {
+    perceptualRole = "interactionZone";
+  } else if (carrierPresence > payloadPresence) {
+    perceptualRole = "carrierTail";
+  } else if (payloadPresence > carrierPresence) {
+    perceptualRole = "payloadHead";
+  }
+
+  return {
+    t: Number(ctx.t.toFixed(4)),
+    start: Number(ctx.t.toFixed(4)),
+    end: Number((ctx.t + ctx.windowDuration).toFixed(4)),
+
+    summary: ctx.summary,
+
+    carrierPresence: Number(carrierPresence.toFixed(4)),
+    payloadPresence: Number(payloadPresence.toFixed(4)),
+
+    carrierGenomeDistance: Number(carrierGenomeDistance.toFixed(4)),
+    payloadGenomeDistance: Number(payloadGenomeDistance.toFixed(4)),
+
+    carrierSealDistance: Number(carrierSealDistance.toFixed(4)),
+    payloadSealDistance: Number(payloadSealDistance.toFixed(4)),
+
+    carrierMemoryDistance: Number(carrierMemoryDistance.toFixed(4)),
+    payloadMemoryDistance: Number(payloadMemoryDistance.toFixed(4)),
+
+    perceptualRole,
+
+    usedKnowledge: {
+      carrierIdentity: true,
+      payloadIdentity: true,
+      carrierFamily: carrierFamilyReady,
+      payloadFamily: payloadFamilyReady,
+      carrierMemory: !!ctx.carrierMemory,
+      payloadMemory: !!ctx.payloadMemory,
+      temporalPath: true,
+      perceptualPath: true,
+      spectralSeal: true
+    }
   };
-
-  const labeled = scores.map(function (s) {
-    const carrierWins = s.winner === carrierKey;
-    const payloadWins = s.winner === payloadKey;
-
-    const interaction =
-      Math.abs(s.carrierDistance - s.adjustedPayloadDistance) <= 0.12;
-
-    return {
-      ...s,
-      perceptualRole: interaction
-        ? "interactionZone"
-        : carrierWins
-          ? "carrierPresence"
-          : payloadWins
-            ? "payloadPresence"
-            : "unknown"
-    };
-  });
-
-  const carrierItems = labeled.filter(function (s) {
-    return s.perceptualRole === "carrierPresence";
-  });
-
-  const payloadItems = labeled.filter(function (s) {
-    return s.perceptualRole === "payloadPresence";
-  });
-
-  const interactionItems = labeled.filter(function (s) {
-    return s.perceptualRole === "interactionZone";
-  });
-
-  if (carrierItems.length) {
-    zones.carrierCore = {
-      start: carrierItems[0].t,
-      end: carrierItems[carrierItems.length - 1].t,
-      count: carrierItems.length
-    };
-  }
-
-  if (interactionItems.length) {
-    zones.interactionZone = {
-      start: interactionItems[0].t,
-      end: interactionItems[interactionItems.length - 1].t,
-      count: interactionItems.length
-    };
-  }
-
-  if (payloadItems.length) {
-    zones.payloadCore = {
-      start: payloadItems[0].t,
-      end: payloadItems[payloadItems.length - 1].t,
-      count: payloadItems.length
-    };
-  }
-
-  if (zones.carrierCore && zones.interactionZone) {
-    zones.carrierTailThreads = {
-      start: zones.carrierCore.end,
-      end: zones.interactionZone.end
-    };
-  }
-
-  if (zones.interactionZone && zones.payloadCore) {
-    zones.payloadHeadThreads = {
-      start: zones.interactionZone.start,
-      end: zones.payloadCore.start
-    };
-  }
-
-  zones.labeledScores = labeled;
-
-  return zones;
 }
-function detectPayloadBoundaryByIdentity(audioBuffer, options) {
+
+function buildZoneFromItems(items, role) {
+  if (!items.length) return null;
+
+  return {
+    role,
+    start: items[0].start,
+    end: items[items.length - 1].end,
+    count: items.length,
+    items
+  };
+}
+
+function buildPerceptualZonesFromPresenceMap(presenceMap) {
+  const carrierCoreItems = presenceMap.filter(function (x) {
+    return x.perceptualRole === "carrierCore";
+  });
+
+  const carrierTailItems = presenceMap.filter(function (x) {
+    return x.perceptualRole === "carrierTail";
+  });
+
+  const interactionItems = presenceMap.filter(function (x) {
+    return x.perceptualRole === "interactionZone";
+  });
+
+  const payloadHeadItems = presenceMap.filter(function (x) {
+    return x.perceptualRole === "payloadHead";
+  });
+
+  const payloadCoreItems = presenceMap.filter(function (x) {
+    return x.perceptualRole === "payloadCore";
+  });
+
+  return {
+    method: "perceptual-presence-zones-v3",
+
+    carrierCore: buildZoneFromItems(carrierCoreItems, "carrierCore"),
+    carrierTail: buildZoneFromItems(carrierTailItems, "carrierTail"),
+    interactionZone: buildZoneFromItems(interactionItems, "interactionZone"),
+    payloadHead: buildZoneFromItems(payloadHeadItems, "payloadHead"),
+    payloadCore: buildZoneFromItems(payloadCoreItems, "payloadCore")
+  };
+}
+
+function validatePerceptualZones(zones) {
+  const missing = [];
+
+  if (!zones.carrierCore) missing.push("carrierCore");
+  if (!zones.interactionZone) missing.push("interactionZone");
+  if (!zones.payloadCore) missing.push("payloadCore");
+
+  return {
+    accepted: missing.length === 0,
+    missing
+  };
+}
+
+function buildPerceptualPresenceMapByIdentity(audioBuffer, options) {
   options = options || {};
 
   const carrierKey = options.carrierKey;
   const payloadKey = options.payloadKey;
 
   if (!carrierKey || !payloadKey) {
-    throw new Error("يجب تمرير carrierKey و payloadKey إلى كاشف الحدود.");
+    throw new Error("يجب تمرير carrierKey و payloadKey لبناء خريطة الحضور.");
   }
 
   const carrierIdentity =
@@ -280,6 +442,14 @@ function detectPayloadBoundaryByIdentity(audioBuffer, options) {
 
   const payloadIdentity =
     options.payloadIdentity || loadBoundaryIdentity(payloadKey);
+
+  if (!carrierIdentity) {
+    throw new Error("لا يوجد جينوم للحامل: " + carrierKey);
+  }
+
+  if (!payloadIdentity) {
+    throw new Error("لا يوجد جينوم للمحمول: " + payloadKey);
+  }
 
   const carrierFamily =
     getFamilyContextForBoundary(carrierKey, options.carrierFamily);
@@ -293,127 +463,104 @@ function detectPayloadBoundaryByIdentity(audioBuffer, options) {
   const payloadMemory =
     getMemoryContextForBoundary(payloadKey, options.payloadMemory);
 
-  const cognitiveContext = options.cognitiveContext || null;
-
-  if (!carrierIdentity) {
-    throw new Error("لا يوجد جينوم للحامل: " + carrierKey);
-  }
-
-  if (!payloadIdentity) {
-    throw new Error("لا يوجد جينوم للمحمول: " + payloadKey);
-  }
-
-  if (typeof compareSummaryWithCognitiveGenome !== "function") {
-    throw new Error("دالة compareSummaryWithCognitiveGenome غير موجودة");
-  }
-
   const duration = audioBuffer.duration;
-  const windowSize = options.windowSize || 0.18;
-  const hopSize = options.hopSize || 0.035;
-  const minStart = options.minStart || 0.08;
-  const maxStart = Math.max(minStart, duration - windowSize);
+  const windowSize = options.windowSize || 0.14;
+  const hopSize = options.hopSize || 0.025;
 
-  const scores = [];
+  const presenceMap = [];
 
-  for (let t = minStart; t <= maxStart; t += hopSize) {
-    const win = sliceBoundaryBuffer(
-      audioBuffer,
-      t,
-      Math.min(duration, t + windowSize)
-    );
-
+  for (let t = 0; t + windowSize <= duration; t += hopSize) {
+    const win = sliceBoundaryBuffer(audioBuffer, t, t + windowSize);
     const summary = summarizeBoundaryWindow(win);
 
-    const carrierDistance = compareSummaryWithCognitiveGenome(
-      summary,
-      carrierIdentity.genome
+    presenceMap.push(
+      buildWindowPresenceRecord({
+        t,
+        windowDuration: windowSize,
+        summary,
+        carrierIdentity,
+        payloadIdentity,
+        carrierFamily,
+        payloadFamily,
+        carrierMemory,
+        payloadMemory
+      })
     );
-
-    const payloadDistance = compareSummaryWithCognitiveGenome(
-      summary,
-      payloadIdentity.genome
-    );
-
-    const familySupport = scoreFamilySupportForPayload(payloadFamily);
-    const memorySupport = scoreMemorySupportForPayload(payloadMemory);
-
-    const adjustedPayloadDistance =
-      payloadDistance - familySupport - memorySupport;
-
-    scores.push({
-      t: Number(t.toFixed(4)),
-      carrierDistance,
-      payloadDistance,
-      adjustedPayloadDistance,
-      familySupport,
-      memorySupport,
-      winner:
-        adjustedPayloadDistance < carrierDistance
-          ? payloadKey
-          : carrierKey,
-      margin: Math.abs(carrierDistance - adjustedPayloadDistance),
-      usedKnowledge: {
-        cognitiveContext: !!cognitiveContext,
-        carrierIdentity: !!carrierIdentity,
-        payloadIdentity: !!payloadIdentity,
-        carrierFamily: !!carrierFamily,
-        payloadFamily: !!payloadFamily,
-        carrierMemory: !!carrierMemory,
-        payloadMemory: !!payloadMemory
-      }
-    });
   }
 
-  let boundary = null;
-
-  for (let i = 0; i < scores.length - 2; i++) {
-    const a = scores[i];
-    const b = scores[i + 1];
-    const c = scores[i + 2];
-
-    if (
-      a.winner === payloadKey &&
-      b.winner === payloadKey &&
-      c.winner === payloadKey
-    ) {
-      boundary = a.t;
-      break;
-    }
-  }
-
-  if (boundary === null && scores.length) {
-    const best = scores.reduce(function (bestItem, item) {
-      return item.adjustedPayloadDistance < bestItem.adjustedPayloadDistance
-        ? item
-        : bestItem;
-    }, scores[0]);
-
-    boundary = best.t;
-  }
   const perceptualZones =
-  buildPerceptualZonesFromScores(scores, payloadKey, carrierKey);
+    buildPerceptualZonesFromPresenceMap(presenceMap);
+
+  const validation = validatePerceptualZones(perceptualZones);
 
   return {
+    method: "Noorani Perceptual Presence Map V3",
+    accepted: validation.accepted,
+    failureReason: validation.accepted
+      ? null
+      : "لم تكتمل خريطة الحضور الإدراكي: " + validation.missing.join(", "),
+
     carrierKey,
     payloadKey,
-    boundary,
-    scores,
+
+    presenceMap,
+    carrierPresenceMap: presenceMap.map(function (x) {
+      return {
+        start: x.start,
+        end: x.end,
+        presence: x.carrierPresence,
+        role: x.perceptualRole
+      };
+    }),
+
+    payloadPresenceMap: presenceMap.map(function (x) {
+      return {
+        start: x.start,
+        end: x.end,
+        presence: x.payloadPresence,
+        role: x.perceptualRole
+      };
+    }),
+
     perceptualZones,
+
     usedKnowledge: {
-      cognitiveContext: !!cognitiveContext,
-      carrierIdentity: !!carrierIdentity,
-      payloadIdentity: !!payloadIdentity,
-      carrierFamily: !!carrierFamily,
-      payloadFamily: !!payloadFamily,
-      carrierMemory: !!carrierMemory,
-      payloadMemory: !!payloadMemory
-    },
-    confidence: scores.length
-      ? Math.max.apply(null, scores.map(function (s) { return s.margin || 0; }))
-      : null
+      carrierIdentity: true,
+      payloadIdentity: true,
+      carrierFamily: true,
+      payloadFamily: true,
+      carrierMemory: true,
+      payloadMemory: true,
+      temporalPath: true,
+      perceptualPath: true,
+      spectralSeal: true
+    }
   };
 }
 
-window.detectPayloadBoundaryByIdentity = detectPayloadBoundaryByIdentity;
-window.compareSummaryWithCognitiveGenome = compareSummaryWithCognitiveGenome;
-console.log("🧭 كاشف الحدود بالهوية الإدراكية جاهز V2");
+// اسم توافقي قديم، لكن الناتج الجديد ليس boundary
+function detectPayloadBoundaryByIdentity(audioBuffer, options) {
+  return buildPerceptualPresenceMapByIdentity(audioBuffer, options);
+}
+
+window.loadBoundaryIdentity = loadBoundaryIdentity;
+window.sliceBoundaryBuffer = sliceBoundaryBuffer;
+window.monoFromBoundaryBuffer = monoFromBoundaryBuffer;
+window.summarizeBoundaryWindow = summarizeBoundaryWindow;
+
+window.compareSummaryWithCognitiveGenome =
+  compareSummaryWithCognitiveGenome;
+
+window.compareSummaryWithSpectralSeal =
+  compareSummaryWithSpectralSeal;
+
+window.compareSummaryWithMemory =
+  compareSummaryWithMemory;
+
+window.buildPerceptualPresenceMapByIdentity =
+  buildPerceptualPresenceMapByIdentity;
+
+window.detectPayloadBoundaryByIdentity =
+  detectPayloadBoundaryByIdentity;
+
+console.log("🧭 خريطة الحضور الإدراكي جاهزة V3 — بلا boundary ولا cutPoint");
