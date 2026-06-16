@@ -866,13 +866,23 @@ async function splitExperimentSegment(segNum) {
 
   try {
     const splitData = await performCoreCognitiveSplit(blob, text);
+    if (splitData.failedPerceptualSplit) {
+  alert(splitData.failureReason);
+  return;
+}
+
+if (!splitData.carrierRawBlob || !splitData.payloadRawBlob) {
+  alert(
+    "تم بناء خريطة الحضور الإدراكي، لكن استخراج الحامل والمحمول ينتظر مرحلة الإطفاء الإدراكي."
+  );
+  return;
+}
 alert(
-  "نتيجة الفصل الإدراكي:\n" +
-  "carrierRawBlob: " + !!splitData.carrierRawBlob + "\n" +
-  "payloadRawBlob: " + !!splitData.payloadRawBlob + "\n" +
-  "cutPoint: " + splitData.cutPoint + "\n" +
-  "transStart: " + splitData.transStart + "\n" +
-  "transEnd: " + splitData.transEnd
+  JSON.stringify(
+    splitData.perceptualZones,
+    null,
+    2
+  )
 );
     if (segNum === 1) {
       carrier1RawBlob = splitData.carrierRawBlob;
