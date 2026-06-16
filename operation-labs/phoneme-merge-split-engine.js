@@ -527,6 +527,37 @@ function getCognitiveJoinOptions() {
     curvePower: 1.7
   };
 }
+
+function dampenCarrierTail(buffer, tailGain) {
+  tailGain = Math.max(0.1, Math.min(1, Number(tailGain || 0.55)));
+
+  const out = new AudioBuffer({
+    length: buffer.length,
+    numberOfChannels: buffer.numberOfChannels,
+    sampleRate: buffer.sampleRate
+  });
+
+  const tailSamples = Math.floor(buffer.sampleRate * 0.018);
+
+  for (let ch = 0; ch < buffer.numberOfChannels; ch++) {
+    const src = buffer.getChannelData(ch);
+    const dst = out.getChannelData(ch);
+
+    for (let i = 0; i < buffer.length; i++) {
+      const fromEnd = buffer.length - i;
+      let gain = 1;
+
+      if (fromEnd < tailSamples) {
+        const t = fromEnd / Math.max(1, tailSamples);
+        gain = tailGain + (1 - tailGain) * t;
+      }
+
+      dst[i] = src[i] * gain;
+    }
+  }
+
+  return out;
+}
 function extractCognitiveJoinUnits(buffer, cutPoint, options, splitContext) {
   options = options || getCognitiveJoinOptions();
 
