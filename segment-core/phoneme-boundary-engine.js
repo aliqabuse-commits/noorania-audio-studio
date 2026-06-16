@@ -264,160 +264,99 @@ function hasFamilyAuthority(family) {
 
   return false;
 }
-function buildWindowPresenceRecord(ctx) {
-  const carrierGenomeDistance = compareSummaryWithCognitiveGenome(
-    ctx.summary,
-    ctx.carrierIdentity.genome
-  );
-
-  const payloadGenomeDistance = compareSummaryWithCognitiveGenome(
-    ctx.summary,
-    ctx.payloadIdentity.genome
-  );
-
-  const carrierSealDistance = compareSummaryWithSpectralSeal(
-    ctx.summary,
-    ctx.carrierIdentity
-  );
-
-  const payloadSealDistance = compareSummaryWithSpectralSeal(
-    ctx.summary,
-    ctx.payloadIdentity
-  );
-
-  const carrierMemoryDistance = compareSummaryWithMemory(
-    ctx.summary,
-    ctx.carrierMemory
-  );
-
-  const payloadMemoryDistance = compareSummaryWithMemory(
-    ctx.summary,
-    ctx.payloadMemory
-  );
-
-  const carrierFamilyReady = hasFamilyAuthority(ctx.carrierFamily);
-  const payloadFamilyReady = hasFamilyAuthority(ctx.payloadFamily);
-
-  if (!carrierFamilyReady || !payloadFamilyReady) {
-    throw new Error("العائلة الإدراكية لم تفرض حضورها على قرار الفصل.");
+function identifyBoundaryWindowByFamilyRecord(ctx) {
+  if (
+    typeof buildSampleFamilyRecord !== "function" ||
+    typeof buildStoredFamilyRecordForMatch !== "function" ||
+    typeof compareFamilyRecordsShape !== "function"
+  ) {
+    throw new Error("دوال سجلات العائلة الإدراكية غير مصدّرة من phoneme-match-engine.js");
   }
 
-  const centroid =
-    ctx.summary.meanCentroid ||
-    ctx.summary.avgCentroid ||
-    ctx.summary.centroid ||
-    0;
+  const sampleRecord = buildSampleFamilyRecord(ctx.summary, null);
 
-  const zcr =
-    ctx.summary.meanZcr ||
-    ctx.summary.avgZcr ||
-    ctx.summary.zcr ||
-    0;
+  const carrierStoredRecord = buildStoredFamilyRecordForMatch(
+    ctx.carrierIdentity,
+    ctx.carrierMemory,
+    ctx.carrierTimeline,
+    ctx.carrierFamily
+  );
 
-  const carrierSeal =
-    ctx.carrierIdentity.genome &&
-    ctx.carrierIdentity.genome.spectralSeal
-      ? ctx.carrierIdentity.genome.spectralSeal
-      : null;
+  const payloadStoredRecord = buildStoredFamilyRecordForMatch(
+    ctx.payloadIdentity,
+    ctx.payloadMemory,
+    ctx.payloadTimeline,
+    ctx.payloadFamily
+  );
 
-  const payloadSeal =
-    ctx.payloadIdentity.genome &&
-    ctx.payloadIdentity.genome.spectralSeal
-      ? ctx.payloadIdentity.genome.spectralSeal
-      : null;
+  const carrierShape = compareFamilyRecordsShape(sampleRecord, carrierStoredRecord);
+  const payloadShape = compareFamilyRecordsShape(sampleRecord, payloadStoredRecord);
 
-  const carrierSealCentroid =
-    carrierSeal && carrierSeal.averageCentroid
-      ? carrierSeal.averageCentroid
-      : 0;
+  let winnerKey =
+    carrierShape.maxMismatch < payloadShape.maxMismatch
+      ? ctx.carrierKey
+      : payloadShape.maxMismatch < carrierShape.maxMismatch
+        ? ctx.payloadKey
+        : null;
 
-  const payloadSealCentroid =
-    payloadSeal && payloadSeal.averageCentroid
-      ? payloadSeal.averageCentroid
-      : 0;
+  const margin = Math.abs(carrierShape.maxMismatch - payloadShape.maxMismatch);
 
-  const carrierTraits =
-    ctx.carrierIdentity.pack && ctx.carrierIdentity.pack.traits
-      ? ctx.carrierIdentity.pack.traits
-      : {};
+  let familyDecision = null;
 
-  const payloadTraits =
-    ctx.payloadIdentity.pack && ctx.payloadIdentity.pack.traits
-      ? ctx.payloadIdentity.pack.traits
-      : {};
+  if (
+    typeof resolveFamilyConfusionByDecisiveTraits === "function" &&
+    winnerKey
+  ) {
+    familyDecision = resolveFamilyConfusionByDecisiveTraits(
+      ctx.summary,
+      {
+        key: ctx.carrierKey,
+        __familyRecord: carrierStoredRecord,
+        identityScore: { storedRecord: carrierStoredRecord }
+      },
+      {
+        key: ctx.payloadKey,
+        __familyRecord: payloadStoredRecord,
+        identityScore: { storedRecord: payloadStoredRecord }
+      }
+    );
 
-  let carrierPresence =
-    calculatePresenceFromDistance(carrierGenomeDistance) * 0.30 +
-    calculatePresenceFromDistance(carrierSealDistance) * 0.25 +
-    calculatePresenceFromDistance(carrierMemoryDistance) * 0.20 +
-    0.10;
-
-  let payloadPresence =
-    calculatePresenceFromDistance(payloadGenomeDistance) * 0.30 +
-    calculatePresenceFromDistance(payloadSealDistance) * 0.25 +
-    calculatePresenceFromDistance(payloadMemoryDistance) * 0.20 +
-    0.10;
-
-  // أثر الختم الطيفي الفارق
-  if (carrierSealCentroid && payloadSealCentroid && centroid) {
-    const carrierCentroidGap = Math.abs(centroid - carrierSealCentroid);
-    const payloadCentroidGap = Math.abs(centroid - payloadSealCentroid);
-
-    if (carrierCentroidGap < payloadCentroidGap) {
-      carrierPresence += 0.12;
-    } else if (payloadCentroidGap < carrierCentroidGap) {
-      payloadPresence += 0.12;
+    if (familyDecision && familyDecision.applied && familyDecision.winnerKey) {
+      winnerKey = familyDecision.winnerKey;
     }
   }
 
-  // أثر العائلة الإدراكية: الصفير يدعم الحرف الصفيري
-  if (payloadTraits.sibilant === true && zcr >= 0.035) {
-    payloadPresence += 0.12;
-  }
+  return {
+    sampleRecord,
+    carrierStoredRecord,
+    payloadStoredRecord,
+    carrierShape,
+    payloadShape,
+    carrierMismatch: carrierShape.maxMismatch,
+    payloadMismatch: payloadShape.maxMismatch,
+    margin,
+    winnerKey,
+    familyDecision
+  };
+}
 
-  if (carrierTraits.sibilant === true && zcr >= 0.035) {
-    carrierPresence += 0.12;
-  }
+function buildWindowPresenceRecord(ctx) {
+  const familyIdentity = identifyBoundaryWindowByFamilyRecord(ctx);
 
-  // أثر التفخيم الطيفي: centroid العالي يميل للمفخم إذا كان أحدهما مفخمًا
-  if (payloadTraits.tafkheem === true && centroid >= 1000) {
-    payloadPresence += 0.08;
-  }
+  const carrierPresence =
+    1 / (1 + Math.max(0, familyIdentity.carrierMismatch));
 
-  if (carrierTraits.tafkheem === true && centroid >= 1000) {
-    carrierPresence += 0.08;
-  }
-
-  // أثر الباء/الحروف الانفجارية منخفضة الطيف
-  if (carrierTraits.burst === true && carrierSealCentroid && centroid <= carrierSealCentroid + 350) {
-    carrierPresence += 0.08;
-  }
-
-  if (payloadTraits.burst === true && payloadSealCentroid && centroid <= payloadSealCentroid + 350) {
-    payloadPresence += 0.08;
-  }
-
-  carrierPresence = Math.min(1, carrierPresence);
-  payloadPresence = Math.min(1, payloadPresence);
-
-  const difference = Math.abs(carrierPresence - payloadPresence);
+  const payloadPresence =
+    1 / (1 + Math.max(0, familyIdentity.payloadMismatch));
 
   let perceptualRole = "unknown";
 
-  if (carrierPresence >= 0.58 && payloadPresence < 0.50) {
-    perceptualRole = "carrierCore";
-  } else if (payloadPresence >= 0.58 && carrierPresence < 0.50) {
-    perceptualRole = "payloadCore";
-  } else if (
-    carrierPresence >= 0.46 &&
-    payloadPresence >= 0.46 &&
-    difference <= 0.24
-  ) {
+  if (familyIdentity.margin <= 0.08) {
     perceptualRole = "interactionZone";
-  } else if (carrierPresence > payloadPresence) {
-    perceptualRole = "carrierTail";
-  } else if (payloadPresence > carrierPresence) {
-    perceptualRole = "payloadHead";
+  } else if (familyIdentity.winnerKey === ctx.carrierKey) {
+    perceptualRole = "carrierCore";
+  } else if (familyIdentity.winnerKey === ctx.payloadKey) {
+    perceptualRole = "payloadCore";
   }
 
   return {
@@ -430,31 +369,30 @@ function buildWindowPresenceRecord(ctx) {
     carrierPresence: Number(carrierPresence.toFixed(4)),
     payloadPresence: Number(payloadPresence.toFixed(4)),
 
-    carrierGenomeDistance: Number(carrierGenomeDistance.toFixed(4)),
-    payloadGenomeDistance: Number(payloadGenomeDistance.toFixed(4)),
+    carrierFamilyMismatch: Number(familyIdentity.carrierMismatch.toFixed(4)),
+    payloadFamilyMismatch: Number(familyIdentity.payloadMismatch.toFixed(4)),
+    familyMargin: Number(familyIdentity.margin.toFixed(4)),
 
-    carrierSealDistance: Number(carrierSealDistance.toFixed(4)),
-    payloadSealDistance: Number(payloadSealDistance.toFixed(4)),
-
-    carrierMemoryDistance: Number(carrierMemoryDistance.toFixed(4)),
-    payloadMemoryDistance: Number(payloadMemoryDistance.toFixed(4)),
-
-    centroid: Number(centroid.toFixed(4)),
-    zcr: Number(zcr.toFixed(4)),
-
+    winnerKey: familyIdentity.winnerKey,
     perceptualRole,
 
+    familyDecision: familyIdentity.familyDecision,
+    carrierShape: familyIdentity.carrierShape,
+    payloadShape: familyIdentity.payloadShape,
+
     usedKnowledge: {
+      perceptualFamilyRecords: true,
       carrierIdentity: true,
       payloadIdentity: true,
-      carrierFamily: carrierFamilyReady,
-      payloadFamily: payloadFamilyReady,
+      carrierFamily: true,
+      payloadFamily: true,
       carrierMemory: !!ctx.carrierMemory,
       payloadMemory: !!ctx.payloadMemory,
-      temporalPath: true,
-      perceptualPath: true,
+      carrierTimeline: !!ctx.carrierTimeline,
+      payloadTimeline: !!ctx.payloadTimeline,
       spectralSeal: true,
-      distinctiveTraits: true
+      temporalPath: true,
+      perceptualPath: true
     }
   };
 }
@@ -551,7 +489,15 @@ function buildPerceptualPresenceMapByIdentity(audioBuffer, options) {
 
   const payloadMemory =
     getMemoryContextForBoundary(payloadKey, options.payloadMemory);
+const carrierTimeline =
+  typeof loadTimelineKnowledgeForMatch === "function"
+    ? loadTimelineKnowledgeForMatch(carrierKey)
+    : null;
 
+const payloadTimeline =
+  typeof loadTimelineKnowledgeForMatch === "function"
+    ? loadTimelineKnowledgeForMatch(payloadKey)
+    : null;
   const duration = audioBuffer.duration;
   const windowSize = options.windowSize || 0.14;
   const hopSize = options.hopSize || 0.025;
@@ -563,18 +509,24 @@ function buildPerceptualPresenceMapByIdentity(audioBuffer, options) {
     const summary = summarizeBoundaryWindow(win);
 
     presenceMap.push(
-      buildWindowPresenceRecord({
-        t,
-        windowDuration: windowSize,
-        summary,
-        carrierIdentity,
-        payloadIdentity,
-        carrierFamily,
-        payloadFamily,
-        carrierMemory,
-        payloadMemory
-      })
-    );
+  buildWindowPresenceRecord({
+    t,
+    windowDuration: windowSize,
+    summary,
+
+    carrierKey,
+    payloadKey,
+
+    carrierIdentity,
+    payloadIdentity,
+    carrierFamily,
+    payloadFamily,
+    carrierMemory,
+    payloadMemory,
+    carrierTimeline,
+    payloadTimeline
+  })
+);
   }
 
   const perceptualZones =
