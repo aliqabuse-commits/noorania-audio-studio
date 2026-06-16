@@ -63,11 +63,21 @@ function summarizeBoundaryWindow(buffer) {
 function getFamilyContextForBoundary(key, fallback) {
   if (fallback) return fallback;
 
-  if (typeof buildFamilyDecisionContext === "function") {
-    return buildFamilyDecisionContext(key);
+  if (typeof buildFamilyDecisionContext !== "function") {
+    throw new Error(
+      "العائلة الإدراكية غير محمّلة. لا يجوز الفصل الإدراكي بدون buildFamilyDecisionContext."
+    );
   }
 
-  return null;
+  const context = buildFamilyDecisionContext(key);
+
+  if (!context) {
+    throw new Error(
+      "لم يتم بناء سياق العائلة الإدراكية للحرف: " + key
+    );
+  }
+
+  return context;
 }
 
 function getMemoryContextForBoundary(key, fallback) {
