@@ -716,7 +716,6 @@ function buildMergeKnowledgeContext(carrierNum, payloadNum, isReadyUnits) {
 // ======================================
 // 6) الفصل الإدراكي
 // ======================================
-
 async function performCoreCognitiveSplit(blob, text) {
   const normText = normalizeArabic(text);
 
@@ -729,13 +728,7 @@ async function performCoreCognitiveSplit(blob, text) {
   }
 
   const keys = resolveDynamicKeys(text);
-alert(
-  "النص: " + text + "\n" +
-  "بعد التنظيف: " + normalizeArabic(text) + "\n" +
-  "المفاتيح: " + JSON.stringify(keys) + "\n" +
-  "getAllPhonemeTrainingPacks: " +
-  (typeof getAllPhonemeTrainingPacks)
-);
+
   if (!keys || keys.length < 2) {
     throw new Error("لم يتم العثور على مفتاحين إدراكيين لهذا المقطع في الحقائب.");
   }
@@ -743,8 +736,8 @@ alert(
   if (typeof detectPayloadBoundaryByIdentity !== "function") {
     throw new Error("دالة detectPayloadBoundaryByIdentity غير محمّلة.");
   }
-const splitContext = buildSplitKnowledgeContext(keys[0], keys[1], text);
 
+  const splitContext = buildSplitKnowledgeContext(keys[0], keys[1], text);
   const buffer = await blobToAudioBuffer(blob);
 
   const result = detectPayloadBoundaryByIdentity(buffer, {
@@ -752,7 +745,6 @@ const splitContext = buildSplitKnowledgeContext(keys[0], keys[1], text);
     payloadKey: keys[1],
     windowSize: 0.18,
     hopSize: 0.035,
-    minStart: 0.08,
 
     cognitiveContext: splitContext,
     carrierIdentity: splitContext.carrierIdentity,
@@ -762,12 +754,57 @@ const splitContext = buildSplitKnowledgeContext(keys[0], keys[1], text);
     carrierMemory: splitContext.carrierMemory,
     payloadMemory: splitContext.payloadMemory
   });
-// لا نتعامل مع result.boundary كفلسفة نهائية
-// هو فقط موضع إرشادي مؤقت لتشغيل التفكيك الحالي
-const cutPoint = result && result.boundary;
 
-if (typeof cutPoint !== "number") {
-  throw new Error("لم يستطع النظام بناء موضع إرشادي لتفكيك المقطع إدراكيًا.");
+  if (!result || result.accepted !== true) {
+    return {
+      accepted: false,
+      failedPerceptualSplit: true,
+      failureReason:
+        result?.failureReason ||
+        "لم تكتمل خريطة الحضور الإدراكي لاستخراج الحامل والمحمول.",
+      carrierRawBlob: null,
+      payloadRawBlob: null,
+      carrierReadyBlob: null,
+      payloadReadyBlob: null,
+      carrierTailBlob: null,
+      payloadHeadBlob: null,
+      perceptualZones: result?.perceptualZones || null,
+      presenceMap: result?.presenceMap || null,
+      boundaryEvidence: result || null
+    };
+  }
+
+  if (typeof window.recordDecisionTrace === "function") {
+    window.recordDecisionTrace({
+      decisionId: "split-segment",
+      decisionName: "بناء خريطة حضور إدراكي للمقطع",
+      target: text,
+      invokedKnowledge: splitContext.invokedKnowledge,
+      influentialKnowledge: decideInfluentialKnowledgeForSplit(splitContext, result),
+      result: "perceptual-presence-map-produced",
+      confidence: null,
+      notes:
+        "تم بناء خريطة حضور إدراكي للحامل والمحمول دون boundary أو cutPoint."
+    });
+  }
+
+  return {
+    accepted: true,
+    failedPerceptualSplit: false,
+
+    perceptualZones: result.perceptualZones,
+    presenceMap: result.presenceMap,
+    carrierPresenceMap: result.carrierPresenceMap,
+    payloadPresenceMap: result.payloadPresenceMap,
+    boundaryEvidence: result,
+
+    carrierRawBlob: null,
+    payloadRawBlob: null,
+    carrierReadyBlob: null,
+    payloadReadyBlob: null,
+    carrierTailBlob: null,
+    payloadHeadBlob: null
+  };
 }
 // ======================================
   // أثر القرار الحوكمي: فصل المقطع
