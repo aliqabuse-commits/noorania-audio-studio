@@ -280,8 +280,23 @@
         </div>
       </div>
 
-      <div id="merge-split-status" style="background:#111827; color:#e5e7eb; border-radius:12px; border:1px solid #1f2937; padding:16px; margin:20px 0; line-height:1.8; min-height:60px;">مستعد لبدء التجربة. يرجى استدعاء أو تسجيل المقاطع لبدء الفصل والدمج.</div>
-      <button onclick="openCognitiveExperimentsRoom()">🔙 العودة لغرفة التجارب الإدراكية</button>
+      <div id="merge-split-status"
+style="background:#111827; color:#e5e7eb; border-radius:12px; border:1px solid #1f2937; padding:16px; margin:20px 0; line-height:1.8; min-height:60px;">
+مستعد لبدء التجربة. يرجى استدعاء أو تسجيل المقاطع لبدء الفصل والدمج.
+</div>
+
+<button onclick="alert(
+  'record=' + typeof window.recordExperimentSegment +
+  '\nfetch=' + typeof window.fetchExperimentSegment +
+  '\nsplit=' + typeof window.splitExperimentSegment +
+  '\nplay=' + typeof window.playExperimentAudio
+)">
+فحص دوال المختبر
+</button>
+
+<button onclick="openCognitiveExperimentsRoom()">
+🔙 العودة لغرفة التجارب الإدراكية
+</button>
     </section>
   </main>
 
