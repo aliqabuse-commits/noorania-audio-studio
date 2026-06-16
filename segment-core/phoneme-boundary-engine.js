@@ -264,7 +264,6 @@ function hasFamilyAuthority(family) {
 
   return false;
 }
-
 function buildWindowPresenceRecord(ctx) {
   const carrierGenomeDistance = compareSummaryWithCognitiveGenome(
     ctx.summary,
@@ -303,30 +302,116 @@ function buildWindowPresenceRecord(ctx) {
     throw new Error("العائلة الإدراكية لم تفرض حضورها على قرار الفصل.");
   }
 
-  const carrierPresence =
-    calculatePresenceFromDistance(carrierGenomeDistance) * 0.38 +
-    calculatePresenceFromDistance(carrierSealDistance) * 0.22 +
-    calculatePresenceFromDistance(carrierMemoryDistance) * 0.25 +
-    0.15;
+  const centroid =
+    ctx.summary.meanCentroid ||
+    ctx.summary.avgCentroid ||
+    ctx.summary.centroid ||
+    0;
 
-  const payloadPresence =
-    calculatePresenceFromDistance(payloadGenomeDistance) * 0.38 +
-    calculatePresenceFromDistance(payloadSealDistance) * 0.22 +
-    calculatePresenceFromDistance(payloadMemoryDistance) * 0.25 +
-    0.15;
+  const zcr =
+    ctx.summary.meanZcr ||
+    ctx.summary.avgZcr ||
+    ctx.summary.zcr ||
+    0;
+
+  const carrierSeal =
+    ctx.carrierIdentity.genome &&
+    ctx.carrierIdentity.genome.spectralSeal
+      ? ctx.carrierIdentity.genome.spectralSeal
+      : null;
+
+  const payloadSeal =
+    ctx.payloadIdentity.genome &&
+    ctx.payloadIdentity.genome.spectralSeal
+      ? ctx.payloadIdentity.genome.spectralSeal
+      : null;
+
+  const carrierSealCentroid =
+    carrierSeal && carrierSeal.averageCentroid
+      ? carrierSeal.averageCentroid
+      : 0;
+
+  const payloadSealCentroid =
+    payloadSeal && payloadSeal.averageCentroid
+      ? payloadSeal.averageCentroid
+      : 0;
+
+  const carrierTraits =
+    ctx.carrierIdentity.pack && ctx.carrierIdentity.pack.traits
+      ? ctx.carrierIdentity.pack.traits
+      : {};
+
+  const payloadTraits =
+    ctx.payloadIdentity.pack && ctx.payloadIdentity.pack.traits
+      ? ctx.payloadIdentity.pack.traits
+      : {};
+
+  let carrierPresence =
+    calculatePresenceFromDistance(carrierGenomeDistance) * 0.30 +
+    calculatePresenceFromDistance(carrierSealDistance) * 0.25 +
+    calculatePresenceFromDistance(carrierMemoryDistance) * 0.20 +
+    0.10;
+
+  let payloadPresence =
+    calculatePresenceFromDistance(payloadGenomeDistance) * 0.30 +
+    calculatePresenceFromDistance(payloadSealDistance) * 0.25 +
+    calculatePresenceFromDistance(payloadMemoryDistance) * 0.20 +
+    0.10;
+
+  // أثر الختم الطيفي الفارق
+  if (carrierSealCentroid && payloadSealCentroid && centroid) {
+    const carrierCentroidGap = Math.abs(centroid - carrierSealCentroid);
+    const payloadCentroidGap = Math.abs(centroid - payloadSealCentroid);
+
+    if (carrierCentroidGap < payloadCentroidGap) {
+      carrierPresence += 0.12;
+    } else if (payloadCentroidGap < carrierCentroidGap) {
+      payloadPresence += 0.12;
+    }
+  }
+
+  // أثر العائلة الإدراكية: الصفير يدعم الحرف الصفيري
+  if (payloadTraits.sibilant === true && zcr >= 0.035) {
+    payloadPresence += 0.12;
+  }
+
+  if (carrierTraits.sibilant === true && zcr >= 0.035) {
+    carrierPresence += 0.12;
+  }
+
+  // أثر التفخيم الطيفي: centroid العالي يميل للمفخم إذا كان أحدهما مفخمًا
+  if (payloadTraits.tafkheem === true && centroid >= 1000) {
+    payloadPresence += 0.08;
+  }
+
+  if (carrierTraits.tafkheem === true && centroid >= 1000) {
+    carrierPresence += 0.08;
+  }
+
+  // أثر الباء/الحروف الانفجارية منخفضة الطيف
+  if (carrierTraits.burst === true && carrierSealCentroid && centroid <= carrierSealCentroid + 350) {
+    carrierPresence += 0.08;
+  }
+
+  if (payloadTraits.burst === true && payloadSealCentroid && centroid <= payloadSealCentroid + 350) {
+    payloadPresence += 0.08;
+  }
+
+  carrierPresence = Math.min(1, carrierPresence);
+  payloadPresence = Math.min(1, payloadPresence);
 
   const difference = Math.abs(carrierPresence - payloadPresence);
 
   let perceptualRole = "unknown";
 
-  if (carrierPresence >= 0.62 && payloadPresence < 0.48) {
+  if (carrierPresence >= 0.58 && payloadPresence < 0.50) {
     perceptualRole = "carrierCore";
-  } else if (payloadPresence >= 0.62 && carrierPresence < 0.48) {
+  } else if (payloadPresence >= 0.58 && carrierPresence < 0.50) {
     perceptualRole = "payloadCore";
   } else if (
-    carrierPresence >= 0.48 &&
-    payloadPresence >= 0.48 &&
-    difference <= 0.22
+    carrierPresence >= 0.46 &&
+    payloadPresence >= 0.46 &&
+    difference <= 0.24
   ) {
     perceptualRole = "interactionZone";
   } else if (carrierPresence > payloadPresence) {
@@ -354,6 +439,9 @@ function buildWindowPresenceRecord(ctx) {
     carrierMemoryDistance: Number(carrierMemoryDistance.toFixed(4)),
     payloadMemoryDistance: Number(payloadMemoryDistance.toFixed(4)),
 
+    centroid: Number(centroid.toFixed(4)),
+    zcr: Number(zcr.toFixed(4)),
+
     perceptualRole,
 
     usedKnowledge: {
@@ -365,7 +453,8 @@ function buildWindowPresenceRecord(ctx) {
       payloadMemory: !!ctx.payloadMemory,
       temporalPath: true,
       perceptualPath: true,
-      spectralSeal: true
+      spectralSeal: true,
+      distinctiveTraits: true
     }
   };
 }
