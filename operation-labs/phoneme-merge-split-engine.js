@@ -362,7 +362,6 @@ async function fetchExperimentSegment(segNum) {
 
 
 async function recordExperimentSegment(segNum) {
-  alert("دخلت تسجيل: " + segNum);
   const inputId = segNum === 1 ? "merge-seg1-input" : "merge-seg2-input";
   const inputEl = document.getElementById(inputId);
   const text = inputEl ? inputEl.value.trim() : "";
@@ -810,7 +809,7 @@ async function performCoreCognitiveSplit(blob, text) {
 
 
 async function splitExperimentSegment(segNum) {
-  alert("دخلت فصل: " + segNum);
+
   const blob = segNum === 1 ? segment1Blob : segment2Blob;
 
   if (!blob) {
@@ -825,7 +824,13 @@ async function splitExperimentSegment(segNum) {
   try {
     const splitData = await performCoreCognitiveSplit(blob, text);
     if (splitData.failedPerceptualSplit) {
-  alert(splitData.failureReason);
+  alert(
+  JSON.stringify(
+    splitData.perceptualZones,
+    null,
+    2
+  )
+);
   return;
 }
 
