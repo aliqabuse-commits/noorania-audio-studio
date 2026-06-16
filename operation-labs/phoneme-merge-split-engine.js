@@ -817,7 +817,14 @@ async function splitExperimentSegment(segNum) {
 
   try {
     const splitData = await performCoreCognitiveSplit(blob, text);
-
+alert(
+  "نتيجة الفصل الإدراكي:\n" +
+  "carrierRawBlob: " + !!splitData.carrierRawBlob + "\n" +
+  "payloadRawBlob: " + !!splitData.payloadRawBlob + "\n" +
+  "cutPoint: " + splitData.cutPoint + "\n" +
+  "transStart: " + splitData.transStart + "\n" +
+  "transEnd: " + splitData.transEnd
+);
     if (segNum === 1) {
       carrier1RawBlob = splitData.carrierRawBlob;
       payload1RawBlob = splitData.payloadRawBlob;
