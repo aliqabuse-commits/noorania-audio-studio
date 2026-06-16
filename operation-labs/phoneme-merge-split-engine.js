@@ -1499,3 +1499,4 @@ window.buildSplitKnowledgeContext = buildSplitKnowledgeContext;
 window.decideInfluentialKnowledgeForSplit = decideInfluentialKnowledgeForSplit;
 window.buildMergeKnowledgeContext = buildMergeKnowledgeContext;
 console.log("🧩 محرك الفصل والدمج الإدراكي جاهز V1.9 — متوافق مع غرفة التجارب الإدراكية");
+window.getCognitiveJoinOptions = getCognitiveJoinOptions;
