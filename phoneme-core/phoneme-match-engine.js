@@ -1487,5 +1487,12 @@ function safeNumber(value) {
 window.clearCognitiveMatchResultsLog = clearCognitiveMatchResultsLog;
 window.startPhonemeMatchTest = startPhonemeMatchTest;
 window.renderMatchResultsLog = renderMatchResultsLog;
-
+window.buildSampleFamilyRecord = buildSampleFamilyRecord;
+window.buildStoredFamilyRecordForMatch = buildStoredFamilyRecordForMatch;
+window.compareFamilyRecordsShape = compareFamilyRecordsShape;
+window.compareIdentityMap = compareIdentityMap;
+window.loadPerceptualMemoryForMatch = loadPerceptualMemoryForMatch;
+window.loadTimelineKnowledgeForMatch = loadTimelineKnowledgeForMatch;
+window.resolveFamilyConfusionByDecisiveTraits =
+  resolveFamilyConfusionByDecisiveTraits;
 console.log("🎯 محرك تحديد هوية الحرف عبر سجلات العائلة الإدراكية جاهز");
