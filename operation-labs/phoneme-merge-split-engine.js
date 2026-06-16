@@ -807,50 +807,6 @@ async function performCoreCognitiveSplit(blob, text) {
     payloadHeadBlob: null
   };
 }
-// ======================================
-  // أثر القرار الحوكمي: فصل المقطع
-  // ======================================
-  if (typeof window.recordDecisionTrace === "function") {
-    window.recordDecisionTrace({
-      decisionId: "split-segment",
-      decisionName: "فصل إدراكي للمقطع",
-      target: text,
-      invokedKnowledge: splitContext.invokedKnowledge,
-influentialKnowledge: decideInfluentialKnowledgeForSplit(splitContext, result),
-      result: "split-produced",
-      confidence: typeof result.confidence === "number" ? result.confidence : null,
-      notes:
-  "تم الفصل بعد استدعاء الحقائب والجينوم والعائلة والذاكرة إن كانت متاحة. " +
-  "هذا ليس تقريرًا خارجيًا؛ هذه معرفة تم تمريرها مباشرة إلى قرار الفصل."    });
-  }
-  const carrierRawBuffer = sliceAudioBuffer(buffer, 0, cutPoint);
-  const payloadRawBuffer = sliceAudioBuffer(buffer, cutPoint, buffer.duration);
-
-  const units = extractCognitiveJoinUnits(
-  buffer,
-  cutPoint,
-  getCognitiveJoinOptions(),
-  splitContext
-);
-  return {
-  carrierRawBlob: audioBufferToWavBlob(carrierRawBuffer),
-  payloadRawBlob: audioBufferToWavBlob(payloadRawBuffer),
-
-  carrierTailBlob: audioBufferToWavBlob(units.carrierTail),
-  payloadHeadBlob: audioBufferToWavBlob(units.payloadHead),
-
-  carrierReadyBlob: audioBufferToWavBlob(units.carrierReady),
-  payloadReadyBlob: audioBufferToWavBlob(units.payloadReady),
-
-  cutPoint,
-  transStart: units.transStart,
-  transEnd: units.transEnd,
-
-  joinOptions: units.options,
-  perceptualZones: result.perceptualZones || null,
-  boundaryEvidence: result
-};
-}
 
 
 async function splitExperimentSegment(segNum) {
