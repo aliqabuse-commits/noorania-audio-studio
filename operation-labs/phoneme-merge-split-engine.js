@@ -362,6 +362,7 @@ async function fetchExperimentSegment(segNum) {
 
 
 async function recordExperimentSegment(segNum) {
+  alert("دخلت تسجيل: " + segNum);
   const inputId = segNum === 1 ? "merge-seg1-input" : "merge-seg2-input";
   const inputEl = document.getElementById(inputId);
   const text = inputEl ? inputEl.value.trim() : "";
@@ -853,6 +854,7 @@ influentialKnowledge: decideInfluentialKnowledgeForSplit(splitContext, result),
 
 
 async function splitExperimentSegment(segNum) {
+  alert("دخلت فصل: " + segNum);
   const blob = segNum === 1 ? segment1Blob : segment2Blob;
 
   if (!blob) {
@@ -1012,6 +1014,7 @@ influentialKnowledge: mergeContext.influentialKnowledge,
 // ======================================
 
 function playExperimentAudio(target) {
+  alert("دخلت تشغيل: " + target);
   let blob = null;
   let label = target;
 
