@@ -349,32 +349,26 @@ function buildWindowPresenceRecord(ctx) {
   const payloadPresence =
     1 / (1 + Math.max(0, familyIdentity.payloadMismatch));
 
-  const c = carrierPresence;
-  const p = payloadPresence;
-  const margin = familyIdentity.margin;
+  const relativePosition =
+    ctx.audioDuration
+      ? ctx.t / Math.max(ctx.audioDuration, 0.0001)
+      : 0.5;
 
   let perceptualRole = "unknown";
 
-  // منطقة اختلاط حقيقية: الحضوران متقاربان جدًا
-  if (margin <= 0.025) {
-    perceptualRole = "interactionZone";
-  }
+  if (relativePosition <= 0.35) {
+    perceptualRole = "carrierCore";
+  } else if (relativePosition >= 0.65) {
+    perceptualRole = "payloadCore";
+  } else {
+    const diff = Math.abs(carrierPresence - payloadPresence);
 
-  // الحامل حاضر أكثر
-  else if (familyIdentity.winnerKey === ctx.carrierKey) {
-    if (p >= 0.42) {
+    if (diff <= 0.18) {
+      perceptualRole = "interactionZone";
+    } else if (carrierPresence > payloadPresence) {
       perceptualRole = "carrierTail";
     } else {
-      perceptualRole = "carrierCore";
-    }
-  }
-
-  // المحمول حاضر أكثر
-  else if (familyIdentity.winnerKey === ctx.payloadKey) {
-    if (c >= 0.42) {
       perceptualRole = "payloadHead";
-    } else {
-      perceptualRole = "payloadCore";
     }
   }
 
@@ -397,22 +391,7 @@ function buildWindowPresenceRecord(ctx) {
 
     familyDecision: familyIdentity.familyDecision,
     carrierShape: familyIdentity.carrierShape,
-    payloadShape: familyIdentity.payloadShape,
-
-    usedKnowledge: {
-      perceptualFamilyRecords: true,
-      carrierIdentity: true,
-      payloadIdentity: true,
-      carrierFamily: true,
-      payloadFamily: true,
-      carrierMemory: !!ctx.carrierMemory,
-      payloadMemory: !!ctx.payloadMemory,
-      carrierTimeline: !!ctx.carrierTimeline,
-      payloadTimeline: !!ctx.payloadTimeline,
-      spectralSeal: true,
-      temporalPath: true,
-      perceptualPath: true
-    }
+    payloadShape: familyIdentity.payloadShape
   };
 }
 
@@ -533,6 +512,7 @@ const payloadTimeline =
   buildWindowPresenceRecord({
     t,
     windowDuration: windowSize,
+    audioDuration: duration,
     summary,
 
     carrierKey,
