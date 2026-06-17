@@ -1033,8 +1033,8 @@ async function performCoreCognitiveSplit(blob, text) {
     carrierReadyBlob: audioBufferToWavBlob(suppressed.carrierReadyBuffer),
     payloadReadyBlob: audioBufferToWavBlob(suppressed.payloadReadyBuffer),
 
-    carrierTailBlob: null,
-    payloadHeadBlob: null
+    carrierTailBlob: audioBufferToWavBlob(suppressed.carrierInteractionBuffer),
+payloadHeadBlob: audioBufferToWavBlob(suppressed.payloadInteractionBuffer)
   };
 }
 
