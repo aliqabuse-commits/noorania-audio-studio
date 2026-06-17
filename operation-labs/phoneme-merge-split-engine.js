@@ -741,12 +741,28 @@ function extractByPerceptualSuppression(buffer, perceptualZones, splitContext) {
         let gain = 0;
 
         if (!item) {
-          gain = 0;
-        } else if (mode === "carrier") {
-          gain = item.carrierPresence || 0;
-        } else {
-          gain = item.payloadPresence || 0;
-        }
+  gain = 0;
+} else if (mode === "carrier") {
+  if (item.perceptualRole === "carrierCore") gain = 1;
+  else if (item.perceptualRole === "payloadCore") gain = 0;
+  else if (item.perceptualRole === "interactionZone") {
+    const c = item.carrierPresence || 0;
+    const p = item.payloadPresence || 0;
+    gain = c / Math.max(c + p, 0.0001);
+  } else {
+    gain = 0;
+  }
+} else {
+  if (item.perceptualRole === "payloadCore") gain = 1;
+  else if (item.perceptualRole === "carrierCore") gain = 0;
+  else if (item.perceptualRole === "interactionZone") {
+    const c = item.carrierPresence || 0;
+    const p = item.payloadPresence || 0;
+    gain = p / Math.max(c + p, 0.0001);
+  } else {
+    gain = 0;
+  }
+}
 
         dst[i] = src[i] * Math.max(0, Math.min(1, gain));
       }
