@@ -570,11 +570,11 @@ function extractCognitiveJoinUnits(buffer, cutPoint, options, splitContext) {
 
   // المسار الآمن الحالي: لا يكسر آخر خطوة ناجحة
   const carrierTail = dampenCarrierTail(
-    applyCurvedEnvelope(joinZone, 1.0, 0.0, options.curvePower),
+    applyEnvelope(joinZone, 1.0, 0.0, options.curvePower),
     options.tailGain
   );
 
-  const payloadHead = applyCurvedEnvelope(
+  const payloadHead = applyEnvelope(
     joinZone,
     0.0,
     1.0,
@@ -713,6 +713,82 @@ function buildMergeKnowledgeContext(carrierNum, payloadNum, isReadyUnits) {
       : ["merge-split-lab", "payload-extraction"]
   };
 }
+
+function extractByPerceptualSuppression(buffer, perceptualZones, splitContext) {
+  if (!perceptualZones) {
+    throw new Error("لا توجد خريطة حضور إدراكي صالحة للإطفاء.");
+  }
+
+  if (!perceptualZones.carrierCore || !perceptualZones.interactionZone || !perceptualZones.payloadCore) {
+    throw new Error("لا يمكن الإطفاء قبل اكتمال: carrierCore + interactionZone + payloadCore");
+  }
+
+  function makeSuppressedBuffer(mode) {
+    const out = new AudioBuffer({
+      length: buffer.length,
+      numberOfChannels: buffer.numberOfChannels,
+      sampleRate: buffer.sampleRate
+    });
+
+    for (let ch = 0; ch < buffer.numberOfChannels; ch++) {
+      const src = buffer.getChannelData(ch);
+      const dst = out.getChannelData(ch);
+
+      for (let i = 0; i < buffer.length; i++) {
+        const t = i / buffer.sampleRate;
+        const item = findPresenceItemAtTime(perceptualZones, t);
+
+        let gain = 0;
+
+        if (!item) {
+          gain = 0;
+        } else if (mode === "carrier") {
+          gain = item.carrierPresence || 0;
+        } else {
+          gain = item.payloadPresence || 0;
+        }
+
+        dst[i] = src[i] * Math.max(0, Math.min(1, gain));
+      }
+    }
+
+    return out;
+  }
+
+  const carrierBuffer = makeSuppressedBuffer("carrier");
+  const payloadBuffer = makeSuppressedBuffer("payload");
+
+  return {
+    carrierRawBuffer: carrierBuffer,
+    payloadRawBuffer: payloadBuffer,
+    carrierReadyBuffer: carrierBuffer,
+    payloadReadyBuffer: payloadBuffer,
+    splitContext: splitContext || null,
+    perceptualZones
+  };
+}
+
+function findPresenceItemAtTime(perceptualZones, time) {
+  const zones = [
+    perceptualZones.carrierCore,
+    perceptualZones.carrierTail,
+    perceptualZones.interactionZone,
+    perceptualZones.payloadHead,
+    perceptualZones.payloadCore
+  ].filter(Boolean);
+
+  for (const zone of zones) {
+    const items = zone.items || [];
+
+    for (const item of items) {
+      if (time >= item.start && time <= item.end) {
+        return item;
+      }
+    }
+  }
+
+  return null;
+}
 // ======================================
 // 6) الفصل الإدراكي
 // ======================================
@@ -774,19 +850,11 @@ async function performCoreCognitiveSplit(blob, text) {
     };
   }
 
-  if (typeof window.recordDecisionTrace === "function") {
-    window.recordDecisionTrace({
-      decisionId: "split-segment",
-      decisionName: "بناء خريطة حضور إدراكي للمقطع",
-      target: text,
-      invokedKnowledge: splitContext.invokedKnowledge,
-      influentialKnowledge: decideInfluentialKnowledgeForSplit(splitContext, result),
-      result: "perceptual-presence-map-produced",
-      confidence: null,
-      notes:
-        "تم بناء خريطة حضور إدراكي للحامل والمحمول دون boundary أو cutPoint."
-    });
-  }
+  const suppressed = extractByPerceptualSuppression(
+    buffer,
+    result.perceptualZones,
+    splitContext
+  );
 
   return {
     accepted: true,
@@ -798,15 +866,15 @@ async function performCoreCognitiveSplit(blob, text) {
     payloadPresenceMap: result.payloadPresenceMap,
     boundaryEvidence: result,
 
-    carrierRawBlob: null,
-    payloadRawBlob: null,
-    carrierReadyBlob: null,
-    payloadReadyBlob: null,
+    carrierRawBlob: audioBufferToWavBlob(suppressed.carrierRawBuffer),
+    payloadRawBlob: audioBufferToWavBlob(suppressed.payloadRawBuffer),
+    carrierReadyBlob: audioBufferToWavBlob(suppressed.carrierReadyBuffer),
+    payloadReadyBlob: audioBufferToWavBlob(suppressed.payloadReadyBuffer),
+
     carrierTailBlob: null,
     payloadHeadBlob: null
   };
 }
-
 
 async function splitExperimentSegment(segNum) {
 
@@ -860,15 +928,13 @@ alert(
     }
 
     updateMergeSplitStatus(
-      "🧭 تم فصل المقطع " +
-        segNum +
-        " إدراكيًا:<br>" +
-        "نقطة القطع: <b>" +
-        splitData.cutPoint.toFixed(3) +
-        " ثانية</b><br>" +
-        "✔️ تم استخراج الحامل الخام والمحمول الخام.<br>" +
-        "✔️ تم استخراج وبناء النسخ الموزونة بنجاح."
-    );
+  "🧭 تم بناء خريطة الحضور والإطفاء الإدراكي للمقطع " +
+    segNum +
+    " بنجاح.<br>" +
+    "✔️ تم استخراج الحامل عبر إطفاء المحمول.<br>" +
+    "✔️ تم استخراج المحمول عبر إطفاء الحامل.<br>" +
+    "استخدم أزرار التشغيل للاستماع للنتيجة."
+);
   } catch (err) {
     console.error(err);
     alert("فشل الفصل: " + err.message);
