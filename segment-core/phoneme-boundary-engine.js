@@ -611,7 +611,7 @@ console.log("🧭 Presence roles:", presenceRolesReport);
     }),
 
     perceptualZones,
-
+presenceRolesReport,
     usedKnowledge: {
       carrierIdentity: true,
       payloadIdentity: true,
