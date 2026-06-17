@@ -869,67 +869,7 @@ function calculateInteractionSoftEdge(localTime, duration) {
 
   return 1;
 }
-  function makeSuppressedBuffer(mode) {
-    const out = new AudioBuffer({
-      length: buffer.length,
-      numberOfChannels: buffer.numberOfChannels,
-      sampleRate: buffer.sampleRate
-    });
-
-    for (let ch = 0; ch < buffer.numberOfChannels; ch++) {
-      const src = buffer.getChannelData(ch);
-      const dst = out.getChannelData(ch);
-
-      for (let i = 0; i < buffer.length; i++) {
-        const t = i / buffer.sampleRate;
-        const item = findPresenceItemAtTime(perceptualZones, t);
-
-        let gain = 0;
-
-        if (!item) {
-  gain = 0;
-} else if (mode === "carrier") {
-  if (item.perceptualRole === "carrierCore") gain = 1;
-  else if (item.perceptualRole === "payloadCore") gain = 0;
-  else if (item.perceptualRole === "interactionZone") {
-    const c = item.carrierPresence || 0;
-    const p = item.payloadPresence || 0;
-    gain = c / Math.max(c + p, 0.0001);
-  } else {
-    gain = 0;
-  }
-} else {
-  if (item.perceptualRole === "payloadCore") gain = 1;
-  else if (item.perceptualRole === "carrierCore") gain = 0;
-  else if (item.perceptualRole === "interactionZone") {
-    const c = item.carrierPresence || 0;
-    const p = item.payloadPresence || 0;
-    gain = p / Math.max(c + p, 0.0001);
-  } else {
-    gain = 0;
-  }
-}
-
-        dst[i] = src[i] * Math.max(0, Math.min(1, gain));
-      }
-    }
-
-    return out;
-  }
-
-  const carrierBuffer = makeSuppressedBuffer("carrier");
-  const payloadBuffer = makeSuppressedBuffer("payload");
-
-  return {
-    carrierRawBuffer: carrierBuffer,
-    payloadRawBuffer: payloadBuffer,
-    carrierReadyBuffer: carrierBuffer,
-    payloadReadyBuffer: payloadBuffer,
-    splitContext: splitContext || null,
-    perceptualZones
-  };
-}
-
+  
 function findPresenceItemAtTime(perceptualZones, time) {
   const zones = [
     perceptualZones.carrierCore,
