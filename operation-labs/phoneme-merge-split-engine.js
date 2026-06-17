@@ -891,16 +891,16 @@ async function splitExperimentSegment(segNum) {
 
   try {
     const splitData = await performCoreCognitiveSplit(blob, text);
-    if (splitData.failedPerceptualSplit) {
-  alert(
-  JSON.stringify(
-    splitData.perceptualZones,
-    null,
-    2
-  )
+    alert(
+  "خريطة الحضور:\n" +
+  "carrierCore: " + !!splitData.perceptualZones?.carrierCore + "\n" +
+  "carrierTail: " + !!splitData.perceptualZones?.carrierTail + "\n" +
+  "interactionZone: " + !!splitData.perceptualZones?.interactionZone + "\n" +
+  "payloadHead: " + !!splitData.perceptualZones?.payloadHead + "\n" +
+  "payloadCore: " + !!splitData.perceptualZones?.payloadCore + "\n\n" +
+  "carrierBlob: " + !!splitData.carrierRawBlob + "\n" +
+  "payloadBlob: " + !!splitData.payloadRawBlob
 );
-  return;
-}
 
 if (!splitData.carrierRawBlob || !splitData.payloadRawBlob) {
   alert(
@@ -909,11 +909,14 @@ if (!splitData.carrierRawBlob || !splitData.payloadRawBlob) {
   return;
 }
 alert(
-  JSON.stringify(
-    splitData.perceptualZones,
-    null,
-    2
-  )
+  "خريطة الحضور:\n" +
+  "carrierCore: " + !!splitData.perceptualZones?.carrierCore + "\n" +
+  "carrierTail: " + !!splitData.perceptualZones?.carrierTail + "\n" +
+  "interactionZone: " + !!splitData.perceptualZones?.interactionZone + "\n" +
+  "payloadHead: " + !!splitData.perceptualZones?.payloadHead + "\n" +
+  "payloadCore: " + !!splitData.perceptualZones?.payloadCore + "\n\n" +
+  "carrierBlob: " + !!splitData.carrierRawBlob + "\n" +
+  "payloadBlob: " + !!splitData.payloadRawBlob
 );
     if (segNum === 1) {
       carrier1RawBlob = splitData.carrierRawBlob;
