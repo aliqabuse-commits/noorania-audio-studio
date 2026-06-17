@@ -349,14 +349,33 @@ function buildWindowPresenceRecord(ctx) {
   const payloadPresence =
     1 / (1 + Math.max(0, familyIdentity.payloadMismatch));
 
+  const c = carrierPresence;
+  const p = payloadPresence;
+  const margin = familyIdentity.margin;
+
   let perceptualRole = "unknown";
 
-  if (familyIdentity.margin <= 0.08) {
+  // منطقة اختلاط حقيقية: الحضوران متقاربان جدًا
+  if (margin <= 0.025) {
     perceptualRole = "interactionZone";
-  } else if (familyIdentity.winnerKey === ctx.carrierKey) {
-    perceptualRole = "carrierCore";
-  } else if (familyIdentity.winnerKey === ctx.payloadKey) {
-    perceptualRole = "payloadCore";
+  }
+
+  // الحامل حاضر أكثر
+  else if (familyIdentity.winnerKey === ctx.carrierKey) {
+    if (p >= 0.42) {
+      perceptualRole = "carrierTail";
+    } else {
+      perceptualRole = "carrierCore";
+    }
+  }
+
+  // المحمول حاضر أكثر
+  else if (familyIdentity.winnerKey === ctx.payloadKey) {
+    if (c >= 0.42) {
+      perceptualRole = "payloadHead";
+    } else {
+      perceptualRole = "payloadCore";
+    }
   }
 
   return {
