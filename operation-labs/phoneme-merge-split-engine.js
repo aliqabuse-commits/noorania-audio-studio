@@ -723,6 +723,152 @@ function extractByPerceptualSuppression(buffer, perceptualZones, splitContext) {
     throw new Error("لا يمكن الإطفاء قبل اكتمال: carrierCore + interactionZone + payloadCore");
   }
 
+  const carrierCoreBuffer = sliceAudioBuffer(
+    buffer,
+    perceptualZones.carrierCore.start,
+    perceptualZones.carrierCore.end
+  );
+
+  const interactionBuffer = sliceAudioBuffer(
+    buffer,
+    perceptualZones.interactionZone.start,
+    perceptualZones.interactionZone.end
+  );
+
+  const payloadCoreBuffer = sliceAudioBuffer(
+    buffer,
+    perceptualZones.payloadCore.start,
+    perceptualZones.payloadCore.end
+  );
+
+  const carrierInteractionBuffer = colorizeInteractionForIdentity(
+    interactionBuffer,
+    perceptualZones.interactionZone,
+    "carrier"
+  );
+
+  const payloadInteractionBuffer = colorizeInteractionForIdentity(
+    interactionBuffer,
+    perceptualZones.interactionZone,
+    "payload"
+  );
+
+  const carrierBuffer = concatAudioBuffers(
+    carrierCoreBuffer,
+    carrierInteractionBuffer
+  );
+
+  const payloadBuffer = concatAudioBuffers(
+    payloadInteractionBuffer,
+    payloadCoreBuffer
+  );
+
+  return {
+    carrierRawBuffer: carrierBuffer,
+    payloadRawBuffer: payloadBuffer,
+    carrierReadyBuffer: carrierBuffer,
+    payloadReadyBuffer: payloadBuffer,
+    carrierInteractionBuffer,
+    payloadInteractionBuffer,
+    splitContext: splitContext || null,
+    perceptualZones
+  };
+}
+function colorizeInteractionForIdentity(interactionBuffer, interactionZone, mode) {
+  const items = interactionZone.items || [];
+
+  const out = new AudioBuffer({
+    length: interactionBuffer.length,
+    numberOfChannels: interactionBuffer.numberOfChannels,
+    sampleRate: interactionBuffer.sampleRate
+  });
+
+  if (!items.length) {
+    return out;
+  }
+
+  const zoneStart = interactionZone.start;
+  const zoneEnd = interactionZone.end;
+  const zoneDuration = Math.max(0.0001, zoneEnd - zoneStart);
+
+  for (let ch = 0; ch < interactionBuffer.numberOfChannels; ch++) {
+    const src = interactionBuffer.getChannelData(ch);
+    const dst = out.getChannelData(ch);
+
+    for (let i = 0; i < interactionBuffer.length; i++) {
+      const localTime = i / interactionBuffer.sampleRate;
+      const globalTime = zoneStart + localTime;
+      const item = findNearestInteractionItem(items, globalTime);
+
+      let carrierPresence = item?.carrierPresence || 0;
+      let payloadPresence = item?.payloadPresence || 0;
+
+      const sum = Math.max(carrierPresence + payloadPresence, 0.0001);
+
+      carrierPresence = carrierPresence / sum;
+      payloadPresence = payloadPresence / sum;
+
+      let gain =
+        mode === "carrier"
+          ? strengthenIdentityColor(carrierPresence, payloadPresence)
+          : strengthenIdentityColor(payloadPresence, carrierPresence);
+
+      const softEdge = calculateInteractionSoftEdge(localTime, zoneDuration);
+      gain *= softEdge;
+
+      dst[i] = src[i] * Math.max(0, Math.min(1, gain));
+    }
+  }
+
+  return out;
+}
+function findNearestInteractionItem(items, time) {
+  if (!items || !items.length) return null;
+
+  let best = items[0];
+  let bestDistance = Infinity;
+
+  items.forEach(function (item) {
+    const center = (item.start + item.end) / 2;
+    const distance = Math.abs(time - center);
+
+    if (distance < bestDistance) {
+      best = item;
+      bestDistance = distance;
+    }
+  });
+
+  return best;
+}
+
+function strengthenIdentityColor(ownPresence, otherPresence) {
+  const own = Number(ownPresence || 0);
+  const other = Number(otherPresence || 0);
+
+  const dominance = own / Math.max(own + other, 0.0001);
+
+  if (dominance >= 0.5) {
+    return 0.65 + dominance * 0.35;
+  }
+
+  return dominance * 0.65;
+}
+
+function calculateInteractionSoftEdge(localTime, duration) {
+  const edge = Math.min(0.012, duration * 0.25);
+
+  if (edge <= 0) return 1;
+
+  if (localTime < edge) {
+    return localTime / edge;
+  }
+
+  if (localTime > duration - edge) {
+    return (duration - localTime) / edge;
+  }
+
+  return 1;
+}
   function makeSuppressedBuffer(mode) {
     const out = new AudioBuffer({
       length: buffer.length,
