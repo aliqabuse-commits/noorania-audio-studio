@@ -870,27 +870,7 @@ function calculateInteractionSoftEdge(localTime, duration) {
   return 1;
 }
   
-function findPresenceItemAtTime(perceptualZones, time) {
-  const zones = [
-    perceptualZones.carrierCore,
-    perceptualZones.carrierTail,
-    perceptualZones.interactionZone,
-    perceptualZones.payloadHead,
-    perceptualZones.payloadCore
-  ].filter(Boolean);
 
-  for (const zone of zones) {
-    const items = zone.items || [];
-
-    for (const item of items) {
-      if (time >= item.start && time <= item.end) {
-        return item;
-      }
-    }
-  }
-
-  return null;
-}
 // ======================================
 // 6) الفصل الإدراكي
 // ======================================
