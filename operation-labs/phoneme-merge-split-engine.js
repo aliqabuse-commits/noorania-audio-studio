@@ -907,7 +907,8 @@ async function splitExperimentSegment(segNum) {
 
   try {
     const splitData = await performCoreCognitiveSplit(blob, text);
-    alert(
+
+alert(
   "خريطة الحضور:\n" +
   "carrierCore: " + !!splitData.perceptualZones?.carrierCore + "\n" +
   "carrierTail: " + !!splitData.perceptualZones?.carrierTail + "\n" +
@@ -918,10 +919,8 @@ async function splitExperimentSegment(segNum) {
   "payloadBlob: " + !!splitData.payloadRawBlob
 );
 
-if (!splitData.carrierRawBlob || !splitData.payloadRawBlob) {
-  alert(
-    "تم بناء خريطة الحضور الإدراكي، لكن استخراج الحامل والمحمول ينتظر مرحلة الإطفاء الإدراكي."
-  );
+if (splitData.failedPerceptualSplit) {
+  alert(splitData.failureReason || "فشل بناء خريطة الحضور الإدراكي.");
   return;
 }
 alert(
