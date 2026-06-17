@@ -463,16 +463,18 @@ function buildPerceptualZonesFromPresenceMap(presenceMap) {
 function validatePerceptualZones(zones) {
   const missing = [];
 
-  if (!zones.carrierCore) missing.push("carrierCore");
+  const hasCarrierSide = !!(zones.carrierCore || zones.carrierTail);
+  const hasPayloadSide = !!(zones.payloadCore || zones.payloadHead);
+
+  if (!hasCarrierSide) missing.push("carrierSide");
   if (!zones.interactionZone) missing.push("interactionZone");
-  if (!zones.payloadCore) missing.push("payloadCore");
+  if (!hasPayloadSide) missing.push("payloadSide");
 
   return {
     accepted: missing.length === 0,
     missing
   };
 }
-
 function buildPerceptualPresenceMapByIdentity(audioBuffer, options) {
   options = options || {};
 
