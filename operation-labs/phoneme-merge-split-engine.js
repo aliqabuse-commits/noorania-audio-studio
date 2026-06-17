@@ -715,13 +715,23 @@ function buildMergeKnowledgeContext(carrierNum, payloadNum, isReadyUnits) {
 }
 
 function extractByPerceptualSuppression(buffer, perceptualZones, splitContext) {
-  if (!perceptualZones) {
-    throw new Error("لا توجد خريطة حضور إدراكي صالحة للإطفاء.");
-  }
+  const carrierSide =
+  perceptualZones.carrierCore ||
+  perceptualZones.carrierTail;
 
-  if (!perceptualZones.carrierCore || !perceptualZones.interactionZone || !perceptualZones.payloadCore) {
-    throw new Error("لا يمكن الإطفاء قبل اكتمال: carrierCore + interactionZone + payloadCore");
-  }
+const payloadSide =
+  perceptualZones.payloadCore ||
+  perceptualZones.payloadHead;
+
+if (
+  !carrierSide ||
+  !perceptualZones.interactionZone ||
+  !payloadSide
+) {
+  throw new Error(
+    "لا يمكن الإطفاء قبل اكتمال: carrierSide + interactionZone + payloadSide"
+  );
+}
 
   const carrierCoreBuffer = sliceAudioBuffer(
     buffer,
