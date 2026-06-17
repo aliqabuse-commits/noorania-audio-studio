@@ -549,7 +549,33 @@ const payloadTimeline =
   })
 );
   }
+const presenceRolesReport = {
+  carrierCore: presenceMap.filter(function (x) {
+    return x.perceptualRole === "carrierCore";
+  }).length,
 
+  carrierTail: presenceMap.filter(function (x) {
+    return x.perceptualRole === "carrierTail";
+  }).length,
+
+  interactionZone: presenceMap.filter(function (x) {
+    return x.perceptualRole === "interactionZone";
+  }).length,
+
+  payloadHead: presenceMap.filter(function (x) {
+    return x.perceptualRole === "payloadHead";
+  }).length,
+
+  payloadCore: presenceMap.filter(function (x) {
+    return x.perceptualRole === "payloadCore";
+  }).length,
+
+  unknown: presenceMap.filter(function (x) {
+    return x.perceptualRole === "unknown";
+  }).length
+};
+
+console.log("🧭 Presence roles:", presenceRolesReport);
   const perceptualZones =
     buildPerceptualZonesFromPresenceMap(presenceMap);
 
