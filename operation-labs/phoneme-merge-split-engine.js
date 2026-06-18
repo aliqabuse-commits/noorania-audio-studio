@@ -749,7 +749,6 @@ const payloadCoreBuffer = sliceAudioBuffer(
   perceptualZones.interactionZone.end,
   buffer.duration
 );
-
   const carrierInteractionBuffer = colorizeInteractionForIdentity(
     interactionBuffer,
     perceptualZones.interactionZone,
