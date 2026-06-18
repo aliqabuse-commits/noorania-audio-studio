@@ -398,33 +398,60 @@ function buildZoneFromItems(items, role) {
 }
 
 function buildPerceptualZonesFromPresenceMap(presenceMap) {
-  const carrierCoreItems = presenceMap.filter(function (x) {
-    return x.perceptualRole === "carrierCore";
+  const ordered = presenceMap.slice().sort(function (a, b) {
+    return a.start - b.start;
   });
 
-  const carrierTailItems = presenceMap.filter(function (x) {
-    return x.perceptualRole === "carrierTail";
-  });
+  function isCarrierDominant(x) {
+    return x.perceptualRole === "carrierSide";
+  }
 
-  const interactionItems = presenceMap.filter(function (x) {
-    return x.perceptualRole === "interactionZone";
-  });
+  function isPayloadDominant(x) {
+    return x.perceptualRole === "payloadSide";
+  }
 
-  const payloadHeadItems = presenceMap.filter(function (x) {
-    return x.perceptualRole === "payloadHead";
-  });
+  let carrierEndIndex = -1;
 
-  const payloadCoreItems = presenceMap.filter(function (x) {
-    return x.perceptualRole === "payloadCore";
-  });
+  for (let i = 0; i < ordered.length; i++) {
+    if (isCarrierDominant(ordered[i])) {
+      carrierEndIndex = i;
+    } else if (carrierEndIndex >= 0) {
+      break;
+    }
+  }
+
+  let payloadStartIndex = ordered.length;
+
+  for (let i = ordered.length - 1; i >= 0; i--) {
+    if (isPayloadDominant(ordered[i])) {
+      payloadStartIndex = i;
+    } else if (payloadStartIndex < ordered.length) {
+      break;
+    }
+  }
+
+  const carrierCoreItems =
+    carrierEndIndex >= 0
+      ? ordered.slice(0, carrierEndIndex + 1)
+      : [];
+
+  const payloadCoreItems =
+    payloadStartIndex < ordered.length
+      ? ordered.slice(payloadStartIndex)
+      : [];
+
+  const interactionItems =
+    carrierEndIndex >= 0 && payloadStartIndex < ordered.length
+      ? ordered.slice(carrierEndIndex + 1, payloadStartIndex)
+      : [];
 
   return {
-    method: "perceptual-presence-zones-v3",
+    method: "perceptual-temporal-presence-zones-v4",
 
     carrierCore: buildZoneFromItems(carrierCoreItems, "carrierCore"),
-    carrierTail: buildZoneFromItems(carrierTailItems, "carrierTail"),
+    carrierTail: null,
     interactionZone: buildZoneFromItems(interactionItems, "interactionZone"),
-    payloadHead: buildZoneFromItems(payloadHeadItems, "payloadHead"),
+    payloadHead: null,
     payloadCore: buildZoneFromItems(payloadCoreItems, "payloadCore")
   };
 }
@@ -432,12 +459,9 @@ function buildPerceptualZonesFromPresenceMap(presenceMap) {
 function validatePerceptualZones(zones) {
   const missing = [];
 
-  const hasCarrierSide = !!(zones.carrierCore || zones.carrierTail);
-  const hasPayloadSide = !!(zones.payloadCore || zones.payloadHead);
-
-  if (!hasCarrierSide) missing.push("carrierSide");
+  if (!zones.carrierCore) missing.push("carrierCore");
   if (!zones.interactionZone) missing.push("interactionZone");
-  if (!hasPayloadSide) missing.push("payloadSide");
+  if (!zones.payloadCore) missing.push("payloadCore");
 
   return {
     accepted: missing.length === 0,
