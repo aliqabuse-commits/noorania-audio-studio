@@ -704,7 +704,164 @@ function evaluateFamilyDecisionReadiness(phonemeKey, matchReport) {
     }
   };
 }
+function detectOutlierSamples(samples, featureKeys, options) {
+  options = options || {};
 
+  const threshold = options.threshold || 2.2;
+  const minSamples = options.minSamples || 4;
+
+  if (!Array.isArray(samples) || samples.length < minSamples) {
+    return {
+      cleanSamples: samples || [],
+      outlierSamples: [],
+      report: {
+        reason: "not-enough-samples",
+        threshold: threshold
+      }
+    };
+  }
+
+  const scored = samples.map(function (sample) {
+    let score = 0;
+    let hits = [];
+
+    featureKeys.forEach(function (key) {
+      const values = samples
+        .map(function (s) {
+          return getNestedNumber(s, key);
+        })
+        .filter(function (v) {
+          return typeof v === "number" && Number.isFinite(v);
+        });
+
+      const value = getNestedNumber(sample, key);
+
+      if (
+        typeof value !== "number" ||
+        !Number.isFinite(value) ||
+        values.length < minSamples
+      ) {
+        return;
+      }
+
+      const median = medianNumber(values);
+      const mad = medianNumber(
+        values.map(function (v) {
+          return Math.abs(v - median);
+        })
+      );
+
+      const safeMad = mad || 0.0001;
+      const z = Math.abs(value - median) / safeMad;
+
+      if (z > threshold) {
+        score++;
+        hits.push({
+          feature: key,
+          value: roundOutlier(value),
+          median: roundOutlier(median),
+          deviation: roundOutlier(z)
+        });
+      }
+    });
+
+    return {
+      sample: sample,
+      outlierScore: score,
+      outlierHits: hits
+    };
+  });
+
+  const outlierSamples = scored
+    .filter(function (x) {
+      return x.outlierScore >= 2;
+    })
+    .map(function (x) {
+      return {
+        id: x.sample.id || x.sample.file || "",
+        text: x.sample.text || x.sample.hmal || x.sample.haml || "",
+        file: x.sample.file || "",
+        reason: "perceptual-outlier",
+        score: x.outlierScore,
+        hits: x.outlierHits
+      };
+    });
+
+  const cleanSamples = scored
+    .filter(function (x) {
+      return x.outlierScore < 2;
+    })
+    .map(function (x) {
+      return x.sample;
+    });
+
+  return {
+    cleanSamples: cleanSamples.length ? cleanSamples : samples,
+    outlierSamples: outlierSamples,
+    report: {
+      threshold: threshold,
+      total: samples.length,
+      clean: cleanSamples.length,
+      outliers: outlierSamples.length
+    }
+  };
+}
+
+
+function filterCleanSamplesForFamilyRecord(samples) {
+  return detectOutlierSamples(samples, [
+    "summary.meanCentroid",
+    "summary.meanSpread",
+    "summary.burstCentroid",
+    "summary.burstSpread",
+    "summary.spectralMovement",
+    "summary.energyMovement",
+    "summary.phaseQuality",
+
+    "features.centroid",
+    "features.spread",
+    "features.burstiness",
+    "features.activeRatio",
+    "features.energy",
+
+    "timeline.transition",
+    "timeline.sustain",
+    "timeline.release"
+  ]);
+}
+
+
+function getNestedNumber(obj, path) {
+  const parts = path.split(".");
+  let cur = obj;
+
+  for (let i = 0; i < parts.length; i++) {
+    if (!cur) return null;
+    cur = cur[parts[i]];
+  }
+
+  return typeof cur === "number" && Number.isFinite(cur) ? cur : null;
+}
+
+
+function medianNumber(values) {
+  if (!values.length) return 0;
+
+  const sorted = values.slice().sort(function (a, b) {
+    return a - b;
+  });
+
+  const mid = Math.floor(sorted.length / 2);
+
+  if (sorted.length % 2) return sorted[mid];
+
+  return (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+
+function roundOutlier(num) {
+  return Number(Number(num || 0).toFixed(4));
+}
 function sendPhonemeFamilyKnowledgeSignal(phonemeKey, familyData, confidence) {
   if (typeof window.recordKnowledgeSignal !== "function") return null;
 
