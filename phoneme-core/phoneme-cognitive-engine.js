@@ -171,11 +171,19 @@ async function buildPhonemeCognitiveIdentity(phonemeKey) {
       return null;
     }
 
-    const genome = buildCognitiveGenome(cognitiveUnits);
-    const genomeByState = buildCognitiveGenomeByState(cognitiveUnits);
-    const spectralSeal =
-      buildSpectralSealFromCognitiveUnits(cognitiveUnits);
+    const filtered =
+  typeof filterCleanSamplesForFamilyRecord === "function"
+    ? filterCleanSamplesForFamilyRecord(cognitiveUnits)
+    : { cleanSamples: cognitiveUnits, outlierSamples: [], report: null };
 
+const decisionUnits = filtered.cleanSamples.length
+  ? filtered.cleanSamples
+  : cognitiveUnits;
+
+const genome = buildCognitiveGenome(decisionUnits);
+const genomeByState = buildCognitiveGenomeByState(cognitiveUnits);
+const spectralSeal =
+  buildSpectralSealFromCognitiveUnits(decisionUnits);
     genome.spectralSeal = spectralSeal;
     let familyDecision = null;
 
@@ -231,6 +239,9 @@ if (typeof buildFamilyDecisionForPhoneme === "function") {
       genomeByState,
       familyDecision,
       governance,
+      outlierSamples: filtered.outlierSamples,
+outlierReport: filtered.report,
+cleanSamplesCount: decisionUnits.length,
       createdAt: new Date().toISOString()
     };
 
@@ -285,7 +296,11 @@ function saveCognitiveIdentityAndCumulativeMemory(phonemeKey, identity) {
   genomeByState: identity.genomeByState,
   familyDecision: identity.familyDecision,
   governance: identity.governance,
-  createdAt: identity.createdAt
+  createdAt: identity.createdAt,
+
+outlierSamples: identity.outlierSamples || [],
+outlierReport: identity.outlierReport || null,
+cleanSamplesCount: identity.cleanSamplesCount || null
 };
 
 localStorage.setItem(
