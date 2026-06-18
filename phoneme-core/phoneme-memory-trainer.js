@@ -222,7 +222,21 @@ text: unit.hmal || unit.haml || unit.text,
       });
     }
 
-    const identity = buildPerceptualIdentity(memory, samples);
+    const filtered =
+  typeof filterCleanSamplesForFamilyRecord === "function"
+    ? filterCleanSamplesForFamilyRecord(samples)
+    : { cleanSamples: samples, outlierSamples: [], report: null };
+
+const decisionSamples = filtered.cleanSamples.length
+  ? filtered.cleanSamples
+  : samples;
+
+const identity = buildPerceptualIdentity(memory, decisionSamples);
+
+identity.allSamplesCount = samples.length;
+identity.cleanSamplesCount = decisionSamples.length;
+identity.outlierSamples = filtered.outlierSamples;
+identity.outlierReport = filtered.report;
     identity.governance = buildMemoryGovernanceDecision(
       phonemeKey,
       memory,
@@ -277,7 +291,12 @@ function savePerceptualIdentityEverywhere(phonemeKey, identity) {
     confidence: identity.confidence,
     governance: identity.governance,
     concept: identity.concept,
-    createdAt: identity.createdAt
+    createdAt: identity.createdAt,
+
+allSamplesCount: identity.allSamplesCount || identity.samplesCount,
+cleanSamplesCount: identity.cleanSamplesCount || identity.samplesCount,
+outlierSamples: identity.outlierSamples || [],
+outlierReport: identity.outlierReport || null
   };
 
   const value = JSON.stringify(lightIdentity);
@@ -917,6 +936,15 @@ function renderPhonemeMemoryReport(identity) {
 
     <div>
       عدد العينات في هذا البناء:
+      <div>
+  العينات النظيفة للقرار:
+  <b>${identity.cleanSamplesCount || identity.samplesCount || identity.trainingUnits.length}</b>
+</div>
+
+<div>
+  العينات الشاذة:
+  <b>${(identity.outlierSamples || []).length}</b>
+</div>
       <b>${identity.samplesCount || identity.trainingUnits.length}</b>
     </div>
 
