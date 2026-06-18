@@ -865,9 +865,13 @@ function strengthenIdentityColor(ownPresence, otherPresence) {
   const own = Number(ownPresence || 0);
   const other = Number(otherPresence || 0);
 
-  if (own <= other * 1.25) return 0;
+  const dominance = own / Math.max(own + other, 0.0001);
 
-  return 0.75;
+  if (dominance >= 0.5) {
+    return 0.65 + dominance * 0.35;
+  }
+
+  return dominance * 0.65;
 }
 
 function calculateInteractionSoftEdge(localTime, duration) {
