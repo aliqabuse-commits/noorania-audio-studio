@@ -470,7 +470,10 @@ function buildStoredFamilyRecordForMatch(identity, memory, timeline, familyConte
   const genome = identity?.genome || {};
   const seal = genome.spectralSeal || null;
   const mem = memory?.perceptualSignature || null;
-
+const filtered =
+  typeof filterCleanSamplesForFamilyRecord === "function"
+    ? filterCleanSamplesForFamilyRecord(identity?.units || [])
+    : null;
   const coordinates = {
     energy: genome.energy?.mean,
     centroid: genome.centroid?.mean,
@@ -506,6 +509,10 @@ coordinates.memoryBurstiness = mem.burstiness?.mean;
 
   addTimelineCoordinatesToFamilyRecord(coordinates, timeline);
 addExternalCognitiveCoordinatesToFamilyRecord(coordinates, identity);
+  if (filtered) {
+  coordinates.cleanSamplesCount = filtered.cleanSamples.length;
+  coordinates.outlierSamplesCount = filtered.outlierSamples.length;
+}
   return {
     source: "stored-family-record",
     key: identity?.phonemeKey,
