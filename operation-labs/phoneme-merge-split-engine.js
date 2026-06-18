@@ -724,32 +724,31 @@ const payloadSide =
   perceptualZones.payloadHead;
 
 if (
-  !carrierSide ||
+  !perceptualZones.carrierCore ||
   !perceptualZones.interactionZone ||
-  !payloadSide
+  !perceptualZones.payloadCore
 ) {
   throw new Error(
-    "لا يمكن الإطفاء قبل اكتمال: carrierSide + interactionZone + payloadSide"
+    "لا يمكن الإطفاء قبل اكتمال: carrierCore + interactionZone + payloadCore"
   );
 }
-
   const carrierCoreBuffer = sliceAudioBuffer(
-    buffer,
-    carrierSide.start,
-    carrierSide.end
-  );
+  buffer,
+  perceptualZones.carrierCore.start,
+  perceptualZones.carrierCore.end
+);
 
-  const interactionBuffer = sliceAudioBuffer(
-    buffer,
-    perceptualZones.interactionZone.start,
-    perceptualZones.interactionZone.end
-  );
+const interactionBuffer = sliceAudioBuffer(
+  buffer,
+  perceptualZones.interactionZone.start,
+  perceptualZones.interactionZone.end
+);
 
-  const payloadCoreBuffer = sliceAudioBuffer(
-    buffer,
-    payloadSide.start,
-    payloadSide.end
-  );
+const payloadCoreBuffer = sliceAudioBuffer(
+  buffer,
+  perceptualZones.payloadCore.start,
+  perceptualZones.payloadCore.end
+);
 
   const carrierInteractionBuffer = colorizeInteractionForIdentity(
     interactionBuffer,
