@@ -809,6 +809,7 @@ function detectOutlierSamples(samples, featureKeys, options) {
 
 
 function filterCleanSamplesForFamilyRecord(samples) {
+  console.log("OUTLIER SAMPLE CHECK", samples[0]);
   return detectOutlierSamples(samples, [
     "summary.meanCentroid",
     "summary.meanSpread",
