@@ -734,8 +734,8 @@ if (
 }
   const carrierCoreBuffer = sliceAudioBuffer(
   buffer,
-  perceptualZones.carrierCore.start,
-  perceptualZones.carrierCore.end
+  0,
+  perceptualZones.interactionZone.start
 );
 
 const interactionBuffer = sliceAudioBuffer(
@@ -746,8 +746,8 @@ const interactionBuffer = sliceAudioBuffer(
 
 const payloadCoreBuffer = sliceAudioBuffer(
   buffer,
-  perceptualZones.payloadCore.start,
-  perceptualZones.payloadCore.end
+  perceptualZones.interactionZone.end,
+  buffer.duration
 );
 
   const carrierInteractionBuffer = colorizeInteractionForIdentity(
