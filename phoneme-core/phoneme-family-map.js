@@ -824,12 +824,13 @@ function filterCleanSamplesForFamilyRecord(samples) {
     "features.activeRatio",
     "features.energy",
 
+    "timeline.onset",
+    "timeline.burst",
     "timeline.transition",
     "timeline.sustain",
     "timeline.release"
   ]);
 }
-
 
 function getNestedNumber(obj, path) {
   const parts = path.split(".");
