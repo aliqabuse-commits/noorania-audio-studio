@@ -511,7 +511,7 @@ const payloadTimeline =
     const record = buildWindowPresenceRecord({
   t,
   windowDuration: windowSize,
-
+audioDuration: duration,
   summary,
 
   carrierKey,
