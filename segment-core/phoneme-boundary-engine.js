@@ -508,26 +508,37 @@ const payloadTimeline =
     const win = sliceBoundaryBuffer(audioBuffer, t, t + windowSize);
     const summary = summarizeBoundaryWindow(win);
 
-    presenceMap.push(
-  buildWindowPresenceRecord({
-    t,
-    windowDuration: windowSize,
-    audioDuration: duration,
-    summary,
+    const record = buildWindowPresenceRecord({
+  t,
+  windowDuration: windowSize,
 
-    carrierKey,
-    payloadKey,
+  summary,
 
-    carrierIdentity,
-    payloadIdentity,
-    carrierFamily,
-    payloadFamily,
-    carrierMemory,
-    payloadMemory,
-    carrierTimeline,
-    payloadTimeline
-  })
+  carrierKey,
+  payloadKey,
+
+  carrierIdentity,
+  payloadIdentity,
+  carrierFamily,
+  payloadFamily,
+  carrierMemory,
+  payloadMemory,
+  carrierTimeline,
+  payloadTimeline
+});
+
+console.log(
+  "ROLE:",
+  record.perceptualRole,
+  "C:",
+  record.carrierPresence,
+  "P:",
+  record.payloadPresence,
+  "M:",
+  record.familyMargin
 );
+
+presenceMap.push(record);
   }
 const presenceRolesReport = {
   carrierCore: presenceMap.filter(function (x) {
