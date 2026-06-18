@@ -209,7 +209,14 @@ text: p.hmal || p.haml || p.text,
         decoded.samples,
         decoded.sampleRate
       );
+let memoryTimeline = null;
 
+if (typeof buildOrderedPhonemeTimeline === "function") {
+  memoryTimeline = buildOrderedPhonemeTimeline(
+    decoded.samples,
+    decoded.sampleRate
+  );
+}
       samples.push({
         id: unit.id || unit.file.replace(/\.[^.]+$/, ""),
         hmal: unit.hmal || unit.haml || unit.text,
@@ -218,7 +225,11 @@ text: unit.hmal || unit.haml || unit.text,
         role: unit.role,
         description: unit.description || "",
         duration: decoded.samples.length / decoded.sampleRate,
-        features
+        features,
+timelineBurst: memoryTimeline?.burst?.index ?? null,
+timelineTransition: memoryTimeline?.transition?.index ?? null,
+timelineSustain: memoryTimeline?.sustain?.index ?? null,
+timelineRelease: memoryTimeline?.release?.index ?? null
       });
     }
 
