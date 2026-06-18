@@ -771,7 +771,19 @@ const payloadCoreBuffer = sliceAudioBuffer(
     payloadInteractionBuffer,
     payloadCoreBuffer
   );
+alert(
+  "carrierCore: " +
+    perceptualZones.carrierCore.start + " → " +
+    perceptualZones.carrierCore.end + "\n" +
 
+  "interactionZone: " +
+    perceptualZones.interactionZone.start + " → " +
+    perceptualZones.interactionZone.end + "\n" +
+
+  "payloadCore: " +
+    perceptualZones.payloadCore.start + " → " +
+    perceptualZones.payloadCore.end
+);
   return {
     carrierRawBuffer: carrierBuffer,
     payloadRawBuffer: payloadBuffer,
