@@ -555,24 +555,16 @@ console.log(
 presenceMap.push(record);
   }
 const presenceRolesReport = {
-  carrierCore: presenceMap.filter(function (x) {
-    return x.perceptualRole === "carrierCore";
-  }).length,
-
-  carrierTail: presenceMap.filter(function (x) {
-    return x.perceptualRole === "carrierTail";
+  carrierSide: presenceMap.filter(function (x) {
+    return x.perceptualRole === "carrierSide";
   }).length,
 
   interactionZone: presenceMap.filter(function (x) {
     return x.perceptualRole === "interactionZone";
   }).length,
 
-  payloadHead: presenceMap.filter(function (x) {
-    return x.perceptualRole === "payloadHead";
-  }).length,
-
-  payloadCore: presenceMap.filter(function (x) {
-    return x.perceptualRole === "payloadCore";
+  payloadSide: presenceMap.filter(function (x) {
+    return x.perceptualRole === "payloadSide";
   }).length,
 
   unknown: presenceMap.filter(function (x) {
