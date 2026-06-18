@@ -349,27 +349,16 @@ function buildWindowPresenceRecord(ctx) {
   const payloadPresence =
     1 / (1 + Math.max(0, familyIdentity.payloadMismatch));
 
-  const relativePosition =
-    ctx.audioDuration
-      ? ctx.t / Math.max(ctx.audioDuration, 0.0001)
-      : 0.5;
+  const sum = Math.max(carrierPresence + payloadPresence, 0.0001);
+  const dominance = Math.abs(carrierPresence - payloadPresence) / sum;
 
-  let perceptualRole = "unknown";
+  let perceptualRole = "interactionZone";
 
-  if (relativePosition <= 0.35) {
-    perceptualRole = "carrierCore";
-  } else if (relativePosition >= 0.65) {
-    perceptualRole = "payloadCore";
-  } else {
-    const diff = Math.abs(carrierPresence - payloadPresence);
-
-    if (diff <= 0.18) {
-      perceptualRole = "interactionZone";
-    } else if (carrierPresence > payloadPresence) {
-      perceptualRole = "carrierTail";
-    } else {
-      perceptualRole = "payloadHead";
-    }
+  if (dominance >= 0.08) {
+    perceptualRole =
+      carrierPresence > payloadPresence
+        ? "carrierSide"
+        : "payloadSide";
   }
 
   return {
@@ -387,13 +376,14 @@ function buildWindowPresenceRecord(ctx) {
     familyMargin: Number(familyIdentity.margin.toFixed(4)),
 
     winnerKey: familyIdentity.winnerKey,
+    dominance: Number(dominance.toFixed(4)),
     perceptualRole,
 
     familyDecision: familyIdentity.familyDecision,
     carrierShape: familyIdentity.carrierShape,
     payloadShape: familyIdentity.payloadShape
   };
-}
+    }
 
 function buildZoneFromItems(items, role) {
   if (!items.length) return null;
