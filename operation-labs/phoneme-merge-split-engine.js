@@ -713,16 +713,43 @@ function buildMergeKnowledgeContext(carrierNum, payloadNum, isReadyUnits) {
       : ["merge-split-lab", "payload-extraction"]
   };
 }
+function normalizePerceptualZones(perceptualZones, audioDuration) {
+  if (
+    !perceptualZones ||
+    !perceptualZones.carrierCore ||
+    !perceptualZones.interactionZone ||
+    !perceptualZones.payloadCore
+  ) {
+    return perceptualZones;
+  }
 
+  const interactionStart = perceptualZones.interactionZone.start;
+  const interactionEnd = perceptualZones.interactionZone.end;
+
+  return {
+    ...perceptualZones,
+
+    carrierCore: {
+      ...perceptualZones.carrierCore,
+      start: 0,
+      end: interactionStart
+    },
+
+    interactionZone: {
+      ...perceptualZones.interactionZone,
+      start: interactionStart,
+      end: interactionEnd
+    },
+
+    payloadCore: {
+      ...perceptualZones.payloadCore,
+      start: interactionEnd,
+      end: audioDuration
+    }
+  };
+}
 function extractByPerceptualSuppression(buffer, perceptualZones, splitContext) {
-  const carrierSide =
-  perceptualZones.carrierCore ||
-  perceptualZones.carrierTail;
-
-const payloadSide =
-  perceptualZones.payloadCore ||
-  perceptualZones.payloadHead;
-
+  
 if (
   !perceptualZones.carrierCore ||
   !perceptualZones.interactionZone ||
@@ -732,6 +759,10 @@ if (
     "لا يمكن الإطفاء قبل اكتمال: carrierCore + interactionZone + payloadCore"
   );
 }
+  perceptualZones = normalizePerceptualZones(
+  perceptualZones,
+  buffer.duration
+);
   const carrierCoreBuffer = sliceAudioBuffer(
   buffer,
   0,
@@ -1732,3 +1763,4 @@ window.buildMergeKnowledgeContext = buildMergeKnowledgeContext;
 console.log("🧩 محرك الفصل والدمج الإدراكي جاهز V1.9 — متوافق مع غرفة التجارب الإدراكية");
 window.getCognitiveJoinOptions = getCognitiveJoinOptions;
 window.dampenCarrierTail = dampenCarrierTail;
+window.normalizePerceptualZones = normalizePerceptualZones;
