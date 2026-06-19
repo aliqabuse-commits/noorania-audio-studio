@@ -312,6 +312,7 @@ function savePerceptualIdentityEverywhere(phonemeKey, identity) {
 allSamplesCount: identity.allSamplesCount || identity.samplesCount,
 cleanSamplesCount: identity.cleanSamplesCount || identity.samplesCount,
 outlierSamples: identity.outlierSamples || [],
+outlierFeatures: identity.outlierFeatures || [],
 outlierReport: identity.outlierReport || null
   };
 
