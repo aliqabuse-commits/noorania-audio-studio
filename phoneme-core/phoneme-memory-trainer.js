@@ -505,7 +505,7 @@ text: s.hmal || s.haml || s.text,
 }
 
 
-function buildFeatureValueBuckets(samples) {
+function buildFeatureValueBuckets(samples, filtered) {
   const buckets = {
     centroidValues: [],
     spreadValues: [],
@@ -516,14 +516,56 @@ function buildFeatureValueBuckets(samples) {
     activeRatioValues: []
   };
 
+  const excluded = {};
+
+  (filtered?.outlierFeatures || []).forEach(function (x) {
+    excluded[
+      (x.sampleId || x.file || "") +
+      "::" +
+      x.feature
+    ] = true;
+  });
+
+  function allowed(sample, feature) {
+    return !excluded[
+      (sample.id || sample.file || "") +
+      "::" +
+      feature
+    ];
+  }
+
   samples.forEach(function (sample) {
-    buckets.centroidValues.push(sample.features.centroid);
-    buckets.spreadValues.push(sample.features.spread);
-    buckets.energyValues.push(sample.features.energy);
-    buckets.zcrValues.push(sample.features.zcr);
-    buckets.durationValues.push(sample.duration);
-    buckets.burstValues.push(sample.features.burstiness);
-    buckets.activeRatioValues.push(sample.features.activeRatio || 0);
+
+    if (allowed(sample, "features.centroid")) {
+      buckets.centroidValues.push(sample.features.centroid);
+    }
+
+    if (allowed(sample, "features.spread")) {
+      buckets.spreadValues.push(sample.features.spread);
+    }
+
+    if (allowed(sample, "features.energy")) {
+      buckets.energyValues.push(sample.features.energy);
+    }
+
+    if (allowed(sample, "features.zcr")) {
+      buckets.zcrValues.push(sample.features.zcr);
+    }
+
+    if (allowed(sample, "duration")) {
+      buckets.durationValues.push(sample.duration);
+    }
+
+    if (allowed(sample, "features.burstiness")) {
+      buckets.burstValues.push(sample.features.burstiness);
+    }
+
+    if (allowed(sample, "features.activeRatio")) {
+      buckets.activeRatioValues.push(
+        sample.features.activeRatio || 0
+      );
+    }
+
   });
 
   return buckets;
