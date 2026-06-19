@@ -165,6 +165,12 @@ async function startTrainingStepRecording(step) {
 
         updateTrainingStatus("⏳ جاري حفظ التسجيل...<br>" + step.file, "#facc15");
         await saveTrainingAudio(step.file, blob);
+        alert(
+  "تم حفظ:\n" +
+  step.file +
+  "\nالحجم:\n" +
+  blob.size
+);
         stopTrainingStream();
 
         currentTrainingIndex++;
@@ -212,6 +218,7 @@ async function saveTrainingAudio(fileName, blob) {
   }
 
   await saveAudio(fileName, blob);
+  
 
   const verified = await new Promise(function (resolve) {
     if (typeof getAudio !== "function") {
