@@ -704,6 +704,7 @@ function evaluateFamilyDecisionReadiness(phonemeKey, matchReport) {
     }
   };
 }
+
 function detectOutlierSamples(samples, featureKeys, options) {
   options = options || {};
 
@@ -714,6 +715,7 @@ function detectOutlierSamples(samples, featureKeys, options) {
     return {
       cleanSamples: samples || [],
       outlierSamples: [],
+      outlierFeatures: [],
       report: {
         reason: "not-enough-samples",
         threshold: threshold
@@ -721,10 +723,9 @@ function detectOutlierSamples(samples, featureKeys, options) {
     };
   }
 
-  const scored = samples.map(function (sample) {
-    let score = 0;
-    let hits = [];
+  const outlierFeatures = [];
 
+  samples.forEach(function (sample) {
     featureKeys.forEach(function (key) {
       const values = samples
         .map(function (s) {
@@ -755,59 +756,35 @@ function detectOutlierSamples(samples, featureKeys, options) {
       const z = Math.abs(value - median) / safeMad;
 
       if (z > threshold) {
-        score++;
-        hits.push({
+        outlierFeatures.push({
+          sampleId: sample.id || sample.file || "",
+          text: sample.text || sample.hmal || sample.haml || "",
+          file: sample.file || "",
           feature: key,
           value: roundOutlier(value),
           median: roundOutlier(median),
-          deviation: roundOutlier(z)
+          deviation: roundOutlier(z),
+          reason: "feature-outlier"
         });
       }
     });
-
-    return {
-      sample: sample,
-      outlierScore: score,
-      outlierHits: hits
-    };
   });
 
-  const outlierSamples = scored
-    .filter(function (x) {
-      return x.outlierScore >= 2;
-    })
-    .map(function (x) {
-      return {
-        id: x.sample.id || x.sample.file || "",
-        text: x.sample.text || x.sample.hmal || x.sample.haml || "",
-        file: x.sample.file || "",
-        reason: "perceptual-outlier",
-        score: x.outlierScore,
-        hits: x.outlierHits
-      };
-    });
-
-  const cleanSamples = scored
-    .filter(function (x) {
-      return x.outlierScore < 2;
-    })
-    .map(function (x) {
-      return x.sample;
-    });
-
   return {
-    cleanSamples: cleanSamples.length ? cleanSamples : samples,
-    outlierSamples: outlierSamples,
+    cleanSamples: samples,
+    outlierSamples: [],
+    outlierFeatures: outlierFeatures,
     report: {
+      mode: "feature-level-outlier-filter",
       threshold: threshold,
-      total: samples.length,
-      clean: cleanSamples.length,
-      outliers: outlierSamples.length
+      totalSamples: samples.length,
+      cleanSamples: samples.length,
+      outlierSamples: 0,
+      outlierFeatures: outlierFeatures.length
     }
   };
 }
-
-
+  
 function filterCleanSamplesForFamilyRecord(samples) {
   console.log("OUTLIER SAMPLE CHECK", samples[0]);
   return detectOutlierSamples(samples, [
