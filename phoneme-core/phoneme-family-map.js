@@ -872,6 +872,11 @@ window.getConfusionCandidates = getConfusionCandidates;
 window.getDistinctiveTraits = getDistinctiveTraits;
 window.buildFamilyDecisionContext = buildFamilyDecisionContext;
 window.evaluateFamilyDecisionReadiness = evaluateFamilyDecisionReadiness;
+window.detectOutlierSamples = detectOutlierSamples;
+window.filterCleanSamplesForFamilyRecord = filterCleanSamplesForFamilyRecord;
+window.getNestedNumber = getNestedNumber;
+window.medianNumber = medianNumber;
+window.roundOutlier = roundOutlier;
 window.sendPhonemeFamilyKnowledgeSignal = sendPhonemeFamilyKnowledgeSignal;
 
 console.log("🧭 خريطة العائلات الإدراكية جاهزة V2 — مفاتيحها مطابقة لحقائب التدريب");
