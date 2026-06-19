@@ -238,12 +238,7 @@ timelineRelease: memoryTimeline?.release?.index ?? null
     ? filterCleanSamplesForFamilyRecord(samples)
     : { cleanSamples: samples, outlierSamples: [], report: null };
 
-const decisionSamples = filtered.cleanSamples.length
-  ? filtered.cleanSamples
-  : samples;
-
-const identity = buildPerceptualIdentity(memory, decisionSamples);
-
+const identity = buildPerceptualIdentity(memory, samples, filtered);
 identity.allSamplesCount = samples.length;
 identity.cleanSamplesCount = decisionSamples.length;
 identity.outlierSamples = filtered.outlierSamples;
