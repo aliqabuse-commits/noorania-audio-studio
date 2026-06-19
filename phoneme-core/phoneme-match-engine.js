@@ -754,14 +754,6 @@ unitRecords.forEach(function(record) {
     bestRecord = record;
   }
 }); 
-console.log(
-  "🔍 STORED FAMILY RECORD:",
-  identity.phonemeKey,
-  storedRecord
-);
-  
-  const familyShape =
-    compareFamilyRecordsShape(sampleFamilyRecord, storedRecord);
 
   return {
   total: bestShape.maxMismatch,
@@ -776,7 +768,8 @@ console.log(
 
   missing: bestShape.missing
 };
-  
+}
+
 function buildStoredUnitRecordsForMatch(
   identity,
   perceptualMemory,
