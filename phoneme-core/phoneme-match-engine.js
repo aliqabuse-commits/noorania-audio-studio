@@ -485,6 +485,12 @@ console.log(
   identity?.phonemeKey,
   filtered?.outlierFeatures || []
 );
+  alert(
+  "OUTLIER FEATURES COUNT\n" +
+  identity?.phonemeKey +
+  "\n" +
+  (filtered?.outlierFeatures?.length || 0)
+);
   const coordinates = {
     energy: genome.energy?.mean,
     centroid: genome.centroid?.mean,
