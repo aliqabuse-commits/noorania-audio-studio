@@ -718,6 +718,11 @@ function compareIdentityMap(
   timelineKnowledge,
   stateDecision
 ) {
+  console.log(
+  "FIRST UNIT",
+  identity?.phonemeKey,
+  identity?.units?.[0]
+);
   const unitRecords = buildStoredUnitRecordsForMatch(
   identity,
   perceptualMemory,
