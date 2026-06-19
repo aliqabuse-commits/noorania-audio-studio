@@ -723,6 +723,13 @@ function compareIdentityMap(
   identity?.phonemeKey,
   identity?.units?.[0]
 );
+  alert(
+  JSON.stringify(
+    identity?.units?.[0],
+    null,
+    2
+  )
+);
   const unitRecords = buildStoredUnitRecordsForMatch(
   identity,
   perceptualMemory,
