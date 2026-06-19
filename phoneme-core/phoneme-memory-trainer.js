@@ -570,8 +570,6 @@ function buildFeatureValueBuckets(samples, filtered) {
 
   return buckets;
 }
-
-
 function buildPerceptualSignature(values) {
   return {
     centroid: memoryStat(values.centroidValues),
