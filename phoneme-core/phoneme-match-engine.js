@@ -718,14 +718,42 @@ function compareIdentityMap(
   timelineKnowledge,
   stateDecision
 ) {
-  const storedRecord =
-    loadPerceptualFamilyRecordForMatch(identity.phonemeKey) ||
-    buildStoredFamilyRecordForMatch(
-      identity,
-      perceptualMemory,
-      timelineKnowledge,
-      familyContext
+  const unitRecords = buildStoredUnitRecordsForMatch(
+  identity,
+  perceptualMemory,
+  timelineKnowledge,
+  familyContext
+);
+
+if (!unitRecords.length) {
+  return {
+    total: Infinity,
+    familyShape: null,
+    storedRecord: null,
+    parts: {},
+    state: 0,
+    shapeMismatch: Infinity,
+    missing: ["no-unit-records"]
+  };
+}
+ let bestShape = null;
+let bestRecord = null;
+
+unitRecords.forEach(function(record) {
+  const shape =
+    compareFamilyRecordsShape(
+      sampleFamilyRecord,
+      record
     );
+
+  if (
+    !bestShape ||
+    shape.maxMismatch < bestShape.maxMismatch
+  ) {
+    bestShape = shape;
+    bestRecord = record;
+  }
+}); 
 console.log(
   "🔍 STORED FAMILY RECORD:",
   identity.phonemeKey,
@@ -734,22 +762,70 @@ console.log(
   
   const familyShape =
     compareFamilyRecordsShape(sampleFamilyRecord, storedRecord);
-console.log("🧾 مفاتيح سجل العائلة:", identity.phonemeKey, Object.keys(storedRecord.coordinates || {}));
-console.log("🧾 سجل العائلة كامل:", identity.phonemeKey, storedRecord.coordinates);
-  
+
   return {
-    total: familyShape.maxMismatch,
-    familyShape,
-    storedRecord,
+  total: bestShape.maxMismatch,
+  familyShape: bestShape,
+  storedRecord: bestRecord,
 
-    parts: familyShape.parts,
+  parts: bestShape.parts,
 
-    state: Number(stateDecision?.distance || 0) * 0.35,
-    shapeMismatch: familyShape.maxMismatch,
-    missing: familyShape.missing
-  };
+  state: 0,
+
+  shapeMismatch: bestShape.maxMismatch,
+
+  missing: bestShape.missing
+};
+  
+function buildStoredUnitRecordsForMatch(
+  identity,
+  perceptualMemory,
+  timelineKnowledge,
+  familyContext
+) {
+  const units = identity?.units || [];
+
+  return units.map(function(unit) {
+
+    const coordinates = {
+      centroid: unit.centroid,
+      spread: unit.spread,
+      energy: unit.energy,
+      zcr: unit.zcr,
+      duration: unit.duration,
+
+      burstEnergy: unit.burstEnergy,
+      burstCentroid: unit.burstCentroid,
+      burstSpread: unit.burstSpread,
+
+      energyMovement: unit.energyMovement,
+      spectralMovement: unit.spectralMovement,
+      phaseQuality: unit.phaseQuality
+    };
+
+    return {
+      source: "stored-unit-record",
+
+      key: identity.phonemeKey,
+
+      phoneme: identity.phoneme,
+
+      label: identity.label,
+
+      stateKey: unit.stateKey,
+
+      text:
+        unit.hmal ||
+        unit.haml ||
+        unit.text ||
+        "",
+
+      familyContext,
+
+      coordinates
+    };
+  });
 }
-
 
 // ======================================
 // ترتيب مرشحي الهوية
