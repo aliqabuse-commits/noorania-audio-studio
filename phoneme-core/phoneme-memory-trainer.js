@@ -1079,29 +1079,26 @@ function getAudioPromiseForMemory(key, timeoutMs) {
       resolve(blob || null);
     }
 
-    const localBlob = getTrainingAudioFromLocalStorage(key);
+    if (typeof getAudio === "function") {
+      try {
+        getAudio(key, function (blob) {
+          if (blob) {
+            persistTrainingAudioToLocalStorage(key, blob);
+            finish(blob);
+            return;
+          }
 
-    if (localBlob) {
+          const localBlob = getTrainingAudioFromLocalStorage(key);
+          finish(localBlob);
+        });
+      } catch (err) {
+        console.warn("تعذر getAudio:", key, err);
+        const localBlob = getTrainingAudioFromLocalStorage(key);
+        finish(localBlob);
+      }
+    } else {
+      const localBlob = getTrainingAudioFromLocalStorage(key);
       finish(localBlob);
-      return;
-    }
-
-    if (typeof getAudio !== "function") {
-      finish(null);
-      return;
-    }
-
-    try {
-      getAudio(key, function (blob) {
-        if (blob) {
-          persistTrainingAudioToLocalStorage(key, blob);
-        }
-
-        finish(blob);
-      });
-    } catch (err) {
-      console.warn("تعذر getAudio:", key, err);
-      finish(null);
     }
 
     setTimeout(function () {
