@@ -486,10 +486,11 @@ console.log(
   filtered?.outlierFeatures || []
 );
   alert(
-  "OUTLIER FEATURES COUNT\n" +
-  identity?.phonemeKey +
-  "\n" +
-  (filtered?.outlierFeatures?.length || 0)
+  JSON.stringify(
+    filtered?.outlierFeatures || [],
+    null,
+    2
+  )
 );
   const coordinates = {
     energy: genome.energy?.mean,
