@@ -238,11 +238,21 @@ timelineRelease: memoryTimeline?.release?.index ?? null
     ? filterCleanSamplesForFamilyRecord(samples)
     : { cleanSamples: samples, outlierSamples: [], report: null };
 
-const identity = buildPerceptualIdentity(memory, samples, filtered);
+const identity = buildPerceptualIdentity(
+  memory,
+  samples,
+  filtered
+);
+
 identity.allSamplesCount = samples.length;
-identity.cleanSamplesCount = decisionSamples.length;
-identity.outlierSamples = filtered.outlierSamples;
-identity.outlierReport = filtered.report;
+identity.cleanSamplesCount = samples.length;
+
+identity.outlierSamples = [];
+identity.outlierFeatures =
+  filtered?.outlierFeatures || [];
+
+identity.outlierReport =
+  filtered?.report || null;
     identity.governance = buildMemoryGovernanceDecision(
       phonemeKey,
       memory,
