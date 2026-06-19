@@ -1107,7 +1107,6 @@ function getAudioPromiseForMemory(key, timeoutMs) {
   });
 }
 
-
 function persistTrainingAudioToLocalStorage(key, blob) {
   try {
     const reader = new FileReader();
