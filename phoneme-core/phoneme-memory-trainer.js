@@ -441,9 +441,8 @@ async function findMissingTrainingFiles(units) {
 // ======================================
 // 6) بناء الهوية الإدراكية
 // ======================================
-function buildPerceptualIdentity(memory, samples) {
-  const values = buildFeatureValueBuckets(samples);
-
+function buildPerceptualIdentity(memory, samples, filtered) {
+  const values = buildFeatureValueBuckets(samples, filtered);
   const identity = {
     method: "Phoneme Color Memory Trainer V3",
     version: MEMORY_TRAINER_VERSION,
