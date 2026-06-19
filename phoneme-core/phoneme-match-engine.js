@@ -394,11 +394,11 @@ function buildSampleFamilyRecord(summary, timeline) {
   const phases = summary.__phases || {};
 
   const coordinates = {
-    energy: summary.meanEnergy,
+    //energy: summary.meanEnergy,
     centroid: summary.meanCentroid,
     spread: summary.meanSpread,
     zcr: summary.meanZcr,
-    duration: summary.duration,
+    //duration: summary.duration,
 
     burstEnergy: summary.burstEnergy,
     burstCentroid: summary.burstCentroid,
@@ -412,7 +412,7 @@ function buildSampleFamilyRecord(summary, timeline) {
     sealSpread: summary.meanSpread,
     sealBurstCentroid: summary.burstCentroid,
     sealBurstSpread: summary.burstSpread,
-memoryActiveRatio: summary.activeRatio,
+//memoryActiveRatio: summary.activeRatio,
 memoryBurstiness: summary.burstEnergy,
     externalCognitiveOnset: phases.onsetIndex,
     externalCognitiveBurst: phases.burstIndex,
