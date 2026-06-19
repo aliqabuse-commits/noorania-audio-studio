@@ -474,6 +474,17 @@ const filtered =
   typeof filterCleanSamplesForFamilyRecord === "function"
     ? filterCleanSamplesForFamilyRecord(identity?.units || [])
     : null;
+  console.log(
+  "OUTLIER FEATURES COUNT",
+  identity?.phonemeKey,
+  filtered?.outlierFeatures?.length || 0
+);
+
+console.log(
+  "OUTLIER FEATURES",
+  identity?.phonemeKey,
+  filtered?.outlierFeatures || []
+);
   const coordinates = {
     energy: genome.energy?.mean,
     centroid: genome.centroid?.mean,
