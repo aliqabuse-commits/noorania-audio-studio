@@ -683,29 +683,30 @@ function compareFamilyRecordsShape(sampleRecord, storedRecord) {
 // توزيع الفروقات حسب مصدر المعرفة
 // ======================================
 function registerMismatchPart(parts, key, mismatch) {
-  if (key.includes("seal")) {
+  const k = String(key || "").toLowerCase();
+
+  if (k.includes("seal")) {
     parts.seal = Math.max(parts.seal || 0, mismatch);
     return;
   }
 
-  if (key.includes("memory")) {
+  if (k.includes("memory")) {
     parts.memory = Math.max(parts.memory || 0, mismatch);
     return;
   }
 
-  if (key.includes("timeline")) {
+  if (k.includes("timeline")) {
     parts.timeline = Math.max(parts.timeline || 0, mismatch);
     return;
   }
 
-  if (key.includes("externalCognitive")) {
+  if (k.includes("externalcognitive")) {
     parts.cognitive = Math.max(parts.cognitive || 0, mismatch);
     return;
   }
 
   parts.genome = Math.max(parts.genome || 0, mismatch);
 }
-
 function compareSampleToFamilyUnitSet(sampleRecord, unitRecords) {
   const sample = sampleRecord?.coordinates || {};
   const details = [];
