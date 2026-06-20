@@ -332,15 +332,30 @@ localStorage.setItem(
 
 
 function saveMemoryUnderKnownKeys(phonemeKey, memory) {
-  const value = JSON.stringify(memory);
-  [
-    phonemeKey + "_cumulative_memory",
-    "cognitive_memory_" + phonemeKey
-  ].forEach(function (key) {
-    localStorage.setItem(key, value);
-  });
-}
+  if (!memory) return;
 
+  const lightMemory = {
+    method: memory.method,
+    phonemeKey: memory.phonemeKey || phonemeKey,
+    key: memory.key || phonemeKey,
+    phoneme: memory.phoneme,
+    label: memory.label,
+    color: memory.color,
+    pack: memory.pack,
+    samplesCount: memory.samplesCount || 0,
+    cumulativeGenome: memory.cumulativeGenome || {},
+    cumulativeGenomeByState: memory.cumulativeGenomeByState || {},
+    latestGovernance: memory.latestGovernance || null,
+    updatedAt: memory.updatedAt || new Date().toISOString()
+  };
+
+  localStorage.setItem(
+    phonemeKey + "_cumulative_memory",
+    JSON.stringify(lightMemory)
+  );
+
+  localStorage.removeItem("cognitive_memory_" + phonemeKey);
+}
 
 // ======================================
 // 5) قراءة أي ذاكرة محفوظة باسم معروف
