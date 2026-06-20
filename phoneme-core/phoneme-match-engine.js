@@ -796,6 +796,13 @@ function compareIdentityMap(
     sampleFamilyRecord,
     unitRecords
   );
+  alert(
+JSON.stringify(
+identity?.units?.[0],
+null,
+2
+)
+);
 
   return {
     total: familyShape.maxMismatch,
