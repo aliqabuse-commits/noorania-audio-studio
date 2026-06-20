@@ -838,51 +838,53 @@ function buildStoredUnitRecordsForMatch(
   familyContext
 ) {
   const units = identity?.units || [];
+  const memoryByState =
+    perceptualMemory?.perceptualSignatureByState || {};
 
   return units.map(function (unit) {
     const s = unit.summary || {};
     const p = unit.phases || {};
+    const mem = memoryByState[unit.id] || {};
 
     const coordinates = {
-  centroid: s.meanCentroid,
-  spread: s.meanSpread,
-  zcr: s.meanZcr,
+      // الجينوم الحقيقي من الوحدة
+      energy: s.meanEnergy,
+      centroid: s.meanCentroid,
+      spread: s.meanSpread,
+      zcr: s.meanZcr,
+      duration: s.duration,
 
-  burstEnergy: s.burstEnergy,
-  burstCentroid: s.burstCentroid,
-  burstSpread: s.burstSpread,
+      burstEnergy: s.burstEnergy,
+      burstCentroid: s.burstCentroid,
+      burstSpread: s.burstSpread,
 
-  energyMovement: s.energyMovement,
-  spectralMovement: s.spectralMovement,
-  phaseQuality: s.phaseQuality,
+      energyMovement: s.energyMovement,
+      spectralMovement: s.spectralMovement,
+      phaseQuality: s.phaseQuality,
 
-  sealCentroid: s.meanCentroid,
-  sealSpread: s.meanSpread,
-  sealBurstCentroid: s.burstCentroid,
-  sealBurstSpread: s.burstSpread,
+      // الذاكرة الحقيقية من perceptualMemory
+      memoryCentroid: mem.centroid?.mean,
+      memorySpread: mem.spread?.mean,
+      memoryEnergy: mem.energy?.mean,
+      memoryZcr: mem.zcr?.mean,
+      memoryDuration: mem.duration?.mean,
+      memoryActiveRatio: mem.activeRatio?.mean,
+      memoryBurstiness: mem.burstiness?.mean,
 
-  memoryBurstiness: s.burstEnergy,
+      // الزمن الحقيقي من phases
+      timelineOnset: p.onsetIndex,
+      timelineBurst: p.burstIndex,
+      timelineTransition: p.coreStartIndex,
+      timelineSustain: p.coreEndIndex,
+      timelineRelease: p.tailIndex,
 
-  timelineOnset: p.onsetIndex,
-  timelineBurst: p.burstIndex,
-  timelineTransition: p.coreStartIndex,
-  timelineSustain: p.coreEndIndex,
-  timelineRelease: p.tailIndex,
-
-  externalCognitiveOnset: p.onsetIndex,
-  externalCognitiveBurst: p.burstIndex,
-  externalCognitiveCoreStart: p.coreStartIndex,
-  externalCognitiveCoreEnd: p.coreEndIndex,
-  externalCognitiveTail: p.tailIndex
-};
-
-    if (unit.timeline) {
-      coordinates.timelineOnset = unit.timeline.onset?.index;
-      coordinates.timelineBurst = unit.timeline.burst?.index;
-      coordinates.timelineTransition = unit.timeline.transition?.index;
-      coordinates.timelineSustain = unit.timeline.sustain?.index;
-      coordinates.timelineRelease = unit.timeline.release?.index;
-    }
+      // الإدراك الخارجي من نفس مراحل الوحدة
+      externalCognitiveOnset: p.onsetIndex,
+      externalCognitiveBurst: p.burstIndex,
+      externalCognitiveCoreStart: p.coreStartIndex,
+      externalCognitiveCoreEnd: p.coreEndIndex,
+      externalCognitiveTail: p.tailIndex
+    };
 
     return {
       source: "stored-unit-record",
@@ -897,7 +899,6 @@ function buildStoredUnitRecordsForMatch(
     };
   });
 }
-
 // ======================================
 // ترتيب مرشحي الهوية
 // لا يعتمد على مجموع، بل على شكل التشكيلة: أعلى اختلاف ثم الذي يليه
