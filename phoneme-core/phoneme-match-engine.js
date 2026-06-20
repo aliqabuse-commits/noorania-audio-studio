@@ -758,13 +758,7 @@ function compareSampleToFamilyUnitSet(sampleRecord, unitRecords) {
   details.sort(function (a, b) {
     return b.mismatch - a.mismatch;
   });
-alert(
-  JSON.stringify(
-    details.map(d => d.key),
-    null,
-    2
-  )
-);
+
   return {
     method: "family-boundary-shape-match",
     details,
@@ -785,9 +779,7 @@ function compareIdentityMap(
   timelineKnowledge,
   stateDecision
 ) {
-alert(
-  Object.keys(identity?.units?.[0] || {}).join("\n")
-);
+
   const unitRecords = buildStoredUnitRecordsForMatch(
     identity,
     perceptualMemory,
@@ -887,13 +879,7 @@ memoryBurstiness:
       externalCognitiveCoreEnd: p.coreEndIndex,
       externalCognitiveTail: p.tailIndex
     };
-    alert(
-  JSON.stringify(
-    Object.keys(mem || {}),
-    null,
-    2
-  )
-);
+    
 
     return {
       source: "stored-unit-record",
