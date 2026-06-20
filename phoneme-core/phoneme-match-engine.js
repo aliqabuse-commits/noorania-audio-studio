@@ -718,12 +718,7 @@ function compareIdentityMap(
   timelineKnowledge,
   stateDecision
 ) {
-alert(
-  Object.keys(
-    identity.units[0] || {}
-  ).join("\n")
-);
-  
+
   const unitRecords = buildStoredUnitRecordsForMatch(
   identity,
   perceptualMemory,
@@ -815,7 +810,13 @@ function buildStoredUnitRecordsForMatch(
       coordinates.timelineSustain = unit.timeline.sustain?.index;
       coordinates.timelineRelease = unit.timeline.release?.index;
     }
-
+alert(
+JSON.stringify(
+Object.keys(coordinates),
+null,
+2
+)
+);
     return {
       source: "stored-unit-record",
       key: identity.phonemeKey,
