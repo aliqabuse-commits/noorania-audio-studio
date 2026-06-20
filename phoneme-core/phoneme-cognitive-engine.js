@@ -354,7 +354,9 @@ function saveMemoryUnderKnownKeys(phonemeKey, memory) {
     JSON.stringify(lightMemory)
   );
 
-  localStorage.removeItem("cognitive_memory_sad");
+  localStorage.removeItem(
+  "cognitive_memory_" + phonemeKey
+);
 }
 
 // ======================================
