@@ -831,24 +831,37 @@ function buildStoredUnitRecordsForMatch(
     const p = unit.phases || {};
 
     const coordinates = {
-      centroid: s.meanCentroid,
-      spread: s.meanSpread,
-      zcr: s.meanZcr,
+  centroid: s.meanCentroid,
+  spread: s.meanSpread,
+  zcr: s.meanZcr,
 
-      burstEnergy: s.burstEnergy,
-      burstCentroid: s.burstCentroid,
-      burstSpread: s.burstSpread,
+  burstEnergy: s.burstEnergy,
+  burstCentroid: s.burstCentroid,
+  burstSpread: s.burstSpread,
 
-      energyMovement: s.energyMovement,
-      spectralMovement: s.spectralMovement,
-      phaseQuality: s.phaseQuality,
+  energyMovement: s.energyMovement,
+  spectralMovement: s.spectralMovement,
+  phaseQuality: s.phaseQuality,
 
-      externalCognitiveOnset: p.onsetIndex,
-      externalCognitiveBurst: p.burstIndex,
-      externalCognitiveCoreStart: p.coreStartIndex,
-      externalCognitiveCoreEnd: p.coreEndIndex,
-      externalCognitiveTail: p.tailIndex
-    };
+  sealCentroid: s.meanCentroid,
+  sealSpread: s.meanSpread,
+  sealBurstCentroid: s.burstCentroid,
+  sealBurstSpread: s.burstSpread,
+
+  memoryBurstiness: s.burstEnergy,
+
+  timelineOnset: p.onsetIndex,
+  timelineBurst: p.burstIndex,
+  timelineTransition: p.coreStartIndex,
+  timelineSustain: p.coreEndIndex,
+  timelineRelease: p.tailIndex,
+
+  externalCognitiveOnset: p.onsetIndex,
+  externalCognitiveBurst: p.burstIndex,
+  externalCognitiveCoreStart: p.coreStartIndex,
+  externalCognitiveCoreEnd: p.coreEndIndex,
+  externalCognitiveTail: p.tailIndex
+};
 
     if (unit.timeline) {
       coordinates.timelineOnset = unit.timeline.onset?.index;
