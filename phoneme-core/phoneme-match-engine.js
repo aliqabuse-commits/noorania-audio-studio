@@ -784,43 +784,47 @@ function buildStoredUnitRecordsForMatch(
 ) {
   const units = identity?.units || [];
 
-  return units.map(function(unit) {
+  return units.map(function (unit) {
+    const s = unit.summary || {};
+    const p = unit.phases || {};
 
     const coordinates = {
-      centroid: unit.centroid,
-      spread: unit.spread,
-      energy: unit.energy,
-      zcr: unit.zcr,
-      duration: unit.duration,
+      centroid: s.meanCentroid,
+      spread: s.meanSpread,
+      zcr: s.meanZcr,
 
-      burstEnergy: unit.burstEnergy,
-      burstCentroid: unit.burstCentroid,
-      burstSpread: unit.burstSpread,
+      burstEnergy: s.burstEnergy,
+      burstCentroid: s.burstCentroid,
+      burstSpread: s.burstSpread,
 
-      energyMovement: unit.energyMovement,
-      spectralMovement: unit.spectralMovement,
-      phaseQuality: unit.phaseQuality
+      energyMovement: s.energyMovement,
+      spectralMovement: s.spectralMovement,
+      phaseQuality: s.phaseQuality,
+
+      externalCognitiveOnset: p.onsetIndex,
+      externalCognitiveBurst: p.burstIndex,
+      externalCognitiveCoreStart: p.coreStartIndex,
+      externalCognitiveCoreEnd: p.coreEndIndex,
+      externalCognitiveTail: p.tailIndex
     };
+
+    if (unit.timeline) {
+      coordinates.timelineOnset = unit.timeline.onset?.index;
+      coordinates.timelineBurst = unit.timeline.burst?.index;
+      coordinates.timelineTransition = unit.timeline.transition?.index;
+      coordinates.timelineSustain = unit.timeline.sustain?.index;
+      coordinates.timelineRelease = unit.timeline.release?.index;
+    }
 
     return {
       source: "stored-unit-record",
-
       key: identity.phonemeKey,
-
       phoneme: identity.phoneme,
-
       label: identity.label,
-
-      stateKey: unit.stateKey,
-
-      text:
-        unit.hmal ||
-        unit.haml ||
-        unit.text ||
-        "",
-
+      stateKey: unit.id,
+      text: unit.text || "",
+      file: unit.file || "",
       familyContext,
-
       coordinates
     };
   });
