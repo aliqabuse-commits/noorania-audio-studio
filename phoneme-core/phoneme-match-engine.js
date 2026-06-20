@@ -868,9 +868,11 @@ function buildStoredUnitRecordsForMatch(
       memoryEnergy: mem.energy?.mean,
       memoryZcr: mem.zcr?.mean,
       memoryDuration: mem.duration?.mean,
-      memoryActiveRatio: mem.activeRatio?.mean,
-      memoryBurstiness: mem.burstiness?.mean,
+      memoryActiveRatio:
+  mem.activeRatio?.mean ?? mem.activeRatio,
 
+memoryBurstiness:
+  mem.burstiness?.mean ?? mem.burstiness,
       // الزمن الحقيقي من phases
       timelineOnset: p.onsetIndex,
       timelineBurst: p.burstIndex,
