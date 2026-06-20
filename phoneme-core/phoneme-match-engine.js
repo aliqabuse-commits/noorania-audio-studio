@@ -854,13 +854,7 @@ function buildStoredUnitRecordsForMatch(
       coordinates.timelineSustain = unit.timeline.sustain?.index;
       coordinates.timelineRelease = unit.timeline.release?.index;
     }
-alert(
-JSON.stringify(
-Object.keys(coordinates),
-null,
-2
-)
-);
+
     return {
       source: "stored-unit-record",
       key: identity.phonemeKey,
