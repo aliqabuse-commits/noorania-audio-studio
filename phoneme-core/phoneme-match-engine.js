@@ -772,7 +772,13 @@ function compareIdentityMap(
   timelineKnowledge,
   stateDecision
 ) {
-
+alert(
+JSON.stringify(
+identity?.units?.[0],
+null,
+2
+)
+);
   const unitRecords = buildStoredUnitRecordsForMatch(
     identity,
     perceptualMemory,
@@ -796,13 +802,7 @@ function compareIdentityMap(
     sampleFamilyRecord,
     unitRecords
   );
-  alert(
-JSON.stringify(
-identity?.units?.[0],
-null,
-2
-)
-);
+  
 
   return {
     total: familyShape.maxMismatch,
