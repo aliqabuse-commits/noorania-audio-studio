@@ -719,24 +719,11 @@ function compareIdentityMap(
   stateDecision
 ) {
 alert(
-  JSON.stringify(
-    identity.units[0],
-    null,
-    2
-  )
+  Object.keys(
+    identity.units[0] || {}
+  ).join("\n")
 );
-  console.log(
-  "FIRST UNIT",
-  identity?.phonemeKey,
-  identity?.units?.[0]
-);
-  alert(
-  JSON.stringify(
-    identity?.units?.[0],
-    null,
-    2
-  )
-);
+  
   const unitRecords = buildStoredUnitRecordsForMatch(
   identity,
   perceptualMemory,
