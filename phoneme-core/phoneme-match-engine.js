@@ -773,11 +773,7 @@ function compareIdentityMap(
   stateDecision
 ) {
 alert(
-JSON.stringify(
-identity?.units?.[0],
-null,
-2
-)
+  Object.keys(identity?.units?.[0] || {}).join("\n")
 );
   const unitRecords = buildStoredUnitRecordsForMatch(
     identity,
