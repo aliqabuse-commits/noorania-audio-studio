@@ -719,8 +719,11 @@ function compareIdentityMap(
   stateDecision
 ) {
 alert(
-  "units=" +
-  (identity?.units?.length || 0)
+  JSON.stringify(
+    identity.units[0],
+    null,
+    2
+  )
 );
   console.log(
   "FIRST UNIT",
