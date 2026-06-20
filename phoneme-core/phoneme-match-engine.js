@@ -885,6 +885,13 @@ function buildStoredUnitRecordsForMatch(
       externalCognitiveCoreEnd: p.coreEndIndex,
       externalCognitiveTail: p.tailIndex
     };
+    alert(
+  JSON.stringify(
+    Object.keys(mem || {}),
+    null,
+    2
+  )
+);
 
     return {
       source: "stored-unit-record",
