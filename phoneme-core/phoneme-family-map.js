@@ -712,9 +712,17 @@ function detectOutlierSamples(samples, featureKeys, options) {
   const minSamples = options.minSamples || 4;
 
   if (!Array.isArray(samples) || samples.length < minSamples) {
-    return {
-      cleanSamples: samples || [],
-      outlierSamples: [],
+    const outlierIds = new Set(
+  outlierFeatures.map(o => o.sampleId)
+);
+
+return {
+  cleanSamples: samples.filter(
+    s => !outlierIds.has(s.id || s.file || "")
+  ),
+  outlierSamples: samples.filter(
+    s => outlierIds.has(s.id || s.file || "")
+  ),
       outlierFeatures: [],
       report: {
         reason: "not-enough-samples",
