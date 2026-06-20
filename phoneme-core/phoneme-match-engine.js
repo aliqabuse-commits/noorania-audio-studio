@@ -713,13 +713,20 @@ function registerMismatchPart(parts, key, mismatch) {
 
   parts.genome = Math.max(parts.genome || 0, mismatch);
 }
+
 function compareSampleToFamilyUnitSet(sampleRecord, unitRecords) {
   const sample = sampleRecord?.coordinates || {};
   const details = [];
+  const relationDetails = [];
   const missing = [];
   const parts = {};
 
-  Object.keys(sample).forEach(function (key) {
+  const keys = Object.keys(sample).filter(function (key) {
+    return isFiniteNumber(sample[key]);
+  });
+
+  // 1) فحص وجود الرواصد فقط، لا جعلها الحاكم النهائي
+  keys.forEach(function (key) {
     const a = sample[key];
 
     const values = unitRecords
@@ -728,7 +735,7 @@ function compareSampleToFamilyUnitSet(sampleRecord, unitRecords) {
       })
       .filter(isFiniteNumber);
 
-    if (!isFiniteNumber(a) || !values.length) {
+    if (!values.length) {
       missing.push(key);
       return;
     }
@@ -755,18 +762,92 @@ function compareSampleToFamilyUnitSet(sampleRecord, unitRecords) {
     registerMismatchPart(parts, key, mismatch);
   });
 
+  // 2) الحكم الحقيقي: علاقة الرواصد ببعضها
+  for (let i = 0; i < keys.length; i++) {
+    for (let j = i + 1; j < keys.length; j++) {
+      const keyA = keys[i];
+      const keyB = keys[j];
+
+      const sampleRelation = safeRelationValue(
+        sample[keyA],
+        sample[keyB]
+      );
+
+      if (!isFiniteNumber(sampleRelation)) continue;
+
+      const familyRelations = unitRecords
+        .map(function (r) {
+          return safeRelationValue(
+            r.coordinates?.[keyA],
+            r.coordinates?.[keyB]
+          );
+        })
+        .filter(isFiniteNumber);
+
+      if (!familyRelations.length) continue;
+
+      const min = Math.min.apply(null, familyRelations);
+      const max = Math.max.apply(null, familyRelations);
+
+      let mismatch = 0;
+
+      if (sampleRelation < min) {
+        mismatch =
+          (min - sampleRelation) /
+          Math.max(Math.abs(min), Math.abs(sampleRelation), 1);
+      } else if (sampleRelation > max) {
+        mismatch =
+          (sampleRelation - max) /
+          Math.max(Math.abs(max), Math.abs(sampleRelation), 1);
+      }
+
+      relationDetails.push({
+        key: keyA + " ↔ " + keyB,
+        sampleRelation,
+        familyRelationMin: min,
+        familyRelationMax: max,
+        mismatch
+      });
+    }
+  }
+
   details.sort(function (a, b) {
     return b.mismatch - a.mismatch;
   });
 
+  relationDetails.sort(function (a, b) {
+    return b.mismatch - a.mismatch;
+  });
+
+  const relationMax =
+    relationDetails[0]?.mismatch ?? Infinity;
+
+  const directMax =
+    details[0]?.mismatch ?? Infinity;
+
+  const finalMismatch =
+    relationDetails.length ? relationMax : directMax;
+
+  parts.relation = Number.isFinite(relationMax) ? relationMax : 0;
+
   return {
-    method: "family-boundary-shape-match",
-    details,
+    method: "relational-family-identity-match",
+    details: relationDetails.length ? relationDetails : details,
+    directDetails: details,
+    relationDetails,
     missing,
     parts,
-    maxMismatch: details[0]?.mismatch ?? Infinity,
-    comparedCount: details.length
+    maxMismatch: finalMismatch,
+    comparedCount: relationDetails.length || details.length
   };
+}
+
+function safeRelationValue(a, b) {
+  if (!isFiniteNumber(a) || !isFiniteNumber(b)) return null;
+
+  const scale = Math.max(Math.abs(a), Math.abs(b), 1);
+
+  return (a - b) / scale;
 }
 // ======================================
 // محرك تجهيز سجل العائلة الإدراكية للمطابقة
