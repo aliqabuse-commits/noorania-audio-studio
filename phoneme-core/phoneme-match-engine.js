@@ -706,7 +706,61 @@ function registerMismatchPart(parts, key, mismatch) {
   parts.genome = Math.max(parts.genome || 0, mismatch);
 }
 
+function compareSampleToFamilyUnitSet(sampleRecord, unitRecords) {
+  const sample = sampleRecord?.coordinates || {};
+  const details = [];
+  const missing = [];
+  const parts = {};
 
+  Object.keys(sample).forEach(function (key) {
+    const a = sample[key];
+
+    const values = unitRecords
+      .map(function (r) {
+        return r.coordinates?.[key];
+      })
+      .filter(isFiniteNumber);
+
+    if (!isFiniteNumber(a) || !values.length) {
+      missing.push(key);
+      return;
+    }
+
+    const min = Math.min.apply(null, values);
+    const max = Math.max.apply(null, values);
+
+    let mismatch = 0;
+
+    if (a < min) {
+      mismatch = (min - a) / Math.max(Math.abs(min), Math.abs(a), 1);
+    } else if (a > max) {
+      mismatch = (a - max) / Math.max(Math.abs(max), Math.abs(a), 1);
+    }
+
+    details.push({
+      key,
+      sample: a,
+      familyMin: min,
+      familyMax: max,
+      mismatch
+    });
+
+    registerMismatchPart(parts, key, mismatch);
+  });
+
+  details.sort(function (a, b) {
+    return b.mismatch - a.mismatch;
+  });
+
+  return {
+    method: "family-boundary-shape-match",
+    details,
+    missing,
+    parts,
+    maxMismatch: details[0]?.mismatch ?? Infinity,
+    comparedCount: details.length
+  };
+}
 // ======================================
 // محرك تجهيز سجل العائلة الإدراكية للمطابقة
 // ======================================
@@ -756,18 +810,26 @@ unitRecords.forEach(function(record) {
   }
 }); 
 
-  return {
-  total: bestShape.maxMismatch,
-  familyShape: bestShape,
-  storedRecord: bestRecord,
+  const familyShape = compareSampleToFamilyUnitSet(
+  sampleFamilyRecord,
+  unitRecords
+);
 
-  parts: bestShape.parts,
-
+return {
+  total: familyShape.maxMismatch,
+  familyShape: familyShape,
+  storedRecord: {
+    source: "stored-family-unit-set",
+    key: identity.phonemeKey,
+    phoneme: identity.phoneme,
+    label: identity.label,
+    unitsCount: unitRecords.length,
+    unitRecords: unitRecords
+  },
+  parts: familyShape.parts,
   state: 0,
-
-  shapeMismatch: bestShape.maxMismatch,
-
-  missing: bestShape.missing
+  shapeMismatch: familyShape.maxMismatch,
+  missing: familyShape.missing
 };
 }
 
