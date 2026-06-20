@@ -718,7 +718,10 @@ function compareIdentityMap(
   timelineKnowledge,
   stateDecision
 ) {
-alert("ENTER compareIdentityMap");
+alert(
+  "units=" +
+  (identity?.units?.length || 0)
+);
   console.log(
   "FIRST UNIT",
   identity?.phonemeKey,
