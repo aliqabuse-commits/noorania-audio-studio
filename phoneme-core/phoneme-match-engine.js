@@ -774,63 +774,45 @@ function compareIdentityMap(
 ) {
 
   const unitRecords = buildStoredUnitRecordsForMatch(
-  identity,
-  perceptualMemory,
-  timelineKnowledge,
-  familyContext
-);
+    identity,
+    perceptualMemory,
+    timelineKnowledge,
+    familyContext
+  );
 
-if (!unitRecords.length) {
-  return {
-    total: Infinity,
-    familyShape: null,
-    storedRecord: null,
-    parts: {},
-    state: 0,
-    shapeMismatch: Infinity,
-    missing: ["no-unit-records"]
-  };
-}
- let bestShape = null;
-let bestRecord = null;
-
-unitRecords.forEach(function(record) {
-  const shape =
-    compareFamilyRecordsShape(
-      sampleFamilyRecord,
-      record
-    );
-
-  if (
-    !bestShape ||
-    shape.maxMismatch < bestShape.maxMismatch
-  ) {
-    bestShape = shape;
-    bestRecord = record;
+  if (!unitRecords.length) {
+    return {
+      total: Infinity,
+      familyShape: null,
+      storedRecord: null,
+      parts: {},
+      state: 0,
+      shapeMismatch: Infinity,
+      missing: ["no-unit-records"]
+    };
   }
-}); 
 
   const familyShape = compareSampleToFamilyUnitSet(
-  sampleFamilyRecord,
-  unitRecords
-);
+    sampleFamilyRecord,
+    unitRecords
+  );
 
-return {
-  total: familyShape.maxMismatch,
-  familyShape: familyShape,
-  storedRecord: {
-    source: "stored-family-unit-set",
-    key: identity.phonemeKey,
-    phoneme: identity.phoneme,
-    label: identity.label,
-    unitsCount: unitRecords.length,
-    unitRecords: unitRecords
-  },
-  parts: familyShape.parts,
-  state: 0,
-  shapeMismatch: familyShape.maxMismatch,
-  missing: familyShape.missing
-};
+  return {
+    total: familyShape.maxMismatch,
+    familyShape: familyShape,
+    storedRecord: {
+      source: "stored-family-unit-set",
+      key: identity.phonemeKey,
+      phoneme: identity.phoneme,
+      label: identity.label,
+      unitsCount: unitRecords.length,
+      unitRecords: unitRecords
+    },
+    parts: familyShape.parts,
+    state: 0,
+    shapeMismatch: familyShape.maxMismatch,
+    missing: familyShape.missing
+  };
 }
 
 function buildStoredUnitRecordsForMatch(
