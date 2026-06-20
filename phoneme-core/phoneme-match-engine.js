@@ -758,7 +758,13 @@ function compareSampleToFamilyUnitSet(sampleRecord, unitRecords) {
   details.sort(function (a, b) {
     return b.mismatch - a.mismatch;
   });
-
+alert(
+  JSON.stringify(
+    details.map(d => d.key),
+    null,
+    2
+  )
+);
   return {
     method: "family-boundary-shape-match",
     details,
