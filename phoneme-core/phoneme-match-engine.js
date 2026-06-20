@@ -793,7 +793,7 @@ function compareIdentityMap(
       familyShape: null,
       storedRecord: null,
       parts: {},
-      state: 0,
+      state: stateDecision?.distance || 0,
       shapeMismatch: Infinity,
       missing: ["no-unit-records"]
     };
@@ -833,13 +833,14 @@ function buildStoredUnitRecordsForMatch(
   const memoryByState =
     perceptualMemory?.perceptualSignatureByState || {};
 
+  const seal = identity?.genome?.spectralSeal || null;
+
   return units.map(function (unit) {
     const s = unit.summary || {};
     const p = unit.phases || {};
     const mem = memoryByState[unit.id] || {};
 
     const coordinates = {
-      // الجينوم الحقيقي من الوحدة
       energy: s.meanEnergy,
       centroid: s.meanCentroid,
       spread: s.meanSpread,
@@ -854,32 +855,31 @@ function buildStoredUnitRecordsForMatch(
       spectralMovement: s.spectralMovement,
       phaseQuality: s.phaseQuality,
 
-      // الذاكرة الحقيقية من perceptualMemory
-      memoryCentroid: mem.centroid?.mean,
-      memorySpread: mem.spread?.mean,
-      memoryEnergy: mem.energy?.mean,
-      memoryZcr: mem.zcr?.mean,
-      memoryDuration: mem.duration?.mean,
-      memoryActiveRatio:
-  mem.activeRatio?.mean ?? mem.activeRatio,
+      sealCentroid: seal?.averageCentroid,
+      sealSpread: seal?.averageSpread,
+      sealBurstCentroid: seal?.averageBurstCentroid,
+      sealBurstSpread: seal?.averageBurstSpread,
 
-memoryBurstiness:
-  mem.burstiness?.mean ?? mem.burstiness,
-      // الزمن الحقيقي من phases
+      memoryCentroid: mem.centroid?.mean ?? mem.centroid,
+      memorySpread: mem.spread?.mean ?? mem.spread,
+      memoryEnergy: mem.energy?.mean ?? mem.energy,
+      memoryZcr: mem.zcr?.mean ?? mem.zcr,
+      memoryDuration: mem.duration?.mean ?? mem.duration,
+      memoryActiveRatio: mem.activeRatio?.mean ?? mem.activeRatio,
+      memoryBurstiness: mem.burstiness?.mean ?? mem.burstiness,
+
       timelineOnset: p.onsetIndex,
       timelineBurst: p.burstIndex,
       timelineTransition: p.coreStartIndex,
       timelineSustain: p.coreEndIndex,
       timelineRelease: p.tailIndex,
 
-      // الإدراك الخارجي من نفس مراحل الوحدة
       externalCognitiveOnset: p.onsetIndex,
       externalCognitiveBurst: p.burstIndex,
       externalCognitiveCoreStart: p.coreStartIndex,
       externalCognitiveCoreEnd: p.coreEndIndex,
       externalCognitiveTail: p.tailIndex
     };
-    
 
     return {
       source: "stored-unit-record",
