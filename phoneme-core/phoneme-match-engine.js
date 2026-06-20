@@ -718,6 +718,7 @@ function compareIdentityMap(
   timelineKnowledge,
   stateDecision
 ) {
+alert("ENTER compareIdentityMap");
   console.log(
   "FIRST UNIT",
   identity?.phonemeKey,
