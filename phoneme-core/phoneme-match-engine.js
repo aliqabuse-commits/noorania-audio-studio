@@ -394,11 +394,11 @@ function buildSampleFamilyRecord(summary, timeline) {
   const phases = summary.__phases || {};
 
   const coordinates = {
-    //energy: summary.meanEnergy,
+    energy: summary.meanEnergy,
     centroid: summary.meanCentroid,
     spread: summary.meanSpread,
     zcr: summary.meanZcr,
-    //duration: summary.duration,
+    duration: summary.duration,
 
     burstEnergy: summary.burstEnergy,
     burstCentroid: summary.burstCentroid,
@@ -412,7 +412,7 @@ function buildSampleFamilyRecord(summary, timeline) {
     sealSpread: summary.meanSpread,
     sealBurstCentroid: summary.burstCentroid,
     sealBurstSpread: summary.burstSpread,
-//memoryActiveRatio: summary.activeRatio,
+memoryActiveRatio: summary.activeRatio,
 memoryBurstiness: summary.burstEnergy,
     externalCognitiveOnset: phases.onsetIndex,
     externalCognitiveBurst: phases.burstIndex,
@@ -493,11 +493,11 @@ console.log(
   )
 );
   const coordinates = {
-    //energy: genome.energy?.mean,
+    energy: genome.energy?.mean,
     centroid: genome.centroid?.mean,
     spread: genome.spread?.mean,
     zcr: genome.zcr?.mean,
-    //duration: genome.duration?.mean,
+    duration: genome.duration?.mean,
 
     burstEnergy: genome.burstEnergy?.mean,
     burstCentroid: genome.burstCentroid?.mean,
@@ -518,10 +518,10 @@ console.log(
   if (mem) {
     coordinates.memoryCentroid = mem.centroid?.mean;
     coordinates.memorySpread = mem.spread?.mean;
-    //coordinates.memoryEnergy = mem.energy?.mean;
+    coordinates.memoryEnergy = mem.energy?.mean;
     coordinates.memoryZcr = mem.zcr?.mean;
-    //coordinates.memoryDuration = mem.duration?.mean;
-    //coordinates.memoryActiveRatio = mem.activeRatio?.mean;
+    coordinates.memoryDuration = mem.duration?.mean;
+    coordinates.memoryActiveRatio = mem.activeRatio?.mean;
 coordinates.memoryBurstiness = mem.burstiness?.mean;
   }
 
