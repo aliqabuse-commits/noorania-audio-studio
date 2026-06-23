@@ -295,6 +295,7 @@ function saveCognitiveIdentityAndCumulativeMemory(phonemeKey, identity) {
   }),
   genome: identity.genome,
   genomeByState: identity.genomeByState,
+   unitRecords: identity.unitRecords || [], 
   familyDecision: identity.familyDecision,
   governance: identity.governance,
   createdAt: identity.createdAt,
@@ -1353,5 +1354,5 @@ window.decodeCognitiveBlob = decodeCognitiveBlob;
 window.buildCognitiveTimeline = buildCognitiveTimeline;
 window.detectCognitivePhases = detectCognitivePhases;
 window.summarizeCognitiveTimeline = summarizeCognitiveTimeline;
-
+window.buildCognitiveUnitRecords = buildCognitiveUnitRecords;
 console.log("🧠 المحرك الإدراكي المركزي جاهز V5 كامل");
