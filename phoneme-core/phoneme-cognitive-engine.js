@@ -847,7 +847,47 @@ function buildCognitiveGenomeByState(units) {
   return byState;
 }
 
+function buildCognitiveUnitRecords(units) {
+  return (units || []).map(function (unit) {
+    const s = unit.summary || {};
+    const p = unit.phases || {};
 
+    return {
+      id: unit.id,
+      text: unit.text || "",
+      file: unit.file || "",
+      role: unit.role || "",
+      coordinates: {
+        energy: s.meanEnergy,
+        centroid: s.meanCentroid,
+        spread: s.meanSpread,
+        zcr: s.meanZcr,
+        duration: s.duration,
+
+        burstEnergy: s.burstEnergy,
+        burstCentroid: s.burstCentroid,
+        burstSpread: s.burstSpread,
+
+        energyMovement: s.energyMovement,
+        spectralMovement: s.spectralMovement,
+        phaseQuality: s.phaseQuality,
+        activeRatio: s.activeRatio,
+
+        timelineOnset: p.onsetIndex,
+        timelineBurst: p.burstIndex,
+        timelineTransition: p.coreStartIndex,
+        timelineSustain: p.coreEndIndex,
+        timelineRelease: p.tailIndex,
+
+        externalCognitiveOnset: p.onsetIndex,
+        externalCognitiveBurst: p.burstIndex,
+        externalCognitiveCoreStart: p.coreStartIndex,
+        externalCognitiveCoreEnd: p.coreEndIndex,
+        externalCognitiveTail: p.tailIndex
+      }
+    };
+  });
+}
 function buildSpectralSealFromCognitiveUnits(units) {
   const centroids = [];
   const spreads = [];
