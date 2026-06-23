@@ -201,8 +201,9 @@ if (typeof buildFamilyDecisionForPhoneme === "function") {
       pack,
       cognitiveUnits,
       genome,
-      genomeByState,
-      familyDecision,
+genomeByState,
+unitRecords: buildCognitiveUnitRecords(cognitiveUnits),
+familyDecision,
       oldMemory
     });
 
