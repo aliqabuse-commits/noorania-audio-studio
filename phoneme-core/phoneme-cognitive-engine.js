@@ -1083,6 +1083,28 @@ const spectralSealHtml = seal ? `
     <div>عدد عينات الختم: <b style="color:white;">${seal.samplesCount}</b></div>
   </div>
 ` : "";
+  const unitRecordsHtml = (identity.unitRecords || []).map(function (r) {
+  const c = r.coordinates || {};
+
+  return `
+    <div style="background:#020617;border:1px solid #1e293b;border-radius:10px;padding:10px;margin:8px 0;">
+      <div style="color:#38bdf8;font-weight:bold;">${r.text || r.id}</div>
+      <div>energy: ${c.energy}</div>
+      <div>centroid: ${c.centroid}</div>
+      <div>spread: ${c.spread}</div>
+      <div>zcr: ${c.zcr}</div>
+      <div>duration: ${c.duration}</div>
+      <div>burstEnergy: ${c.burstEnergy}</div>
+      <div>burstCentroid: ${c.burstCentroid}</div>
+      <div>burstSpread: ${c.burstSpread}</div>
+      <div>energyMovement: ${c.energyMovement}</div>
+      <div>spectralMovement: ${c.spectralMovement}</div>
+      <div>phaseQuality: ${c.phaseQuality}</div>
+      <div>activeRatio: ${c.activeRatio}</div>
+      <div>timeline: ${c.timelineOnset} → ${c.timelineBurst} → ${c.timelineTransition} → ${c.timelineSustain} → ${c.timelineRelease}</div>
+    </div>
+  `;
+}).join("");
   const html = `
     <h3 style="color:${identity.color.hex};margin-top:0;">
       🧠 الجينوم الإدراكي المركزي لحرف ${identity.label}
@@ -1111,13 +1133,13 @@ ${spectralSealHtml}
       <div>جودة المراحل: <b style="color:white;">${g.phaseQuality.mean}</b></div>
       <div>عدد جينومات الحالات: <b style="color:white;">${Object.keys(identity.genomeByState || {}).length}</b></div>
     </div>
+<hr style="border-color:#1f2937; margin:12px 0;">
 
-    <hr style="border-color:#1f2937; margin:12px 0;">
+<div style="font-weight:bold;color:#38bdf8;margin-bottom:8px;">
+🧩 سجلات العينات المستقلة — مرجع القرار
+</div>
 
-    <div style="font-size:12px; color:#94a3b8; line-height:1.8;">
-      هذا التقرير يبني آخر جينوم مركزي، وجينومًا لكل حالة، ثم يضيفه إلى ذاكرة تراكمية.
-      لا يعتمد الحرف وحده؛ بل يترك الاعتماد للمقارنة العائلية والذاكرة والحوكمة.
-    </div>
+${unitRecordsHtml}
   `;
 
   if (typeof renderToUnifiedPanel === "function") {
