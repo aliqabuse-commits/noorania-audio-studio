@@ -237,9 +237,10 @@ familyDecision,
       }),
 
       genome,
-      genomeByState,
-      familyDecision,
-      governance,
+genomeByState,
+unitRecords: buildCognitiveUnitRecords(cognitiveUnits),
+familyDecision,
+governance,
       outlierSamples: filtered.outlierSamples,
 outlierReport: filtered.report,
 cleanSamplesCount: decisionUnits.length,
@@ -257,12 +258,7 @@ sendCognitiveGenomeKnowledgeSignal(
   },
   identity.governance?.evidence?.phaseQualityMean || null
 );
-    identity.unitRecords = buildStoredUnitRecordsForMatch(
-  identity,
-  null,
-  null,
-  null
-);
+    
     renderCognitiveReport(identity);
 
     return identity;
@@ -1383,6 +1379,5 @@ window.buildCognitiveTimeline = buildCognitiveTimeline;
 window.detectCognitivePhases = detectCognitivePhases;
 window.summarizeCognitiveTimeline = summarizeCognitiveTimeline;
 window.buildCognitiveUnitRecords = buildCognitiveUnitRecords;
-window.buildStoredUnitRecordsForMatch =
-  buildStoredUnitRecordsForMatch;
+
 console.log("🧠 المحرك الإدراكي المركزي جاهز V5 كامل");
