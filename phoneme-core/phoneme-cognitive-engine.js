@@ -257,6 +257,12 @@ sendCognitiveGenomeKnowledgeSignal(
   },
   identity.governance?.evidence?.phaseQualityMean || null
 );
+    identity.unitRecords = buildStoredUnitRecordsForMatch(
+  identity,
+  null,
+  null,
+  null
+);
     renderCognitiveReport(identity);
 
     return identity;
