@@ -888,9 +888,10 @@ function buildStoredUnitRecordsForMatch(
   familyContext
 ) {
   const units =
-  identity?.unitRecords?.length
-    ? identity.unitRecords
-    : (identity?.units || []);
+    identity?.unitRecords?.length
+      ? identity.unitRecords
+      : (identity?.units || []);
+
   const memoryByState =
     perceptualMemory?.perceptualSignatureByState || {};
 
@@ -900,22 +901,23 @@ function buildStoredUnitRecordsForMatch(
     const s = unit.summary || {};
     const p = unit.phases || {};
     const mem = memoryByState[unit.id] || {};
-const base = unit.coordinates || {};
+    const base = unit.coordinates || {};
+
     const coordinates = {
       energy: base.energy ?? s.meanEnergy,
-centroid: base.centroid ?? s.meanCentroid,
-spread: base.spread ?? s.meanSpread,
-zcr: base.zcr ?? s.meanZcr,
-duration: base.duration ?? s.duration,
+      centroid: base.centroid ?? s.meanCentroid,
+      spread: base.spread ?? s.meanSpread,
+      zcr: base.zcr ?? s.meanZcr,
+      duration: base.duration ?? s.duration,
 
-burstEnergy: base.burstEnergy ?? s.burstEnergy,
-burstCentroid: base.burstCentroid ?? s.burstCentroid,
-burstSpread: base.burstSpread ?? s.burstSpread,
+      burstEnergy: base.burstEnergy ?? s.burstEnergy,
+      burstCentroid: base.burstCentroid ?? s.burstCentroid,
+      burstSpread: base.burstSpread ?? s.burstSpread,
 
-energyMovement: base.energyMovement ?? s.energyMovement,
-spectralMovement: base.spectralMovement ?? s.spectralMovement,
-phaseQuality: base.phaseQuality ?? s.phaseQuality,
-activeRatio: base.activeRatio ?? s.activeRatio,
+      energyMovement: base.energyMovement ?? s.energyMovement,
+      spectralMovement: base.spectralMovement ?? s.spectralMovement,
+      phaseQuality: base.phaseQuality ?? s.phaseQuality,
+      activeRatio: base.activeRatio ?? s.activeRatio,
 
       sealCentroid: seal?.averageCentroid,
       sealSpread: seal?.averageSpread,
@@ -931,16 +933,18 @@ activeRatio: base.activeRatio ?? s.activeRatio,
       memoryBurstiness: mem.burstiness?.mean ?? mem.burstiness,
 
       timelineOnset: base.timelineOnset ?? p.onsetIndex,
-timelineBurst: base.timelineBurst ?? p.burstIndex,
-timelineTransition: base.timelineTransition ?? p.coreStartIndex,
-timelineSustain: base.timelineSustain ?? p.coreEndIndex,
-timelineRelease: base.timelineRelease ?? p.tailIndex,
+      timelineBurst: base.timelineBurst ?? p.burstIndex,
+      timelineTransition: base.timelineTransition ?? p.coreStartIndex,
+      timelineSustain: base.timelineSustain ?? p.coreEndIndex,
+      timelineRelease: base.timelineRelease ?? p.tailIndex,
 
-externalCognitiveOnset: base.externalCognitiveOnset ?? p.onsetIndex,
-externalCognitiveBurst: base.externalCognitiveBurst ?? p.burstIndex,
-externalCognitiveCoreStart: base.externalCognitiveCoreStart ?? p.coreStartIndex,
-externalCognitiveCoreEnd: base.externalCognitiveCoreEnd ?? p.coreEndIndex,
-externalCognitiveTail: base.externalCognitiveTail ?? p.tailIndex
+      externalCognitiveOnset: base.externalCognitiveOnset ?? p.onsetIndex,
+      externalCognitiveBurst: base.externalCognitiveBurst ?? p.burstIndex,
+      externalCognitiveCoreStart: base.externalCognitiveCoreStart ?? p.coreStartIndex,
+      externalCognitiveCoreEnd: base.externalCognitiveCoreEnd ?? p.coreEndIndex,
+      externalCognitiveTail: base.externalCognitiveTail ?? p.tailIndex
+    };
+
     return {
       source: "stored-unit-record",
       key: identity.phonemeKey,
@@ -953,7 +957,7 @@ externalCognitiveTail: base.externalCognitiveTail ?? p.tailIndex
       coordinates
     };
   });
-}
+        }
 // ======================================
 // ترتيب مرشحي الهوية
 // لا يعتمد على مجموع، بل على شكل التشكيلة: أعلى اختلاف ثم الذي يليه
