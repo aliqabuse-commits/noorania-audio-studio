@@ -607,6 +607,25 @@ function buildPerceptualSignatureByState(samples) {
   return byState;
 }
 
+function buildMemoryUnitRecords(samples) {
+  return (samples || []).map(function (s) {
+    return {
+      id: s.id || "",
+      text: s.text || s.hmal || s.haml || "",
+      file: s.file || "",
+      role: s.role || "",
+      coordinates: {
+        memoryCentroid: roundMemory(s.features.centroid),
+        memorySpread: roundMemory(s.features.spread),
+        memoryEnergy: roundMemory(s.features.energy),
+        memoryZcr: roundMemory(s.features.zcr),
+        memoryDuration: roundMemory(s.duration),
+        memoryBurstiness: roundMemory(s.features.burstiness),
+        memoryActiveRatio: roundMemory(s.features.activeRatio || 0)
+      }
+    };
+  });
+}
 
 // ======================================
 // 7) حوكمة الذاكرة وخدمة القرار
