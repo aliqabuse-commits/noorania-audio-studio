@@ -474,24 +474,7 @@ const filtered =
   typeof filterCleanSamplesForFamilyRecord === "function"
     ? filterCleanSamplesForFamilyRecord(identity?.units || [])
     : null;
-  console.log(
-  "OUTLIER FEATURES COUNT",
-  identity?.phonemeKey,
-  filtered?.outlierFeatures?.length || 0
-);
-
-console.log(
-  "OUTLIER FEATURES",
-  identity?.phonemeKey,
-  filtered?.outlierFeatures || []
-);
-  alert(
-  JSON.stringify(
-    filtered?.outlierFeatures || [],
-    null,
-    2
-  )
-);
+  
   const coordinates = {
     energy: genome.energy?.mean,
     centroid: genome.centroid?.mean,
@@ -668,13 +651,7 @@ function compareFamilyRecordsShape(sampleRecord, storedRecord) {
   details.sort(function (a, b) {
     return b.mismatch - a.mismatch;
   });
-alert(
-  JSON.stringify(
-    details.map(d => d.key),
-    null,
-    2
-  )
-);
+
   return {
     method: "family-record-shape-match",
     details,
@@ -910,7 +887,10 @@ function buildStoredUnitRecordsForMatch(
   timelineKnowledge,
   familyContext
 ) {
-  const units = identity?.units || [];
+  const units =
+  identity?.unitRecords?.length
+    ? identity.unitRecords
+    : (identity?.units || []);
   const memoryByState =
     perceptualMemory?.perceptualSignatureByState || {};
 
@@ -920,22 +900,22 @@ function buildStoredUnitRecordsForMatch(
     const s = unit.summary || {};
     const p = unit.phases || {};
     const mem = memoryByState[unit.id] || {};
-
+const base = unit.coordinates || {};
     const coordinates = {
-      energy: s.meanEnergy,
-      centroid: s.meanCentroid,
-      spread: s.meanSpread,
-      zcr: s.meanZcr,
-      duration: s.duration,
+      energy: base.energy ?? s.meanEnergy,
+centroid: base.centroid ?? s.meanCentroid,
+spread: base.spread ?? s.meanSpread,
+zcr: base.zcr ?? s.meanZcr,
+duration: base.duration ?? s.duration,
 
-      burstEnergy: s.burstEnergy,
-      burstCentroid: s.burstCentroid,
-      burstSpread: s.burstSpread,
+burstEnergy: base.burstEnergy ?? s.burstEnergy,
+burstCentroid: base.burstCentroid ?? s.burstCentroid,
+burstSpread: base.burstSpread ?? s.burstSpread,
 
-      energyMovement: s.energyMovement,
-      spectralMovement: s.spectralMovement,
-      phaseQuality: s.phaseQuality,
-      activeRatio: s.activeRatio,
+energyMovement: base.energyMovement ?? s.energyMovement,
+spectralMovement: base.spectralMovement ?? s.spectralMovement,
+phaseQuality: base.phaseQuality ?? s.phaseQuality,
+activeRatio: base.activeRatio ?? s.activeRatio,
 
       sealCentroid: seal?.averageCentroid,
       sealSpread: seal?.averageSpread,
@@ -950,19 +930,17 @@ function buildStoredUnitRecordsForMatch(
       memoryActiveRatio: mem.activeRatio?.mean ?? mem.activeRatio,
       memoryBurstiness: mem.burstiness?.mean ?? mem.burstiness,
 
-      timelineOnset: p.onsetIndex,
-      timelineBurst: p.burstIndex,
-      timelineTransition: p.coreStartIndex,
-      timelineSustain: p.coreEndIndex,
-      timelineRelease: p.tailIndex,
+      timelineOnset: base.timelineOnset ?? p.onsetIndex,
+timelineBurst: base.timelineBurst ?? p.burstIndex,
+timelineTransition: base.timelineTransition ?? p.coreStartIndex,
+timelineSustain: base.timelineSustain ?? p.coreEndIndex,
+timelineRelease: base.timelineRelease ?? p.tailIndex,
 
-      externalCognitiveOnset: p.onsetIndex,
-      externalCognitiveBurst: p.burstIndex,
-      externalCognitiveCoreStart: p.coreStartIndex,
-      externalCognitiveCoreEnd: p.coreEndIndex,
-      externalCognitiveTail: p.tailIndex
-    };
-
+externalCognitiveOnset: base.externalCognitiveOnset ?? p.onsetIndex,
+externalCognitiveBurst: base.externalCognitiveBurst ?? p.burstIndex,
+externalCognitiveCoreStart: base.externalCognitiveCoreStart ?? p.coreStartIndex,
+externalCognitiveCoreEnd: base.externalCognitiveCoreEnd ?? p.coreEndIndex,
+externalCognitiveTail: base.externalCognitiveTail ?? p.tailIndex
     return {
       source: "stored-unit-record",
       key: identity.phonemeKey,
