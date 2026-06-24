@@ -935,6 +935,7 @@ function buildStoredUnitRecordsForMatch(
       energyMovement: s.energyMovement,
       spectralMovement: s.spectralMovement,
       phaseQuality: s.phaseQuality,
+      activeRatio: s.activeRatio,
 
       sealCentroid: seal?.averageCentroid,
       sealSpread: seal?.averageSpread,
