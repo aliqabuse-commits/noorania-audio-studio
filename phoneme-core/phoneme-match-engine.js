@@ -875,7 +875,7 @@ function compareIdentityMap(
       unitRecords: unitRecords
     },
     parts: familyShape.parts,
-    state: 0,
+    state: stateDecision?.distance || 0,
     shapeMismatch: familyShape.maxMismatch,
     missing: familyShape.missing
   };
