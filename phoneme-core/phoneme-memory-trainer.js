@@ -302,7 +302,7 @@ function savePerceptualIdentityEverywhere(phonemeKey, identity) {
     trainingUnits: identity.trainingUnits,
     perceptualSignature: identity.perceptualSignature,
     perceptualSignatureByState: identity.perceptualSignatureByState,
-
+memoryUnitRecords: identity.memoryUnitRecords || [],
     samplesCount: identity.samplesCount,
     confidence: identity.confidence,
     governance: identity.governance,
@@ -1383,5 +1383,5 @@ window.buildMemoryGovernanceDecision = buildMemoryGovernanceDecision;
 window.buildCumulativePerceptualSignature = buildCumulativePerceptualSignature;
 window.buildCumulativePerceptualSignatureByState =
   buildCumulativePerceptualSignatureByState;
-
+window.buildMemoryUnitRecords = buildMemoryUnitRecords;
 console.log("🎨 مدرب الذاكرة الإدراكية جاهز V3 كامل");
