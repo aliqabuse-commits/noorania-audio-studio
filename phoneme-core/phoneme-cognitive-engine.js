@@ -1383,4 +1383,6 @@ window.buildCognitiveTimeline = buildCognitiveTimeline;
 window.detectCognitivePhases = detectCognitivePhases;
 window.summarizeCognitiveTimeline = summarizeCognitiveTimeline;
 window.buildCognitiveUnitRecords = buildCognitiveUnitRecords;
+window.buildStoredUnitRecordsForMatch =
+  buildStoredUnitRecordsForMatch;
 console.log("🧠 المحرك الإدراكي المركزي جاهز V5 كامل");
