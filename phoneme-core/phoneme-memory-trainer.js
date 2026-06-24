@@ -489,7 +489,7 @@ text: s.hmal || s.haml || s.text,
 
     perceptualSignature: buildPerceptualSignature(values),
     perceptualSignatureByState: buildPerceptualSignatureByState(samples),
-
+memoryUnitRecords: buildMemoryUnitRecords(samples),
     samplesCount: samples.length,
 
     confidence: calcPerceptualConfidence(values),
