@@ -785,6 +785,8 @@ function compareSampleToFamilyUnitSet(sampleRecord, unitRecords) {
         familyRelationMax: max,
         mismatch
       });
+      registerMismatchPart(parts, keyA, mismatch);
+registerMismatchPart(parts, keyB, mismatch);
     }
   }
 
