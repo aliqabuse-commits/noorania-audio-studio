@@ -871,7 +871,10 @@ function buildCognitiveUnitRecords(units) {
         burstEnergy: s.burstEnergy,
         burstCentroid: s.burstCentroid,
         burstSpread: s.burstSpread,
-
+sealCentroid: s.meanCentroid,
+sealSpread: s.meanSpread,
+sealBurstCentroid: s.burstCentroid,
+sealBurstSpread: s.burstSpread,
         energyMovement: s.energyMovement,
         spectralMovement: s.spectralMovement,
         phaseQuality: s.phaseQuality,
