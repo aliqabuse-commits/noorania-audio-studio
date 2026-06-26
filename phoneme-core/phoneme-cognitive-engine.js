@@ -210,6 +210,7 @@ familyDecision,
     const identity = {
       method: "Noorani Central Cognitive Engine V5",
       version: COGNITIVE_ENGINE_VERSION,
+      familyRecordVersion: 2,
       phonemeKey,
       key: phonemeKey,
       phoneme,
