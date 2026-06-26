@@ -897,14 +897,14 @@ if (!eligibility.ok) {
       comparedCount: 0
     },
     storedRecord: {
-      source: "ineligible-record",
-      key: identity.phonemeKey,
-      phoneme: identity.phoneme,
-      label: identity.label,
-      reason: eligibility.reason,
-      familyRecordVersion: identity?.familyRecordVersion || 1,
-      requiredVersion: REQUIRED_FAMILY_RECORD_VERSION
-    },
+  source: "ineligible-record",
+  key: identity.phonemeKey,
+  phoneme: identity.phoneme,
+  label: identity.label,
+  reason: eligibility.reason,
+  familyRecordVersion: identity?.familyRecordVersion || 1,
+  requiredVersion: 2
+},
     parts: {},
     state: stateDecision?.distance || 0,
     shapeMismatch: Infinity,
