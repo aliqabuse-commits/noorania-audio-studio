@@ -833,6 +833,32 @@ function safeRelationValue(a, b) {
 
   return (a - b) / scale;
 }
+
+function checkIdentityRecordEligibility(identity, unitRecords) {
+  const version = Number(identity?.familyRecordVersion || 1);
+
+  if (version !== REQUIRED_FAMILY_RECORD_VERSION) {
+    return {
+      ok: false,
+      reason: "record-version-mismatch",
+      missing: ["familyRecordVersion"]
+    };
+  }
+
+  if (!unitRecords || !unitRecords.length) {
+    return {
+      ok: false,
+      reason: "no-unit-records",
+      missing: ["unitRecords"]
+    };
+  }
+
+  return {
+    ok: true,
+    reason: "eligible",
+    missing: []
+  };
+}
 // ======================================
 // محرك تجهيز سجل العائلة الإدراكية للمطابقة
 // ======================================
@@ -851,7 +877,39 @@ function compareIdentityMap(
     timelineKnowledge,
     familyContext
   );
+const eligibility = checkIdentityRecordEligibility(
+  identity,
+  unitRecords
+);
 
+if (!eligibility.ok) {
+  return {
+    total: Infinity,
+    familyShape: {
+      method: "record-eligibility-failed",
+      details: [],
+      directDetails: [],
+      relationDetails: [],
+      missing: eligibility.missing,
+      parts: {},
+      maxMismatch: Infinity,
+      comparedCount: 0
+    },
+    storedRecord: {
+      source: "ineligible-record",
+      key: identity.phonemeKey,
+      phoneme: identity.phoneme,
+      label: identity.label,
+      reason: eligibility.reason,
+      familyRecordVersion: identity?.familyRecordVersion || 1,
+      requiredVersion: REQUIRED_FAMILY_RECORD_VERSION
+    },
+    parts: {},
+    state: stateDecision?.distance || 0,
+    shapeMismatch: Infinity,
+    missing: eligibility.missing
+  };
+}
   if (!unitRecords.length) {
     return {
       total: Infinity,
