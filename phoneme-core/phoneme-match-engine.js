@@ -837,7 +837,8 @@ function safeRelationValue(a, b) {
 function checkIdentityRecordEligibility(identity, unitRecords) {
   const version = Number(identity?.familyRecordVersion || 1);
 
-  if (version !== REQUIRED_FAMILY_RECORD_VERSION) {
+  if (version !== 2) {
+    
     return {
       ok: false,
       reason: "record-version-mismatch",
