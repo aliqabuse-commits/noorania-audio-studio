@@ -278,6 +278,7 @@ function saveCognitiveIdentityAndCumulativeMemory(phonemeKey, identity) {
   const lightIdentity = {
   method: identity.method,
   version: identity.version,
+    familyRecordVersion: identity.familyRecordVersion
   phonemeKey: identity.phonemeKey,
   key: identity.key,
   phoneme: identity.phoneme,
