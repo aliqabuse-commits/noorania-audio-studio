@@ -276,16 +276,16 @@ sendCognitiveGenomeKnowledgeSignal(
 // ======================================
 function saveCognitiveIdentityAndCumulativeMemory(phonemeKey, identity) {
   const lightIdentity = {
-  method: identity.method,
-  version: identity.version,
-    familyRecordVersion: identity.familyRecordVersion
-  phonemeKey: identity.phonemeKey,
-  key: identity.key,
-  phoneme: identity.phoneme,
-  label: identity.label,
-  color: identity.color,
-  pack: identity.pack,
-  units: (identity.units || []).map(function (u) {
+    method: identity.method,
+    version: identity.version,
+    familyRecordVersion: identity.familyRecordVersion,
+    phonemeKey: identity.phonemeKey,
+    key: identity.key,
+    phoneme: identity.phoneme,
+    label: identity.label,
+    color: identity.color,
+    pack: identity.pack,
+    units: (identity.units || []).map(function (u) {
     return {
       id: u.id,
       text: u.hmal || u.haml || u.text,
