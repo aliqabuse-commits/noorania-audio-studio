@@ -279,7 +279,7 @@ function saveCognitiveIdentityAndCumulativeMemory(phonemeKey, identity) {
     method: identity.method,
     version: identity.version,
     familyRecordVersion: identity.familyRecordVersion,
-    phonemeKey: identity.phonemeKey,
+phonemeKey: identity.phonemeKey,
     key: identity.key,
     phoneme: identity.phoneme,
     label: identity.label,
@@ -299,7 +299,15 @@ function saveCognitiveIdentityAndCumulativeMemory(phonemeKey, identity) {
   }),
   genome: identity.genome,
   genomeByState: identity.genomeByState,
-   unitRecords: identity.unitRecords || [], 
+   unitRecords: (identity.unitRecords || []).map(function (r) {
+  return {
+    id: r.id,
+    text: r.text,
+    file: r.file,
+    role: r.role,
+    coordinates: r.coordinates
+  };
+}),
   familyDecision: identity.familyDecision,
   governance: identity.governance,
   createdAt: identity.createdAt,
