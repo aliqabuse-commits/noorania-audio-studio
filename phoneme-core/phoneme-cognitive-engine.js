@@ -1165,7 +1165,6 @@ ${unitRecordsHtml}
   }
 }
 
-
 // ======================================
 // 12) أدوات رياضية
 // ======================================
@@ -1371,6 +1370,27 @@ function sendCognitiveGenomeKnowledgeSignal(targetKey, genome, confidence) {
 }
 
 window.sendCognitiveGenomeKnowledgeSignal = sendCognitiveGenomeKnowledgeSignal;
+function clearPhonemeStorage(phonemeKey) {
+  const keys = [
+    phonemeKey + "_cognitive_identity",
+    phonemeKey + "_cumulative_memory",
+    phonemeKey + "_perceptual_identity",
+    phonemeKey + "_memory",
+    "phoneme_memory_" + phonemeKey,
+    "cognitive_memory_" + phonemeKey,
+    phonemeKey + "_timeline_genome",
+    phonemeKey + "_perceptual_family_record"
+  ];
+
+  keys.forEach(function (key) {
+    localStorage.removeItem(key);
+    console.log("🗑️ حذف:", key);
+  });
+
+  alert("تم حذف بيانات الحرف: " + phonemeKey);
+}
+
+window.clearPhonemeStorage = clearPhonemeStorage;
 // ======================================
 // 13) التصدير العام
 // ======================================
