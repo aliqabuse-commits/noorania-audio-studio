@@ -773,15 +773,13 @@ function compareSampleToFamilyUnitSet(sampleRecord, unitRecords) {
 
       let mismatch = 0;
 
-      if (sampleRelation < min) {
-        mismatch =
-          (min - sampleRelation) /
-          Math.max(Math.abs(min), Math.abs(sampleRelation), 1);
-      } else if (sampleRelation > max) {
-        mismatch =
-          (sampleRelation - max) /
-          Math.max(Math.abs(max), Math.abs(sampleRelation), 1);
-      }
+if (sampleRelation < min) {
+    mismatch = min - sampleRelation;
+} else if (sampleRelation > max) {
+    mismatch = sampleRelation - max;
+}
+
+mismatch = Math.min(1, Math.max(0, mismatch));
 
       relationDetails.push({
         key: keyA + " ↔ " + keyB,
@@ -827,11 +825,23 @@ registerMismatchPart(parts, keyB, mismatch);
 }
 
 function safeRelationValue(a, b) {
-  if (!isFiniteNumber(a) || !isFiniteNumber(b)) return null;
+  if (!isFiniteNumber(a) || !isFiniteNumber(b)) {
+    return null;
+  }
 
-  const scale = Math.max(Math.abs(a), Math.abs(b), 1);
+  // إذا كان الرقمان متساويين تماماً
+  if (a === b) {
+    return 1;
+  }
 
-  return (a - b) / scale;
+  // علاقة مستقرة بين 0 و 1
+  const maxValue = Math.max(Math.abs(a), Math.abs(b));
+
+  if (maxValue === 0) {
+    return 1;
+  }
+
+  return 1 - (Math.abs(a - b) / maxValue);
 }
 
 function checkIdentityRecordEligibility(identity, unitRecords) {
