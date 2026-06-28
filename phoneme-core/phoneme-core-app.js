@@ -540,6 +540,46 @@ function openPhonemeDeleteDialog(key) {
     deleteTargetKey = key;
 
     // فتح نافذة الخيارات
+  const html = `
+<div style="text-align:right;line-height:2">
+
+<h3>حذف بيانات حقيبة ${key}</h3>
+
+<label>
+<input type="checkbox" id="deleteGenome" checked>
+حذف الجينوم الإدراكي
+</label><br>
+
+<label>
+<input type="checkbox" id="deleteMemory" checked>
+حذف الذاكرة التراكمية
+</label><br>
+
+<label>
+<input type="checkbox" id="deleteTimeline" checked>
+حذف الجينوم الزمني
+</label><br>
+
+<label>
+<input type="checkbox" id="deleteAudio">
+حذف التسجيلات الصوتية الخام
+</label>
+
+<br><br>
+
+<button onclick="executeDelete()">🗑 تنفيذ الحذف</button>
+
+<button onclick="
+document.getElementById('unified-report-panel').style.display='none';
+">
+إلغاء
+</button>
+
+</div>
+`;
+
+document.getElementById("unified-report-panel").style.display="block";
+document.getElementById("unified-report-content").innerHTML=html;
 }
 
 function executeDelete() {
@@ -547,6 +587,64 @@ function executeDelete() {
     const key = deleteTargetKey;
 
     // يحذف فقط بيانات هذا المفتاح
+  const key = deleteTargetKey;
+
+if(document.getElementById("deleteGenome").checked){
+
+    localStorage.removeItem(key+"_cognitive_identity");
+
+    localStorage.removeItem(key+"_perceptual_family_record");
+}
+
+if(document.getElementById("deleteMemory").checked){
+
+    localStorage.removeItem(key+"_cumulative_memory");
+
+    localStorage.removeItem(key+"_memory");
+
+    localStorage.removeItem(key+"_perceptual_identity");
+
+    localStorage.removeItem("phoneme_memory_"+key);
+
+    localStorage.removeItem("cognitive_memory_"+key);
+
+}
+
+if(document.getElementById("deleteTimeline").checked){
+
+    localStorage.removeItem(key+"_timeline_genome");
+
+    localStorage.removeItem("timeline_genome_"+key);
+
+    localStorage.removeItem("phoneme_timeline_"+key);
+
+    localStorage.removeItem("cognitive_timeline_"+key);
+
+}
+
+if(document.getElementById("deleteAudio").checked){
+
+    const pack=getPhonemeTrainingPack(key);
+
+    if(pack && pack.positions){
+
+        pack.positions.forEach(function(pos){
+
+            localStorage.removeItem("audio_"+pos.file);
+
+            localStorage.removeItem(pos.file);
+
+        });
+
+    }
+
+}
+
+alert("تم حذف البيانات المحددة.");
+
+document.getElementById("unified-report-panel").style.display="none";
+
+deleteTargetKey=null;
 }
 
 window.openPhonemeDeleteDialog = openPhonemeDeleteDialog;
