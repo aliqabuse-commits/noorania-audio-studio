@@ -403,16 +403,38 @@ function renderPhonemeBagDetailsFromCore(key, pack) {
 
       <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:18px;">
         <button onclick="startPerceptualTraining('${key}')">🎙 تدريب</button>
-        <button onclick="safeOpenPhonemeReport('signal', '${key}')">🛡️ فحص جودة التسجيل</button>
-        <button onclick="testPhonemeColorBinding('${key}')">🎨 اللون</button>
-        <button onclick="safeOpenPhonemeReport('memory', '${key}')">🧠 الذاكرة</button>
-        <button onclick="safeOpenPhonemeReport('cognitive', '${key}')">🧬 الجينوم</button>
-        <button onclick="safeOpenPhonemeReport('timeline', '${key}')">⏳ بناء المسار الزمني</button>
-        <button onclick="startPhonemeMatchTest('${key}')">🎯 اختبار</button>
-        <button onclick="openPhonemeDeleteDialog('${key}')">
-🗑 حذف بيانات الحقيبة
+
+<button onclick="safeOpenPhonemeReport('signal', '${key}')">
+🛡️ فحص جودة التسجيل
 </button>
-        <button onclick="clearCognitiveMatchResultsLog()">🗑 حذف سجل الاختبارات</button>
+
+<button onclick="testPhonemeColorBinding('${key}')">
+🎨 اللون
+</button>
+
+<button onclick="safeOpenPhonemeReport('memory', '${key}')">
+🧠 بناء الذاكرة الإدراكية
+</button>
+
+<button onclick="safeOpenPhonemeReport('cognitive', '${key}')">
+🧬 بناء الجينوم الإدراكي
+</button>
+
+<button onclick="safeOpenPhonemeReport('timeline', '${key}')">
+⏳ بناء الجينوم الزمني
+</button>
+
+<button onclick="startPhonemeMatchTest('${key}')">
+🎯 اختبار
+</button>
+
+<button onclick="openPhonemeDeleteDialog('${key}')">
+🗑 حذف بيانات المعرفة
+</button>
+
+<button onclick="clearCognitiveMatchResultsLog()">
+🗑 حذف سجل الاختبارات
+</button>
       </div>
 
       <hr style="border-color:#1f2937; margin:18px 0;">
