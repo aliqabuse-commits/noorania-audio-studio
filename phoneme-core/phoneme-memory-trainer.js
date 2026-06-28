@@ -299,21 +299,46 @@ function savePerceptualIdentityEverywhere(phonemeKey, identity) {
     color: identity.color,
     pack: identity.pack,
 
-    trainingUnits: identity.trainingUnits,
+    trainingUnits: (identity.trainingUnits || []).map(function (u) {
+      return {
+        id: u.id,
+        text: u.text || u.hmal || u.haml,
+        file: u.file,
+        role: u.role,
+        duration: u.duration,
+        centroid: u.centroid,
+        spread: u.spread,
+        energy: u.energy,
+        zcr: u.zcr,
+        burstiness: u.burstiness,
+        activeRatio: u.activeRatio
+      };
+    }),
+
     perceptualSignature: identity.perceptualSignature,
     perceptualSignatureByState: identity.perceptualSignatureByState,
-memoryUnitRecords: identity.memoryUnitRecords || [],
+
+    // لا نحفظ سجلات ثقيلة داخل localStorage
+    memoryUnitRecords: [],
+
     samplesCount: identity.samplesCount,
     confidence: identity.confidence,
     governance: identity.governance,
     concept: identity.concept,
     createdAt: identity.createdAt,
 
-allSamplesCount: identity.allSamplesCount || identity.samplesCount,
-cleanSamplesCount: identity.cleanSamplesCount || identity.samplesCount,
-outlierSamples: identity.outlierSamples || [],
-outlierFeatures: identity.outlierFeatures || [],
-outlierReport: identity.outlierReport || null
+    allSamplesCount: identity.allSamplesCount || identity.samplesCount,
+    cleanSamplesCount: identity.cleanSamplesCount || identity.samplesCount,
+
+    // تخفيف التخزين
+    outlierSamples: [],
+    outlierFeatures: [],
+    outlierReport: identity.outlierReport
+      ? {
+          decision: identity.outlierReport.decision,
+          reason: identity.outlierReport.reason
+        }
+      : null
   };
 
   const value = JSON.stringify(lightIdentity);
@@ -328,7 +353,6 @@ outlierReport: identity.outlierReport || null
     value
   );
 
-  // لا نحفظ نسخة ثالثة مكررة حتى لا يمتلئ localStorage
   localStorage.removeItem("phoneme_memory_" + phonemeKey);
 
   if (typeof addPerceptualIdentityToCumulativeMemory === "function") {
