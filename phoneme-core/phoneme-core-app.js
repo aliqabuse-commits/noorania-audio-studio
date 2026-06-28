@@ -556,12 +556,12 @@ window.openPhonemeBagsView = function () {
     renderPhonemeCardsFromCore();
   }, 50);
 };
+
 let deleteTargetKey = null;
 
 function openPhonemeDeleteDialog(key) {
-    deleteTargetKey = key;
+  deleteTargetKey = key;
 
-    // فتح نافذة الخيارات
   const html = `
 <div style="text-align:right;line-height:2">
 
@@ -600,73 +600,60 @@ document.getElementById('unified-report-panel').style.display='none';
 </div>
 `;
 
-document.getElementById("unified-report-panel").style.display="block";
-document.getElementById("unified-report-content").innerHTML=html;
+  document.getElementById("unified-report-panel").style.display = "block";
+  document.getElementById("unified-report-content").innerHTML = html;
 }
 
 function executeDelete() {
-
-    const key = deleteTargetKey;
-
-    // يحذف فقط بيانات هذا المفتاح
   const key = deleteTargetKey;
 
-if(document.getElementById("deleteGenome").checked){
+  if (!key) {
+    alert("لا توجد حقيبة محددة للحذف.");
+    return;
+  }
 
-    localStorage.removeItem(key+"_cognitive_identity");
+  if (document.getElementById("deleteGenome").checked) {
+    localStorage.removeItem(key + "_cognitive_identity");
+    localStorage.removeItem(key + "_perceptual_family_record");
+  }
 
-    localStorage.removeItem(key+"_perceptual_family_record");
-}
+  if (document.getElementById("deleteMemory").checked) {
+    localStorage.removeItem(key + "_cumulative_memory");
+    localStorage.removeItem(key + "_memory");
+    localStorage.removeItem(key + "_perceptual_identity");
+    localStorage.removeItem("phoneme_memory_" + key);
+    localStorage.removeItem("cognitive_memory_" + key);
+  }
 
-if(document.getElementById("deleteMemory").checked){
+  if (document.getElementById("deleteTimeline").checked) {
+    localStorage.removeItem(key + "_timeline_genome");
+    localStorage.removeItem("timeline_genome_" + key);
+    localStorage.removeItem("phoneme_timeline_" + key);
+    localStorage.removeItem("cognitive_timeline_" + key);
+  }
 
-    localStorage.removeItem(key+"_cumulative_memory");
+  if (document.getElementById("deleteAudio").checked) {
+    const pack =
+      typeof getPhonemeTrainingPack === "function"
+        ? getPhonemeTrainingPack(key)
+        : null;
 
-    localStorage.removeItem(key+"_memory");
-
-    localStorage.removeItem(key+"_perceptual_identity");
-
-    localStorage.removeItem("phoneme_memory_"+key);
-
-    localStorage.removeItem("cognitive_memory_"+key);
-
-}
-
-if(document.getElementById("deleteTimeline").checked){
-
-    localStorage.removeItem(key+"_timeline_genome");
-
-    localStorage.removeItem("timeline_genome_"+key);
-
-    localStorage.removeItem("phoneme_timeline_"+key);
-
-    localStorage.removeItem("cognitive_timeline_"+key);
-
-}
-
-if(document.getElementById("deleteAudio").checked){
-
-    const pack=getPhonemeTrainingPack(key);
-
-    if(pack && pack.positions){
-
-        pack.positions.forEach(function(pos){
-
-            localStorage.removeItem("audio_"+pos.file);
-
-            localStorage.removeItem(pos.file);
-
-        });
-
+    if (pack && pack.positions) {
+      pack.positions.forEach(function (pos) {
+        localStorage.removeItem("audio_" + pos.file);
+        localStorage.removeItem(pos.file);
+        localStorage.removeItem("record_" + pos.file);
+      });
     }
+  }
 
-}
+  alert("تم حذف البيانات المحددة للحقيبة: " + key);
 
-alert("تم حذف البيانات المحددة.");
+  document.getElementById("unified-report-panel").style.display = "none";
+  document.getElementById("unified-report-content").innerHTML = "";
 
-document.getElementById("unified-report-panel").style.display="none";
-
-deleteTargetKey=null;
+  deleteTargetKey = null;
 }
 
 window.openPhonemeDeleteDialog = openPhonemeDeleteDialog;
+window.executeDelete = executeDelete;
