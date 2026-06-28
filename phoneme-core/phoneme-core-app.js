@@ -409,7 +409,9 @@ function renderPhonemeBagDetailsFromCore(key, pack) {
         <button onclick="safeOpenPhonemeReport('cognitive', '${key}')">🧬 الجينوم</button>
         <button onclick="safeOpenPhonemeReport('timeline', '${key}')">⏳ بناء المسار الزمني</button>
         <button onclick="startPhonemeMatchTest('${key}')">🎯 اختبار</button>
-        <button onclick="clearCurrentPhonemeStorage('${key}')">🗑 حذف بيانات الحقيبة</button>
+        <button onclick="openPhonemeDeleteDialog('${key}')">
+🗑 حذف بيانات الحقيبة
+</button>
         <button onclick="clearCognitiveMatchResultsLog()">🗑 حذف سجل الاختبارات</button>
       </div>
 
@@ -532,39 +534,19 @@ window.openPhonemeBagsView = function () {
     renderPhonemeCardsFromCore();
   }, 50);
 };
-function clearCurrentPhonemeStorage(phonemeKey) {
-  if (!phonemeKey) {
-    alert("لا توجد حقيبة محددة للحذف.");
-    return;
-  }
+let deleteTargetKey = null;
 
-  const ok = confirm(
-    "سيتم حذف بيانات المعرفة لهذه الحقيبة فقط:\n\n" +
-    phonemeKey +
-    "\n\nلن يتم حذف التسجيلات الصوتية الخام.\n\nهل تريد المتابعة؟"
-  );
+function openPhonemeDeleteDialog(key) {
+    deleteTargetKey = key;
 
-  if (!ok) return;
-
-  const keys = [
-    phonemeKey + "_cognitive_identity",
-    phonemeKey + "_cumulative_memory",
-    phonemeKey + "_perceptual_identity",
-    phonemeKey + "_memory",
-    phonemeKey + "_timeline_genome",
-    phonemeKey + "_perceptual_family_record",
-    "phoneme_memory_" + phonemeKey,
-    "cognitive_memory_" + phonemeKey,
-    "timeline_genome_" + phonemeKey,
-    "phoneme_timeline_" + phonemeKey,
-    "cognitive_timeline_" + phonemeKey
-  ];
-
-  keys.forEach(function (key) {
-    localStorage.removeItem(key);
-  });
-
-  alert("تم حذف بيانات المعرفة للحقيبة: " + phonemeKey);
+    // فتح نافذة الخيارات
 }
 
-window.clearCurrentPhonemeStorage = clearCurrentPhonemeStorage;
+function executeDelete() {
+
+    const key = deleteTargetKey;
+
+    // يحذف فقط بيانات هذا المفتاح
+}
+
+window.openPhonemeDeleteDialog = openPhonemeDeleteDialog;
