@@ -1159,16 +1159,15 @@ function persistTrainingAudioToLocalStorage(key, blob) {
         const dataUrl = reader.result;
 
         if (typeof dataUrl === "string" && dataUrl.startsWith("data:")) {
-          localStorage.removeItem("audio_" + key);
           localStorage.removeItem(key);
+          localStorage.removeItem("record_" + key);
 
           localStorage.setItem("audio_" + key, dataUrl);
-          localStorage.setItem(key, dataUrl);
 
-          console.log("💾 تم حفظ التسجيل الخام مؤقتًا:", key);
+          console.log("💾 تم حفظ التسجيل الخام مرة واحدة:", key);
         }
       } catch (err) {
-        console.warn("⚠️ تعذر حفظ التسجيل الخام مؤقتًا:", key, err);
+        console.warn("⚠️ تعذر حفظ التسجيل الخام:", key, err);
       }
     };
 
